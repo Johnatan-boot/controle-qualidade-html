@@ -1,0 +1,5800 @@
+/* ==================== ESTADO (dados de exemplo em memória) ==================== */
+const CODIGOS_DIVERGENCIA = [
+  "PALLET QUEBRADO",
+  "PREGO EXPOSTO",
+  "GRAMPO EXPOSTO",
+  "PESINHO SOLTO",
+  "EMBALAGEM NÃO CONFORME",
+  "TECIDO RASGADO",
+  "TECIDO MANCHADO",
+  "PRODUTO ÚMIDO",
+  "ESTRUTURA QUEBRADA",
+  "TECIDO ESGARÇADO",
+  "TONALIDADE DIVERGENTE",
+  "ETIQUETA ADULTERADA",
+  "TNT RASGADO",
+  "GAIOLA NÃO CONFORME",
+  "GAIOLA SEM IDENTIFICAÇÃO",
+  "EMPILHAMENTO INCORRETO",
+  "MANUSEIO INCORRETO",
+  "LOTE NÃO IDENTIFICADO",
+  "OUTROS",
+];
+
+const PRODUTOS = [
+  {
+    id: 1,
+    codigo: "BUP096X203X36AFDBOXPREMVELCHO",
+    descricao: "BOX SUEDE MARROM 069X188X25 INOV",
+    grupo: "BOX",
+    preco: 401.63,
+    fornecedor: "V-JOY MOVEIS E COLCH",
+    familia: "LINHA PREMIUM",
+  },
+  {
+    id: 2,
+    codigo: "CMP158X198X32ECUXFIRDES",
+    descricao: "BAU AF VELUDO AZUL COM CAVA 079X198X38 VJOY",
+    grupo: "BAÚ",
+    preco: 439.04,
+    fornecedor: "CRIAZZI",
+    familia: "LINHA CASAL",
+  },
+  {
+    id: 3,
+    codigo: "BXP138X188X26VJOYXKORBRCO",
+    descricao: "BOX KORANO BRANCO 138X188X26",
+    grupo: "BOX",
+    preco: 185.85,
+    fornecedor: "V-JOY MOVEIS E COLCH",
+    familia: "LINHA KORANO",
+  },
+  {
+    id: 4,
+    codigo: "ALM033X033X14CNZFOM",
+    descricao: "ALMOFADA DE PESCOCO 33X33X14 CINZA FOM",
+    grupo: "ACESSÓRIO",
+    preco: 20.5,
+    fornecedor: "CASA BASICA COMERCIO",
+    familia: "LINHA CONFORTO",
+  },
+  {
+    id: 5,
+    codigo: "BUE064X188X35AFITASUEDEXSUECIN",
+    descricao: "BAU ESPECIAL 064 X 188 X 35 AF ITABOX SUEDE",
+    grupo: "BAÚ",
+    preco: 647.54,
+    fornecedor: "ITABOX",
+    familia: "LINHA ESPECIAL",
+  },
+];
+
+let divergencias = [
+  {
+    id: 1,
+    setor: "MERCADO",
+    sku: "BUP128X188X37AFCRISUEDEXSUEPRE",
+    descricao: "BOX LINHO CINZA 079X198X26 VJOY",
+    fornecedor: "DREAM BOX",
+    valorUnit: 614.47,
+    qtd: 1,
+    codDiv: "EMBALAGEM NÃO CONFORME",
+    outroCodDiv: "",
+    status: "PENDENTE",
+    responsavel: "JOAO",
+    data: "2026-08-07",
+    prazoCorrecao: "2026-08-10",
+  },
+  {
+    id: 2,
+    setor: "MERCADO",
+    sku: "BXP096X203X25DBOXXLINHOXCINZA",
+    descricao: "BOX KORANO BRANCO 128X188X26",
+    fornecedor: "V-JOY MOVEIS E COLCH",
+    valorUnit: 185.85,
+    qtd: 1,
+    codDiv: "TECIDO ESGARÇADO",
+    outroCodDiv: "",
+    status: "PENDENTE",
+    responsavel: "JOAO",
+    data: "2026-08-07",
+    prazoCorrecao: "2026-08-15",
+  },
+  {
+    id: 3,
+    setor: "EXPEDICAO",
+    sku: "BUP096X203X37VJOYXAFPREMIUM",
+    descricao: "BAU AF PREMIUM LINHO 096X203X37",
+    fornecedor: "V-JOY MOVEIS E COLCH",
+    valorUnit: 483.0,
+    qtd: 1,
+    codDiv: "ETIQUETA ADULTERADA",
+    outroCodDiv: "",
+    status: "CORRIGIDO",
+    responsavel: "JOAO",
+    data: "2026-08-06",
+    prazoCorrecao: "2026-08-09",
+    dataConclusao: "2026-08-08",
+  },
+  {
+    id: 4,
+    setor: "RECEBIMENTO",
+    sku: "BUE064X188X35AFITASUEDEXSUECIN",
+    descricao: "BAU ESPECIAL 064 X 188 X 35 AF ITABOX SUEDE",
+    fornecedor: "ITABOX",
+    valorUnit: 647.54,
+    qtd: 1,
+    codDiv: "PESINHO SOLTO",
+    outroCodDiv: "",
+    status: "PENDENTE",
+    responsavel: "CARLOS",
+    data: "2026-08-13",
+    prazoCorrecao: "",
+  },
+  {
+    id: 5,
+    setor: "MERCADO",
+    sku: "BXP079X198X25DBOXXSUEDEXCINZA",
+    descricao: "BOX SUEDE CINZA 138X188X26",
+    fornecedor: "DREAM BOX",
+    valorUnit: 235.76,
+    qtd: 1,
+    codDiv: "EMBALAGEM NÃO CONFORME",
+    outroCodDiv: "",
+    status: "CORRIGIDO",
+    responsavel: "JOAO",
+    data: "2026-08-06",
+    prazoCorrecao: "2026-08-08",
+    dataConclusao: "2026-08-07",
+  },
+];
+
+/* ==================== INSPEÇÃO DE ESTOQUE — dados de referência ==================== */
+const TIPOS_DIVERGENCIA_ESTOQUE = {
+  GAIOLA: [
+    "Quebrado",
+    "Amassado",
+    "S/ Pino Sustentação",
+    "Torto",
+    "Faca solta",
+    "Outros",
+  ],
+  PALLET: ["Quebrado", "Rachado", "Prego exposto", "Estrado solto", "Outros"],
+  ORGANIZACAO: ["Empilhamento", "Local Incorreto", "FIFO", "Lote", "Outros"],
+  IDENTIFICACAO: [
+    "Gaiola sem identificação",
+    "Identificação incorreta",
+    "Área sem identificação",
+    "Outros",
+  ],
+};
+const TIPO_DIVERGENCIA_ESTOQUE_LABEL = {
+  GAIOLA: "Gaiola",
+  PALLET: "Pallet",
+  ORGANIZACAO: "Organização",
+  IDENTIFICACAO: "Identificação",
+};
+let inspecoesEstoque = [
+  {
+    id: 1,
+    data: "2026-08-13",
+    responsavel: "JOAO",
+    divergencias: [
+      {
+        ordem: 1,
+        tipo: "IDENTIFICACAO",
+        divergencia: "Gaiola sem identificação",
+        outroDesc: "",
+        obs: "Etiqueta rasgada, necessário reimprimir.",
+        status: "PENDENTE",
+        fotos: [],
+      },
+    ],
+  },
+];
+let nextEstoqueId = 2;
+let checklist5s = [
+  {
+    id: 1,
+    setor: "RECEBIMENTO",
+    turno: "MANHA",
+    responsavel: "MARIA",
+    data: "2026-08-13",
+    conformidade: 50,
+    itens: [
+      {
+        ordem: 1,
+        senso: "SEIRI",
+        desc: "Corredores livres",
+        resp: "CONFORME",
+      },
+      {
+        ordem: 2,
+        senso: "SEISO",
+        desc: "Piso limpo",
+        resp: "NAO_CONFORME",
+        obs: "Poeira acumulada",
+        acaoCorretiva: "Escalar equipe de limpeza",
+        criticidade: "ALTA",
+        status: "PENDENTE",
+        prazo: "2026-08-11",
+      },
+    ],
+  },
+];
+
+/* ==================== INSPEÇÃO DE RECEBIMENTO — dados de referência ==================== */
+const FORNECEDORES_LIST = [
+  "BEST PILLOW",
+  "BONAN",
+  "DREAM BOX",
+  "EBJ CABECEIRAS E BAU",
+  "ECUS",
+  "ELEVA",
+  "INOV",
+  "ITABOX",
+  "KACYUMARA",
+  "LATEX FOAM",
+  "LUCKSPUMA",
+  "MB MOVEIS",
+  "MGA",
+  "MONTREAL",
+  "SAO JORGE",
+  "SEBIAN",
+  "SERJA MOVEIS",
+  "UMAFLEX",
+  "V-JOY",
+  "OUTROS",
+];
+const MOTIVOS_DIVERGENCIA_PRODUTO = [
+  "GRAMPO EXPOSTO",
+  "PESINHO SOLTO",
+  "EMBALAGEM NÃO CONFORME",
+  "TECIDO RASGADO",
+  "TECIDO MANCHADO",
+  "PRODUTO ÚMIDO",
+  "ESTRUTURA QUEBRADA",
+  "TECIDO ESGARÇADO",
+  "TONALIDADE DIVERGENTE",
+  "ETIQUETA ADULTERADA",
+  "TNT RASGADO",
+  "LOTE NÃO IDENTIFICADO",
+  "OUTROS",
+];
+const TIPOS_DIVERGENCIA_OPERACIONAL = [
+  "PALLET QUEBRADO",
+  "PREGO EXPOSTO",
+  "GAIOLA NÃO CONFORME",
+  "GAIOLA SEM IDENTIFICAÇÃO",
+  "EMPILHAMENTO INCORRETO",
+  "MANUSEIO",
+];
+const STATUS_INSPECAO_LABEL = {
+  conforme: "Conforme",
+  conforme_ressalva: "Conforme com ressalva",
+  nao_conforme: "Não conforme",
+};
+const STATUS_INSPECAO_BADGE = {
+  conforme: "conforme",
+  conforme_ressalva: "ressalva",
+  nao_conforme: "naoconforme",
+};
+let inspecoesRecebimento = [
+  {
+    id: "INS-000001",
+    dataInspecao: "2026-08-12T08:15:00",
+    fornecedor: "ITABOX",
+    fornecedorOutro: "",
+    resultadoFornecedor: "nao_conforme",
+    divergenciaFornecedor: {
+      tipo: "produto",
+      produto: {
+        sku: "BUE064X188X35AFITASUEDEXSUECIN",
+        descricao: "BAU ESPECIAL 064 X 188 X 35 AF ITABOX SUEDE",
+        quantidade: 2,
+        valorTotal: 1295.08,
+        motivos: ["EMBALAGEM NÃO CONFORME"],
+        outroMotivo: "",
+        observacao: "Embalagem rasgada em dois volumes.",
+        fotos: [],
+      },
+      caminhao: { placa: "", observacao: "", fotos: [] },
+    },
+    resultadoOperacional: "conforme",
+    divergenciaOperacional: {
+      tipos: [],
+      quantidade: 0,
+      observacao: "",
+      fotos: [],
+    },
+    statusFinal: "conforme_ressalva",
+    usuarioResponsavel: "Operador Recebimento",
+    dataFinalizacao: "2026-08-12T08:42:00",
+  },
+];
+let nextInspecaoId = 2;
+
+// Estado temporário do formulário de "Nova Inspeção" (evita perda de dados entre as etapas condicionais).
+let inspEditandoId = null;
+let inspDataAtual = null;
+let inspFotos = { produto: [], caminhao: [], operacional: [] };
+let recebimentoView = "lista";
+let recebimentoFiltros = {
+  dataIni: "",
+  dataFim: "",
+  fornecedor: "",
+  status: "",
+};
+
+// Histórico de alterações (auditoria): quem alterou o quê, quando, em qual registro.
+let historicoAlteracoes = [];
+let nextHistId = 1;
+function registrarHistorico(tabela, registroId, acao, descricao) {
+  historicoAlteracoes.unshift({
+    id: nextHistId++,
+    tabela,
+    registroId,
+    acao,
+    usuarioNome: currentUser ? currentUser.nome : "Sistema",
+    descricao,
+    dataHora: new Date(),
+  });
+  salvarEstado();
+}
+const TABELA_LABEL = {
+  divergencias: "Inspeção de Produtos (Divergências)",
+  estoque_inspecoes: "Inspeção de Estoque",
+  checklist_5s: "Check List 5S",
+  checklist_5s_itens: "Check List 5S (Pendências)",
+  inspecoes_recebimento: "Inspeção de Recebimento",
+};
+const ACAO_ICON = { CRIACAO: "✅", EDICAO: "✏️", EXCLUSAO: "🗑️" };
+// Calcula a data de conclusão de uma divergência/pendência: registra a data quando o status passa a
+// CORRIGIDO, preserva a data já registrada se o status continuar CORRIGIDO, e limpa se o status mudar
+// para PENDENTE/EM_ESPERA (voltou a estar em aberto).
+function calcularDataConclusao(
+  statusAntigo,
+  statusNovo,
+  dataConclusaoAnterior,
+) {
+  if (statusNovo === "CORRIGIDO") {
+    return statusAntigo === "CORRIGIDO" && dataConclusaoAnterior
+      ? dataConclusaoAnterior
+      : new Date().toISOString().slice(0, 10);
+  }
+  return "";
+}
+// "Hoje" simulado (mesma data usada nos dados de exemplo) para calcular atraso/vencimento sem depender do relógio real.
+const HOJE = "2026-08-13";
+function prazoInfo(prazo, status) {
+  if (!prazo) return { emAtraso: false, proximo: false };
+  const corrigido = status === "CORRIGIDO";
+  const emAtraso = !corrigido && prazo < HOJE;
+  const diffDias = (new Date(prazo) - new Date(HOJE)) / 86400000;
+  const proximo = !corrigido && !emAtraso && diffDias >= 0 && diffDias <= 3;
+  return { emAtraso, proximo };
+}
+function prazoBadgeHtml(prazo, status) {
+  if (!prazo) return '<span style="color:var(--ink-faint);">—</span>';
+  const { emAtraso, proximo } = prazoInfo(prazo, status);
+  let style = "color:var(--ink-soft);";
+  let icon = "";
+  if (status === "CORRIGIDO") {
+    style = "color:#2f6b4b;font-weight:500;";
+  } else if (emAtraso) {
+    style = "color:var(--danger);font-weight:600;";
+    icon = "⚠ ";
+  } else if (proximo) {
+    style = "color:#8a6a1f;font-weight:500;";
+    icon = "⏳ ";
+  }
+  return `<span style="${style}">${icon}${fmtDate(prazo)}</span>`;
+}
+// Histórico inicial de exemplo, para a tela não abrir vazia na demonstração.
+historicoAlteracoes = [
+  {
+    id: 3,
+    tabela: "divergencias",
+    registroId: 1,
+    acao: "CRIACAO",
+    usuarioNome: "João (Operador)",
+    descricao:
+      "João registrou a divergência nº 1 (BUP128X188X37AFCRISUEDEXSUEPRE) no setor MERCADO.",
+    dataHora: new Date("2026-08-07T09:12:00"),
+  },
+  {
+    id: 2,
+    tabela: "divergencias",
+    registroId: 3,
+    acao: "EDICAO",
+    usuarioNome: "Administrador Geral",
+    descricao:
+      'Administrador Geral alterou status do registro nº 3 de "Pendente" para "Corrigido".',
+    dataHora: new Date("2026-08-08T11:40:00"),
+  },
+  {
+    id: 1,
+    tabela: "estoque_inspecoes",
+    registroId: 1001,
+    acao: "CRIACAO",
+    usuarioNome: "João (Operador)",
+    descricao:
+      "João registrou a Inspeção de Estoque nº 1 com 1 divergência (Identificação — Gaiola sem identificação).",
+    dataHora: new Date("2026-08-13T08:05:00"),
+  },
+  {
+    id: 4,
+    tabela: "inspecoes_recebimento",
+    registroId: "INS-000001",
+    acao: "CRIACAO",
+    usuarioNome: "Operador Recebimento",
+    descricao:
+      "Operador Recebimento finalizou a inspeção de recebimento INS-000001 (fornecedor ITABOX) — status Não conforme.",
+    dataHora: new Date("2026-08-12T08:15:00"),
+  },
+];
+nextHistId = 5;
+
+const USUARIOS = [
+  {
+    nome: "Administrador Geral",
+    login: "gestao",
+    email: "gestao@kingstarcolchoes.com.br",
+    perfil: "GESTAO",
+    setor: "—",
+    ultimo: "13/08/2026 14:43",
+    ativo: true,
+  },
+  {
+    nome: "Admin CD",
+    login: "admin",
+    email: "admin@kingstarcolchoes.com.br",
+    perfil: "ADMINISTRADOR",
+    setor: "—",
+    ultimo: "Nunca",
+    ativo: true,
+  },
+  {
+    nome: "Operador Recebimento",
+    login: "operador",
+    email: "operador@kingstarcolchoes.com.br",
+    perfil: "OPERADOR",
+    setor: "RECEBIMENTO",
+    ultimo: "13/08/2026 14:01",
+    ativo: true,
+  },
+];
+
+const CHECKLIST_5S_ITENS_PADRAO = [
+  {
+    senso: "SEIRI",
+    desc: "Corredores e áreas de circulação livres de obstáculos e materiais desnecessários",
+  },
+  {
+    senso: "SEIRI",
+    desc: "Não há itens obsoletos, danificados ou sem uso na área",
+  },
+  {
+    senso: "SEITON",
+    desc: "Materiais organizados nas posições/endereços demarcados",
+  },
+  {
+    senso: "SEITON",
+    desc: "Sinalização de prateleiras, ruas e posições clara e padronizada",
+  },
+  {
+    senso: "SEITON",
+    desc: "Produtos/etiquetas com identificação visível, legível e correta",
+  },
+  { senso: "SEISO", desc: "Piso limpo, seco e sem resíduos" },
+  {
+    senso: "SEISO",
+    desc: "Prateleiras, racks e equipamentos limpos e conservados",
+  },
+  {
+    senso: "SEISO",
+    desc: "Lixeiras adequadas, identificadas e não transbordando",
+  },
+  {
+    senso: "SEIKETSU",
+    desc: "Existência de padrões visuais de organização/limpeza sendo seguidos",
+  },
+  {
+    senso: "SEIKETSU",
+    desc: "Ações pendentes de inspeções anteriores estão sendo tratadas",
+  },
+  {
+    senso: "SHITSUKE",
+    desc: "Equipe demonstra cumprimento consistente dos padrões definidos",
+  },
+  { senso: "SHITSUKE", desc: "Uso correto de EPIs pelos colaboradores" },
+  {
+    senso: "SHITSUKE",
+    desc: "Estruturas de armazenagem e rotas de emergência sem bloqueios, íntegras e sinalizadas",
+  },
+];
+
+let currentUser = null;
+let currentPage = "dashboard";
+let nextId = 100;
+
+/* ==================== PERSISTÊNCIA LOCAL (versão definitiva) ====================
+   Diferente da versão de demonstração (que reiniciava os dados de exemplo a cada
+   recarregamento da página), esta versão salva automaticamente todas as alterações
+   feitas no sistema (inspeções, divergências, cadastro de produtos, usuários e
+   histórico) no armazenamento local do navegador (localStorage). Da próxima vez que
+   este arquivo for aberto no mesmo navegador/computador, os dados salvos são
+   recarregados automaticamente. Não existe servidor: os dados ficam gravados apenas
+   neste navegador/computador — para compartilhar os dados com outro computador é
+   necessário usar a Exportação (CSV/XLSX) disponível nos módulos. */
+const ESTADO_STORAGE_KEY = "qa_kingstar_estado_v1";
+function coletarEstadoPersistente() {
+  return {
+    versao: 1,
+    PRODUTOS,
+    divergencias,
+    inspecoesEstoque,
+    nextEstoqueId,
+    checklist5s,
+    inspecoesRecebimento,
+    nextInspecaoId,
+    historicoAlteracoes,
+    nextHistId,
+    USUARIOS,
+    nextId,
+  };
+}
+let _salvarEstadoTimeout = null;
+function salvarEstado() {
+  // pequeno atraso (debounce) para evitar gravações repetidas quando várias alterações
+  // acontecem em sequência (ex.: importação em lote de produtos)
+  clearTimeout(_salvarEstadoTimeout);
+  _salvarEstadoTimeout = setTimeout(() => {
+    try {
+      localStorage.setItem(
+        ESTADO_STORAGE_KEY,
+        JSON.stringify(coletarEstadoPersistente()),
+      );
+    } catch (e) {
+      console.warn(
+        "Não foi possível salvar os dados localmente (localStorage indisponível ou cheio).",
+        e,
+      );
+    }
+  }, 150);
+}
+function carregarEstadoSalvo() {
+  let raw;
+  try {
+    raw = localStorage.getItem(ESTADO_STORAGE_KEY);
+  } catch (e) {
+    return false;
+  }
+  if (!raw) return false;
+  let dados;
+  try {
+    dados = JSON.parse(raw);
+  } catch (e) {
+    return false;
+  }
+  if (!dados || typeof dados !== "object") return false;
+  const substituirArray = (destino, origem) => {
+    if (Array.isArray(origem)) {
+      destino.length = 0;
+      destino.push(...origem);
+    }
+  };
+  substituirArray(PRODUTOS, dados.PRODUTOS);
+  substituirArray(divergencias, dados.divergencias);
+  substituirArray(inspecoesEstoque, dados.inspecoesEstoque);
+  substituirArray(checklist5s, dados.checklist5s);
+  substituirArray(inspecoesRecebimento, dados.inspecoesRecebimento);
+  substituirArray(historicoAlteracoes, dados.historicoAlteracoes);
+  substituirArray(USUARIOS, dados.USUARIOS);
+  // dataHora do histórico é salva como Date; após JSON.parse ela volta como string — reconvertemos.
+  historicoAlteracoes.forEach((h) => {
+    if (h && typeof h.dataHora === "string") h.dataHora = new Date(h.dataHora);
+  });
+  if (typeof dados.nextEstoqueId === "number")
+    nextEstoqueId = dados.nextEstoqueId;
+  if (typeof dados.nextInspecaoId === "number")
+    nextInspecaoId = dados.nextInspecaoId;
+  if (typeof dados.nextHistId === "number") nextHistId = dados.nextHistId;
+  if (typeof dados.nextId === "number") nextId = dados.nextId;
+  return true;
+}
+// Ao carregar o arquivo, tenta recuperar dados salvos anteriormente neste navegador;
+// se não houver nada salvo (primeiro uso), permanece com os dados de exemplo iniciais.
+const ESTADO_CARREGADO_DO_NAVEGADOR = carregarEstadoSalvo();
+
+/* ==================== AUTH ==================== */
+function doLogin() {
+  const perfil = document.getElementById("login-perfil-picker").value;
+  const nomes = {
+    GESTAO: "Administrador Geral",
+    ADMINISTRADOR: "Admin CD",
+    OPERADOR: "Operador Recebimento",
+  };
+  currentUser = { nome: nomes[perfil], perfil };
+  document.getElementById("login-screen").classList.add("hidden");
+  document.getElementById("app").classList.remove("hidden");
+  document.getElementById("sidebar-user-name").textContent = currentUser.nome;
+  document.getElementById("sidebar-user-role").textContent =
+    currentUser.perfil.toLowerCase();
+  renderNav();
+  navigate("dashboard");
+}
+function doLogout() {
+  currentUser = null;
+  document.getElementById("app").classList.add("hidden");
+  document.getElementById("login-screen").classList.remove("hidden");
+}
+function podeEditar() {
+  return (
+    currentUser.perfil === "GESTAO" || currentUser.perfil === "ADMINISTRADOR"
+  );
+}
+function podeVerIndicadores() {
+  return (
+    currentUser.perfil === "GESTAO" || currentUser.perfil === "ADMINISTRADOR"
+  );
+}
+function podeGerenciarPermissoes() {
+  return currentUser.perfil === "GESTAO";
+}
+
+/* ==================== NAV ==================== */
+const NAV_ITEMS = [
+  { key: "dashboard", label: "Dashboard", icon: "🏠", hidden: true },
+  { key: "produtos", label: "Inspeção de Produtos", icon: "📦" },
+  { key: "gaiolas", label: "Inspeção de Estoque", icon: "🗃️" },
+  { key: "5s", label: "Check List 5S", icon: "🧹" },
+  { key: "recebimento", label: "Inspeção de Recebimento", icon: "🚚" },
+  {
+    key: "indicadores",
+    label: "Indicadores",
+    icon: "📊",
+    requiresIndicadores: true,
+  },
+  {
+    key: "qualidade",
+    label: "Qualidade",
+    icon: "🔬",
+    requiresIndicadores: true,
+  },
+  {
+    key: "usuarios",
+    label: "Permissões/Usuários",
+    icon: "👥",
+    requiresGestao: true,
+  },
+];
+function renderNav() {
+  const nav = document.getElementById("nav-menu");
+  nav.innerHTML = "";
+  NAV_ITEMS.filter((i) => !i.hidden).forEach((item) => {
+    if (item.requiresGestao && !podeGerenciarPermissoes()) return;
+    if (item.requiresIndicadores && !podeVerIndicadores()) return;
+    const btn = document.createElement("button");
+    btn.className = "nav-item" + (currentPage === item.key ? " active" : "");
+    btn.innerHTML = `<span>${item.icon}</span><span>${item.label}</span>`;
+    btn.onclick = () => navigate(item.key);
+    nav.appendChild(btn);
+  });
+}
+function navigate(page) {
+  currentPage = page;
+  renderNav();
+  const titles = {
+    dashboard: ["Dashboard", "Resumo geral do CD"],
+    produtos: [
+      "Inspeção de Produtos",
+      "Divergências de qualidade e cadastro de produtos do CD",
+    ],
+    gaiolas: [
+      "Inspeção de Estoque",
+      "Inspeção de gaiolas, pallets, organização e identificação do estoque do CD",
+    ],
+    "5s": ["Check List 5S", "Inspeção dos 5 sensos no CD"],
+    recebimento: [
+      "Inspeção de Recebimento",
+      "Registro da inspeção de fornecedores, produtos, veículos e condições operacionais de recebimento",
+    ],
+    indicadores: ["Indicadores", "Painéis de desempenho de qualidade do CD"],
+    qualidade: [
+      "Qualidade",
+      "Análise de causa raiz: Ishikawa, Pareto e Heatmap de divergências",
+    ],
+    usuarios: [
+      "Permissões / Usuários",
+      "Gestão de acessos e perfis do sistema",
+    ],
+  };
+  document.getElementById("page-title").textContent = titles[page][0];
+  document.getElementById("page-sub").textContent = titles[page][1];
+  const renderers = {
+    dashboard: renderDashboard,
+    produtos: renderProdutos,
+    gaiolas: renderGaiolas,
+    "5s": render5S,
+    recebimento: renderRecebimento,
+    indicadores: renderIndicadores,
+    qualidade: renderQualidade,
+    usuarios: renderUsuarios,
+  };
+  renderers[page]();
+}
+
+/* ==================== HELPERS ==================== */
+function money(v) {
+  return (
+    "R$ " + Number(v).toLocaleString("pt-BR", { minimumFractionDigits: 2 })
+  );
+}
+function fmtDate(d) {
+  const [y, m, day] = d.split("-");
+  return `${day}/${m}/${y}`;
+}
+function statusBadge(s) {
+  const map = {
+    PENDENTE: ["pendente", "Pendente"],
+    EM_ESPERA: ["espera", "Em Espera"],
+    CORRIGIDO: ["corrigido", "Corrigido"],
+  };
+  const [cls, label] = map[s] || ["pendente", s];
+  return `<span class="badge ${cls}">${label}</span>`;
+}
+function critBadge(c) {
+  if (!c)
+    return '<span style="color:var(--ink-faint);font-size:12px;">—</span>';
+  const map = {
+    BAIXA: "baixa",
+    MEDIA: "media",
+    ALTA: "alta",
+    CRITICA: "critica",
+  };
+  const labels = {
+    BAIXA: "Baixa",
+    MEDIA: "Média",
+    ALTA: "Alta",
+    CRITICA: "Crítica",
+  };
+  return `<span class="badge ${map[c]}">${labels[c]}</span>`;
+}
+function openModal(html, wide) {
+  const existente = document.getElementById("active-modal");
+  if (existente) existente.remove();
+  const overlay = document.createElement("div");
+  overlay.className = "modal-overlay";
+  overlay.id = "active-modal";
+  overlay.innerHTML = `<div class="modal ${wide ? "wide" : ""}">${html}</div>`;
+  overlay.onclick = (e) => {
+    if (e.target === overlay) closeModal();
+  };
+  document.body.appendChild(overlay);
+}
+function closeModal() {
+  const m = document.getElementById("active-modal");
+  if (m) m.remove();
+}
+
+/* ==================== DASHBOARD ==================== */
+function renderDashboard() {
+  const el = document.getElementById("page-content");
+  if (!podeVerIndicadores()) {
+    el.innerHTML = `<div class="card" style="padding:32px;display:flex;gap:16px;align-items:center;max-width:640px;">
+      <div class="stat-icon" style="font-size:24px;">📦</div>
+      <div><h3 class="font-display" style="margin:0 0 4px;font-size:17px;">Bem-vindo(a) ao Q.A. King Star</h3>
+      <p style="margin:0;color:var(--ink-muted);font-size:14px;">Use o menu lateral para registrar divergências e realizar os checklists do dia.</p></div>
+    </div>`;
+    return;
+  }
+  const total = divergencias.length;
+  const corrigido = divergencias.filter((d) => d.status === "CORRIGIDO").length;
+  const valorTotal = divergencias.reduce((a, d) => a + d.valorUnit * d.qtd, 0);
+
+  const divVencidas = divergencias.filter(
+    (d) => prazoInfo(d.prazoCorrecao, d.status).emAtraso,
+  ).length;
+  const s5Vencidas = checklist5s.reduce(
+    (a, c) =>
+      a +
+      c.itens.filter(
+        (i) =>
+          i.resp === "NAO_CONFORME" && prazoInfo(i.prazo, i.status).emAtraso,
+      ).length,
+    0,
+  );
+  const pendenciasVencidas = divVencidas + s5Vencidas;
+  const s5Criticas = checklist5s.reduce(
+    (a, c) =>
+      a +
+      c.itens.filter(
+        (i) =>
+          i.resp === "NAO_CONFORME" &&
+          ["ALTA", "CRITICA"].includes(i.criticidade) &&
+          i.status !== "CORRIGIDO",
+      ).length,
+    0,
+  );
+  const itensCriticos = s5Criticas;
+  const estoqueAbertas = inspecoesEstoque.reduce(
+    (a, i) => a + i.divergencias.filter((d) => d.status !== "CORRIGIDO").length,
+    0,
+  );
+
+  const alertasHtml =
+    pendenciasVencidas > 0 || itensCriticos > 0 || estoqueAbertas > 0
+      ? `
+    <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:24px;">
+      ${pendenciasVencidas > 0 ? `<div style="display:flex;align-items:center;gap:10px;background:var(--danger-soft);color:var(--danger);border-radius:12px;padding:12px 16px;font-size:14px;font-weight:500;">⚠️ Existem ${pendenciasVencidas} pendência(s) com prazo vencido em Produtos e 5S.</div>` : ""}
+      ${itensCriticos > 0 ? `<div style="display:flex;align-items:center;gap:10px;background:var(--warning-soft);color:#8a6a1f;border-radius:12px;padding:12px 16px;font-size:14px;font-weight:500;">⚠️ Existem ${itensCriticos} item(ns) de criticidade alta/crítica aguardando correção em 5S.</div>` : ""}
+      ${estoqueAbertas > 0 ? `<div style="display:flex;align-items:center;gap:10px;background:var(--warning-soft);color:#8a6a1f;border-radius:12px;padding:12px 16px;font-size:14px;font-weight:500;">⚠️ Existem ${estoqueAbertas} divergência(s) em aberto na Inspeção de Estoque.</div>` : ""}
+    </div>`
+      : "";
+
+  el.innerHTML = `
+    ${alertasHtml}
+    <div class="grid grid-4" style="margin-bottom:24px;">
+      <div class="card stat-card"><div><div class="stat-label">Divergências no período</div><div class="stat-value">${total}</div></div><div class="stat-icon">⚠️</div></div>
+      <div class="card stat-card"><div><div class="stat-label">Valor Impactado</div><div class="stat-value accent">${money(valorTotal)}</div></div><div class="stat-icon">💰</div></div>
+      <div class="card stat-card"><div><div class="stat-label">Tempo médio de correção</div><div class="stat-value">19.2 dias</div></div><div class="stat-icon">⏱️</div></div>
+      <div class="card stat-card"><div><div class="stat-label">Corrigidas</div><div class="stat-value">${corrigido}</div></div><div class="stat-icon">✅</div></div>
+    </div>
+    <div class="grid grid-2">
+      <div class="card" style="padding:24px;"><h3 class="font-display" style="margin:0 0 16px;font-size:16px;">Divergências por Setor</h3><div style="position:relative;height:220px;"><canvas id="chart-dash-setor"></canvas></div></div>
+      <div class="card" style="padding:24px;"><h3 class="font-display" style="margin:0 0 16px;font-size:16px;">Top Fornecedores</h3><div style="position:relative;height:220px;"><canvas id="chart-dash-forn"></canvas></div></div>
+    </div>`;
+  const porSetor = groupCount(divergencias, "setor");
+  new Chart(document.getElementById("chart-dash-setor"), {
+    type: "bar",
+    data: {
+      labels: Object.keys(porSetor),
+      datasets: [
+        {
+          data: Object.values(porSetor),
+          backgroundColor: "#a8813a",
+          borderRadius: 6,
+        },
+      ],
+    },
+    options: chartOpts(false),
+  });
+  const porForn = groupCount(divergencias, "fornecedor");
+  new Chart(document.getElementById("chart-dash-forn"), {
+    type: "bar",
+    data: {
+      labels: Object.keys(porForn),
+      datasets: [
+        {
+          data: Object.values(porForn),
+          backgroundColor: "#e0a869",
+          borderRadius: 6,
+        },
+      ],
+    },
+    options: { ...chartOpts(false), indexAxis: "y" },
+  });
+}
+function groupCount(arr, key) {
+  const out = {};
+  arr.forEach((x) => {
+    out[x[key]] = (out[x[key]] || 0) + 1;
+  });
+  return out;
+}
+function chartOpts(legend) {
+  return {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { display: legend } },
+    scales: { y: { beginAtZero: true, ticks: { precision: 0 } } },
+  };
+}
+
+/* ==================== RESUMO POR CHECK LIST (hero + stats) ==================== */
+function renderResumoModulo(tipo) {
+  let titulo, subtitulo, itens;
+  if (tipo === "produtos") {
+    titulo = "Inspeção de Produtos";
+    subtitulo =
+      "Registro de divergências por setor — recebimento, vertical, mercado e expedição.";
+    itens = divergencias;
+  } else if (tipo === "gaiolas") {
+    titulo = "Inspeção de Estoque";
+    subtitulo =
+      "Inspeção de gaiolas, pallets, organização e identificação do estoque do CD.";
+    itens = inspecoesEstoque.flatMap((i) => i.divergencias);
+  } else if (tipo === "recebimento") {
+    titulo = "Inspeção de Recebimento";
+    subtitulo =
+      "Inspeção de fornecedores, produtos, veículos e condições operacionais de recebimento.";
+    itens = inspecoesRecebimento.map((i) => ({
+      status:
+        i.statusFinal === "conforme"
+          ? "CORRIGIDO"
+          : i.statusFinal === "conforme_ressalva"
+            ? "EM_ESPERA"
+            : "PENDENTE",
+    }));
+  } else {
+    titulo = "Check List 5S";
+    subtitulo =
+      "Inspeção dos 5 sensos no CD — pendências e divergências por turno.";
+    itens = checklist5s.flatMap((c) =>
+      c.itens.filter((i) => i.resp === "NAO_CONFORME"),
+    );
+  }
+  const total = itens.length;
+  const pendentes = itens.filter((i) => i.status === "PENDENTE").length;
+  const espera = itens.filter((i) => i.status === "EM_ESPERA").length;
+  const corrigidos = itens.filter((i) => i.status === "CORRIGIDO").length;
+  const pct = total > 0 ? Math.round((corrigidos / total) * 100) : 100;
+  const medalha = pct >= 90 ? "🥇 OURO" : pct >= 70 ? "🥈 PRATA" : "🥉 BRONZE";
+  const dataFmt = new Date(HOJE + "T00:00:00").toLocaleDateString("pt-BR", {
+    weekday: "long",
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+  });
+  const TIPS = {
+    produtos: {
+      registros: "Total de divergências de produtos registradas.",
+      pendentes: "Divergências ainda não tratadas.",
+      espera: "Divergências em tratamento, aguardando conclusão.",
+      corrigidos: "Divergências já corrigidas.",
+    },
+    gaiolas: {
+      registros:
+        "Total de divergências de estoque registradas (gaiola, pallet, organização e identificação).",
+      pendentes: "Divergências ainda não tratadas.",
+      espera: "Divergências em tratamento, aguardando conclusão.",
+      corrigidos: "Divergências já corrigidas.",
+    },
+    recebimento: {
+      registros: "Total de inspeções de recebimento realizadas.",
+      pendentes: "Inspeções com resultado final Não conforme.",
+      espera: "Inspeções com resultado final Conforme com ressalva.",
+      corrigidos: "Inspeções com resultado final Conforme.",
+    },
+    "5s": {
+      registros: "Total de itens não conformes identificados nas inspeções 5S.",
+      pendentes: "Itens ainda não corrigidos.",
+      espera: "Itens em tratamento, aguardando conclusão.",
+      corrigidos: "Itens já corrigidos.",
+    },
+  };
+  const tip = TIPS[tipo];
+  return `
+    <div class="resumo-hero">
+      <div class="resumo-eyebrow">Gestão de Qualidade · Armazém</div>
+      <h2 class="resumo-titulo">${titulo}</h2>
+      <p class="resumo-sub">${subtitulo}</p>
+      <div class="resumo-badge-row">
+        <span class="resumo-badge">${medalha}</span>
+        <div class="progress-row resumo-progress">
+          <div class="progress-track"><div class="progress-fill" style="width:${pct}%;"></div></div>
+          <span class="resumo-pct">${pct}%</span>
+        </div>
+        <span class="resumo-data">${dataFmt}</span>
+      </div>
+    </div>
+    <div class="grid grid-4 resumo-stats">
+      <div class="card kpi-card"><div class="kpi-top"><div class="kpi-label-row"><span class="stat-label">Registros</span><span class="kpi-tip" title="${tip.registros}">ⓘ</span></div><div class="stat-icon purple">📋</div></div><div class="stat-value">${total}</div></div>
+      <div class="card kpi-card"><div class="kpi-top"><div class="kpi-label-row"><span class="stat-label">Pendentes</span><span class="kpi-tip" title="${tip.pendentes}">ⓘ</span></div><div class="stat-icon warn">⚠️</div></div><div class="stat-value">${pendentes}</div></div>
+      <div class="card kpi-card"><div class="kpi-top"><div class="kpi-label-row"><span class="stat-label">Em Espera</span><span class="kpi-tip" title="${tip.espera}">ⓘ</span></div><div class="stat-icon muted">⏳</div></div><div class="stat-value">${espera}</div></div>
+      <div class="card kpi-card"><div class="kpi-top"><div class="kpi-label-row"><span class="stat-label">Corrigidos</span><span class="kpi-tip" title="${tip.corrigidos}">ⓘ</span></div><div class="stat-icon success">🏆</div></div><div class="stat-value">${corrigidos}</div></div>
+    </div>
+    <div style="margin-top:24px;"></div>`;
+}
+
+/* ==================== INSPEÇÃO DE PRODUTOS (antigo "Check List Produtos") ==================== */
+let produtosTab = "novo";
+function renderProdutos() {
+  const el = document.getElementById("page-content");
+  const tabs = [["novo", "Nova Inspeção"]];
+  if (podeVerIndicadores())
+    tabs.push(
+      ["pendencias", "Pendências/Divergências"],
+      ["historico", "Histórico"],
+      ["cadastro", "Cadastro de Produtos"],
+    );
+  if (!tabs.some(([k]) => k === produtosTab)) produtosTab = "novo";
+  el.innerHTML = `
+    ${podeVerIndicadores() ? renderResumoModulo("produtos") : ""}
+    <div class="tabs">${tabs.map(([k, l]) => `<button class="tab-btn ${produtosTab === k ? "active" : ""}" onclick="produtosTab='${k}';renderProdutos();">${l}</button>`).join("")}</div>
+    <div id="produtos-body"></div>`;
+  renderProdutosTabBody();
+}
+function renderProdutosTabBody() {
+  if (produtosTab === "novo") renderNovoProdutos();
+  else if (produtosTab === "pendencias") renderPendenciasProdutos();
+  else if (produtosTab === "historico") renderHistoricoProdutos();
+  else renderCadastroProdutos();
+}
+/* --- Nova Inspeção de Produtos: mesmo padrão de múltiplas divergências por registro da Inspeção de Estoque --- */
+let produtosDivergenciasState = [];
+let produtosSkuMatches = {};
+function blankDivergenciaProduto() {
+  return {
+    setor: "RECEBIMENTO",
+    sku: "",
+    skuBusca: "",
+    descricao: "",
+    fornecedor: "",
+    valorUnit: 0,
+    qtd: 1,
+    codDiv: "",
+    outroCodDiv: "",
+    status: "PENDENTE",
+    prazoCorrecao: "",
+    obs: "",
+    responsavel: currentUser.nome,
+    fotos: [],
+  };
+}
+function renderNovoProdutos() {
+  produtosDivergenciasState = [blankDivergenciaProduto()];
+  paintProdutosForm();
+}
+function divergenciaProdutoFotosPreviewHtml(idx) {
+  const d = produtosDivergenciasState[idx];
+  if (!d || !d.fotos.length)
+    return `<div style="font-size:12px;color:var(--ink-faint);">Nenhuma imagem anexada ainda.</div>`;
+  return d.fotos
+    .map(
+      (f, fi) =>
+        `<div class="foto-thumb"><img src="${f.dataUrl}" title="${f.nome}" onclick="verFotoProdutoNovo(${idx},${fi})"><button type="button" onclick="removerFotoProdutoNovo(${idx},${fi})">×</button></div>`,
+    )
+    .join("");
+}
+function onFotoProdutoNovoChange(idx, input) {
+  const files = Array.from(input.files || []);
+  files.forEach((file) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      produtosDivergenciasState[idx].fotos.push({
+        nome: file.name,
+        dataUrl: e.target.result,
+      });
+      const preview = document.getElementById(`np-fotos-preview-${idx}`);
+      if (preview) preview.innerHTML = divergenciaProdutoFotosPreviewHtml(idx);
+    };
+    reader.readAsDataURL(file);
+  });
+  input.value = "";
+}
+function removerFotoProdutoNovo(idx, fi) {
+  produtosDivergenciasState[idx].fotos.splice(fi, 1);
+  const preview = document.getElementById(`np-fotos-preview-${idx}`);
+  if (preview) preview.innerHTML = divergenciaProdutoFotosPreviewHtml(idx);
+}
+function verFotoProdutoNovo(idx, fi) {
+  const f = produtosDivergenciasState[idx]?.fotos[fi];
+  if (!f) return;
+  openModal(
+    `<div class="modal-header"><h3>${f.nome}</h3><button class="modal-close" onclick="closeModal()">×</button></div>
+  <div class="modal-body"><img src="${f.dataUrl}" style="width:100%;border-radius:12px;"></div>`,
+    true,
+  );
+}
+function updateProdutoDivField(idx, field, val) {
+  produtosDivergenciasState[idx][field] = val;
+}
+function filtrarProdutoSkuCard(idx, q) {
+  produtosDivergenciasState[idx].skuBusca = q;
+  const dropdown = document.getElementById(`np-sku-dropdown-${idx}`);
+  if (!dropdown) return;
+  const termo = normalizarChaveCabecalho(q || "");
+  if (!termo) {
+    dropdown.style.display = "none";
+    dropdown.innerHTML = "";
+    produtosSkuMatches[idx] = [];
+    return;
+  }
+  const matches = PRODUTOS.filter(
+    (p) =>
+      normalizarChaveCabecalho(p.codigo).includes(termo) ||
+      normalizarChaveCabecalho(p.descricao).includes(termo),
+  ).slice(0, 30);
+  produtosSkuMatches[idx] = matches;
+  if (!matches.length) {
+    dropdown.innerHTML = `<div style="padding:10px 12px;color:var(--ink-faint);font-size:13px;">Nenhum produto encontrado.</div>`;
+  } else {
+    dropdown.innerHTML = matches
+      .map(
+        (p, i) =>
+          `<div style="padding:8px 12px;cursor:pointer;font-size:13px;border-bottom:1px solid var(--border,#eee);" onmouseover="this.style.background='var(--surface-alt,#f5f5f5)'" onmouseout="this.style.background=''" onmousedown="selecionarProdutoSkuCard(${idx},${i})"><strong>${p.codigo}</strong> — ${p.descricao}</div>`,
+      )
+      .join("");
+  }
+  dropdown.style.display = "block";
+}
+function selecionarProdutoSkuCard(idx, i) {
+  const p = produtosSkuMatches[idx]?.[i];
+  if (!p) return;
+  const d = produtosDivergenciasState[idx];
+  d.sku = p.codigo;
+  d.skuBusca = `${p.codigo} — ${p.descricao}`;
+  d.descricao = p.descricao;
+  d.fornecedor = p.fornecedor;
+  d.valorUnit = p.preco;
+  paintProdutosForm();
+}
+function updateProdutoDivTotal(idx, val) {
+  produtosDivergenciasState[idx].qtd = parseInt(val) || 0;
+  const totalEl = document.getElementById(`np-total-${idx}`);
+  if (totalEl)
+    totalEl.textContent = money(
+      produtosDivergenciasState[idx].valorUnit *
+        produtosDivergenciasState[idx].qtd,
+    );
+}
+function onCodDivProdutoNovoChange(idx, val) {
+  produtosDivergenciasState[idx].codDiv = val;
+  if (val !== "OUTROS") produtosDivergenciasState[idx].outroCodDiv = "";
+  paintProdutosForm();
+}
+function adicionarDivergenciaProdutoNovo() {
+  produtosDivergenciasState.push(blankDivergenciaProduto());
+  paintProdutosForm();
+}
+function removerDivergenciaProdutoNovo(idx) {
+  produtosDivergenciasState.splice(idx, 1);
+  if (produtosDivergenciasState.length === 0)
+    produtosDivergenciasState.push(blankDivergenciaProduto());
+  paintProdutosForm();
+}
+function divergenciaProdutoCardHtml(d, idx) {
+  const setoresOpts = ["RECEBIMENTO", "EXPEDICAO", "MERCADO", "VERTICAL"]
+    .map(
+      (s) =>
+        `<option value="${s}" ${d.setor === s ? "selected" : ""}>${s}</option>`,
+    )
+    .join("");
+  const codOpts = CODIGOS_DIVERGENCIA.map(
+    (c) =>
+      `<option value="${c}" ${d.codDiv === c ? "selected" : ""}>${c}</option>`,
+  ).join("");
+  return `<div class="estoque-div-card">
+    <div class="estoque-div-head">
+      <div style="font-weight:600;font-size:14px;">Divergência ${idx + 1}</div>
+      ${produtosDivergenciasState.length > 1 ? `<button type="button" class="icon-btn danger" title="Remover divergência" onclick="removerDivergenciaProdutoNovo(${idx})">🗑️</button>` : ""}
+    </div>
+    <div class="grid grid-2" style="gap:12px;">
+      <label class="field"><span>Setor *</span><select onchange="updateProdutoDivField(${idx},'setor',this.value)">${setoresOpts}</select></label>
+      <label class="field" style="position:relative;">
+        <span>SKU / Produto *</span>
+        <input type="text" autocomplete="off" placeholder="Digite o SKU ou a descrição do produto..." value="${d.skuBusca || ""}"
+          oninput="filtrarProdutoSkuCard(${idx},this.value)"
+          onfocus="filtrarProdutoSkuCard(${idx},this.value)"
+          onblur="setTimeout(()=>{const dd=document.getElementById('np-sku-dropdown-${idx}');if(dd)dd.style.display='none';},150)">
+        <div id="np-sku-dropdown-${idx}" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:30;background:var(--surface,#fff);border:1px solid var(--border,#ddd);border-radius:8px;max-height:220px;overflow-y:auto;box-shadow:0 6px 18px rgba(0,0,0,.12);margin-top:2px;"></div>
+      </label>
+    </div>
+    <div class="grid" style="grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:12px;">
+      <label class="field"><span>Descrição</span><input value="${d.descricao || ""}" disabled></label>
+      <label class="field"><span>Fornecedor</span><input value="${d.fornecedor || ""}" disabled></label>
+      <label class="field"><span>Valor Unitário</span><input value="${money(d.valorUnit || 0)}" disabled></label>
+    </div>
+    <p style="font-size:12px;color:var(--ink-faint);margin:-4px 0 12px;">Descrição, fornecedor e valor unitário são preenchidos automaticamente a partir do Cadastro de Produtos ao selecionar o SKU.</p>
+    <div class="grid grid-2" style="gap:12px;">
+      <label class="field"><span>Quantidade *</span><input type="number" min="1" value="${d.qtd}" oninput="updateProdutoDivTotal(${idx},this.value)"></label>
+      <div class="card" style="padding:10px 14px;display:flex;justify-content:space-between;align-items:center;background:var(--surface-alt);border:none;">
+        <span style="color:var(--ink-soft);font-size:13px;">Valor Total</span>
+        <span class="font-display" style="font-size:16px;color:var(--brass-700);" id="np-total-${idx}">${money((d.valorUnit || 0) * (d.qtd || 0))}</span>
+      </div>
+    </div>
+    <label class="field" style="margin-top:12px;"><span>Código de Divergência *</span><select onchange="onCodDivProdutoNovoChange(${idx},this.value)">
+      <option value="">Selecione...</option>${codOpts}
+    </select></label>
+    ${
+      d.codDiv === "OUTROS"
+        ? `
+    <label class="field full"><span>Descreva a divergência *</span><textarea rows="2" oninput="updateProdutoDivField(${idx},'outroCodDiv',this.value)">${d.outroCodDiv || ""}</textarea></label>
+    ${!d.outroCodDiv?.trim() ? '<p style="color:var(--danger);font-size:12px;margin:-8px 0 8px;">Obrigatório quando o Código de Divergência é "OUTROS".</p>' : ""}
+    `
+        : ""
+    }
+    <div class="grid grid-2" style="gap:12px;margin-top:12px;">
+      <label class="field"><span>Prazo para Correção</span><input type="date" value="${d.prazoCorrecao || ""}" oninput="updateProdutoDivField(${idx},'prazoCorrecao',this.value)"></label>
+      <label class="field"><span>Status *</span><select onchange="updateProdutoDivField(${idx},'status',this.value)">
+        <option value="PENDENTE" ${d.status === "PENDENTE" ? "selected" : ""}>Pendente</option>
+        <option value="EM_ESPERA" ${d.status === "EM_ESPERA" ? "selected" : ""}>Em Espera</option>
+        <option value="CORRIGIDO" ${d.status === "CORRIGIDO" ? "selected" : ""}>Corrigido</option>
+      </select></label>
+    </div>
+    <div class="grid grid-2" style="gap:12px;margin-top:12px;">
+      <label class="field"><span>Responsável *</span><input value="${d.responsavel || ""}" oninput="updateProdutoDivField(${idx},'responsavel',this.value)"></label>
+      <label class="field"><span>Observação</span><input value="${d.obs || ""}" oninput="updateProdutoDivField(${idx},'obs',this.value)"></label>
+    </div>
+    <div style="margin-top:12px;">
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+        <span style="font-size:12px;font-weight:500;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.02em;">Fotos</span>
+        <button type="button" class="btn btn-ghost" onclick="document.getElementById('np-foto-input-${idx}').click();">📎 Anexar Imagens</button>
+        <input type="file" id="np-foto-input-${idx}" accept="image/*" multiple class="hidden" onchange="onFotoProdutoNovoChange(${idx},this)">
+      </div>
+      <div id="np-fotos-preview-${idx}" style="display:flex;flex-wrap:wrap;gap:10px;margin-top:10px;">${divergenciaProdutoFotosPreviewHtml(idx)}</div>
+    </div>
+  </div>`;
+}
+function paintProdutosForm() {
+  const body = document.getElementById("produtos-body");
+  if (!body) return;
+  body.innerHTML = `
+    ${produtosDivergenciasState.map((d, idx) => divergenciaProdutoCardHtml(d, idx)).join("")}
+    <div style="margin-bottom:20px;">
+      <button type="button" class="btn btn-ghost" onclick="adicionarDivergenciaProdutoNovo()">+ Incluir Nova Divergência</button>
+    </div>
+    <div id="np-msg"></div>
+    <div style="display:flex;justify-content:flex-end;padding:8px 0 24px;">
+      <button class="btn btn-brass" onclick="salvarNovaInspecaoProdutos()">Salvar Inspeção</button>
+    </div>`;
+}
+function validarNovaInspecaoProdutos() {
+  for (const d of produtosDivergenciasState) {
+    if (!d.sku)
+      return "Selecione o produto (SKU) em todas as divergências incluídas.";
+    if (d.qtd <= 0)
+      return "Quantidade deve ser maior que zero em todas as divergências incluídas.";
+    if (!d.codDiv)
+      return "Selecione o Código de Divergência em todas as divergências incluídas.";
+    if (d.codDiv === "OUTROS" && !d.outroCodDiv?.trim())
+      return 'Descreva a divergência quando o Código de Divergência for "OUTROS".';
+    if (!d.responsavel?.trim())
+      return "Informe o responsável em todas as divergências incluídas.";
+  }
+  return null;
+}
+function salvarNovaInspecaoProdutos() {
+  const msgEl = document.getElementById("np-msg");
+  const erro = validarNovaInspecaoProdutos();
+  if (erro) {
+    msgEl.innerHTML = `<div class="toast" style="background:var(--danger-soft);color:var(--danger);">${erro}</div>`;
+    return;
+  }
+  const dataHoje = new Date().toISOString().slice(0, 10);
+  produtosDivergenciasState.forEach((d) => {
+    const novo = {
+      id: nextId++,
+      data: dataHoje,
+      setor: d.setor,
+      sku: d.sku,
+      descricao: d.descricao,
+      fornecedor: d.fornecedor,
+      valorUnit: d.valorUnit,
+      qtd: d.qtd,
+      codDiv: d.codDiv,
+      outroCodDiv: d.outroCodDiv,
+      obs: d.obs,
+      prazoCorrecao: d.prazoCorrecao,
+      status: d.status,
+      responsavel: d.responsavel,
+      fotos: [...d.fotos],
+      dataConclusao: calcularDataConclusao("", d.status, ""),
+    };
+    divergencias.unshift(novo);
+    registrarHistorico(
+      "divergencias",
+      novo.id,
+      "CRIACAO",
+      `${currentUser.nome} registrou a divergência nº ${novo.id} (${d.sku}) no setor ${d.setor} via Nova Inspeção.`,
+    );
+  });
+  msgEl.innerHTML = `<div class="toast">✅ Inspeção registrada com sucesso! ${produtosDivergenciasState.length} divergência(s) salva(s).</div>`;
+  setTimeout(() => renderNovoProdutos(), 1400);
+}
+function renderPendenciasProdutos() {
+  const body = document.getElementById("produtos-body");
+  const pend = divergencias.filter((d) => d.status !== "CORRIGIDO");
+  const rows = pend
+    .map((d) => {
+      const { emAtraso } = prazoInfo(d.prazoCorrecao, d.status);
+      const destaque = emAtraso
+        ? "border-left:3px solid var(--danger);background:rgba(193,91,74,.04);"
+        : "border-left:3px solid var(--warning);";
+      return `<tr style="${destaque}">
+      <td>${d.setor}</td>
+      <td><div style="font-weight:500;">${d.descricao || "—"}</div><div style="font-size:11px;color:var(--ink-faint);">${d.sku}</div></td>
+      <td>${codDivLabel(d)}</td>
+      <td>${statusBadge(d.status)}</td>
+      <td style="white-space:nowrap;">${prazoBadgeHtml(d.prazoCorrecao, d.status)}</td>
+      <td style="text-align:right;white-space:nowrap;">
+        <button class="icon-btn" title="Ver detalhes" onclick="abrirDetalheDivergencia(${d.id})">👁️</button>
+        <button class="icon-btn" title="Histórico de alterações" onclick="abrirHistoricoRegistro('divergencias',${d.id},'Histórico — Divergência nº ${d.id}')">🕐</button>
+        <button class="icon-btn" title="Tratar/Editar" onclick="openDivergenciaModal(${d.id})">✏️</button>
+      </td>
+    </tr>`;
+    })
+    .join("");
+  body.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+      <div style="font-size:14px;color:var(--ink-muted);">${pend.length} pendência(s) encontrada(s)</div>
+      <button class="btn btn-brass" onclick="openDivergenciaModal()">+ Incluir Divergência</button>
+    </div>
+    <div class="card" style="overflow:hidden;"><div style="overflow-x:auto;"><table>
+      <thead><tr><th>Setor</th><th>SKU/Descrição</th><th>Divergência</th><th>Status</th><th>Prazo Correção</th><th></th></tr></thead>
+      <tbody>${rows || '<tr><td colspan=6 style="text-align:center;padding:40px;color:var(--ink-faint);">Nenhuma pendência em aberto.</td></tr>'}</tbody>
+    </table></div></div>`;
+}
+let produtosFiltros = { dataIni: "", dataFim: "", setor: "", status: "" };
+function divergenciasFiltradas() {
+  return divergencias.filter((d) => {
+    if (produtosFiltros.dataIni && d.data < produtosFiltros.dataIni)
+      return false;
+    if (produtosFiltros.dataFim && d.data > produtosFiltros.dataFim)
+      return false;
+    if (produtosFiltros.setor && d.setor !== produtosFiltros.setor)
+      return false;
+    if (produtosFiltros.status && d.status !== produtosFiltros.status)
+      return false;
+    return true;
+  });
+}
+function aplicarFiltroProdutos() {
+  produtosFiltros = {
+    dataIni: document.getElementById("pf-data-ini").value,
+    dataFim: document.getElementById("pf-data-fim").value,
+    setor: document.getElementById("pf-setor").value,
+    status: document.getElementById("pf-status").value,
+  };
+  renderHistoricoProdutos();
+}
+function limparFiltroProdutos() {
+  produtosFiltros = { dataIni: "", dataFim: "", setor: "", status: "" };
+  renderHistoricoProdutos();
+}
+function renderHistoricoProdutos() {
+  const body = document.getElementById("produtos-body");
+  const lista = divergenciasFiltradas();
+  const setoresOptsFiltro = ["RECEBIMENTO", "EXPEDICAO", "MERCADO", "VERTICAL"]
+    .map(
+      (s) =>
+        `<option value="${s}" ${produtosFiltros.setor === s ? "selected" : ""}>${s}</option>`,
+    )
+    .join("");
+  const rows = lista
+    .map((d) => {
+      const { emAtraso } = prazoInfo(d.prazoCorrecao, d.status);
+      const destaque = emAtraso
+        ? "border-left:3px solid var(--danger);background:rgba(193,91,74,.04);"
+        : d.status === "PENDENTE"
+          ? "border-left:3px solid var(--warning);"
+          : "";
+      return `<tr style="${destaque}">
+      <td>${d.setor}</td>
+      <td><div style="font-weight:500;">${d.descricao || "—"}</div><div style="font-size:11px;color:var(--ink-faint);">${d.sku}</div></td>
+      <td>${d.fornecedor || "—"}</td>
+      <td style="text-align:right;font-weight:500;">${money(d.valorUnit * d.qtd)}</td>
+      <td>${codDivLabel(d)}</td>
+      <td>${statusBadge(d.status)}</td>
+      <td style="color:var(--ink-faint);white-space:nowrap;">${fmtDate(d.data)}</td>
+      <td style="white-space:nowrap;">${prazoBadgeHtml(d.prazoCorrecao, d.status)}</td>
+      <td style="color:var(--ink-faint);white-space:nowrap;">${d.dataConclusao ? fmtDate(d.dataConclusao) : "—"}</td>
+      <td style="text-align:right;white-space:nowrap;">
+        <button class="icon-btn" title="Ver detalhes" onclick="abrirDetalheDivergencia(${d.id})">👁️</button>
+        <button class="icon-btn" title="Fotos" onclick="verFotosDivergencia(${d.id})">📎${d.fotos?.length ? ` ${d.fotos.length}` : ""}</button>
+        <button class="icon-btn" title="Histórico de alterações" onclick="abrirHistoricoRegistro('divergencias',${d.id},'Histórico — Divergência nº ${d.id}')">🕐</button>
+        <button class="icon-btn" title="Editar" onclick="openDivergenciaModal(${d.id})">✏️</button>
+        <button class="icon-btn danger" title="Excluir" onclick="delDivergencia(${d.id})">🗑️</button>
+      </td>
+    </tr>`;
+    })
+    .join("");
+  body.innerHTML = `
+    <div class="card" style="padding:18px 20px;margin-bottom:18px;">
+      <div class="grid" style="grid-template-columns:repeat(4,1fr) auto auto;gap:12px;align-items:end;">
+        <label class="field"><span>Período inicial</span><input type="date" id="pf-data-ini" value="${produtosFiltros.dataIni}"></label>
+        <label class="field"><span>Período final</span><input type="date" id="pf-data-fim" value="${produtosFiltros.dataFim}"></label>
+        <label class="field"><span>Setor</span><select id="pf-setor"><option value="">Todos</option>${setoresOptsFiltro}</select></label>
+        <label class="field"><span>Status</span><select id="pf-status">
+          <option value="">Todos</option>
+          <option value="PENDENTE" ${produtosFiltros.status === "PENDENTE" ? "selected" : ""}>Pendente</option>
+          <option value="EM_ESPERA" ${produtosFiltros.status === "EM_ESPERA" ? "selected" : ""}>Em Espera</option>
+          <option value="CORRIGIDO" ${produtosFiltros.status === "CORRIGIDO" ? "selected" : ""}>Corrigido</option>
+        </select></label>
+        <button class="btn btn-brass" onclick="aplicarFiltroProdutos()">Filtrar</button>
+        <button class="btn btn-ghost" onclick="limparFiltroProdutos()">Limpar filtros</button>
+      </div>
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+      <div style="font-size:14px;color:var(--ink-muted);">${lista.length} divergência(s) encontrada(s)</div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-ghost" onclick="exportarDivergenciasCSV()">⬇ Excel/CSV</button>
+        <button class="btn btn-ghost" onclick="imprimirDivergencias()">🖨️ PDF/Imprimir</button>
+        <button class="btn btn-brass" onclick="openDivergenciaModal()">+ Incluir Divergência</button>
+      </div>
+    </div>
+    <div class="card" style="overflow:hidden;">
+      <div style="overflow-x:auto;"><table>
+        <thead><tr><th>Setor</th><th>SKU/Descrição</th><th>Fornecedor</th><th style="text-align:right;">Vlr. Total</th><th>Divergência</th><th>Status</th><th>Data</th><th>Prazo Correção</th><th>Data Conclusão</th><th></th></tr></thead>
+        <tbody>${rows || '<tr><td colspan=10 style="text-align:center;padding:40px;color:var(--ink-faint);">Nenhuma divergência encontrada para os filtros aplicados.</td></tr>'}</tbody>
+      </table></div>
+    </div>`;
+}
+function abrirDetalheDivergencia(id) {
+  const d = divergencias.find((x) => x.id === id);
+  if (!d) return;
+  const { emAtraso, proximo } = prazoInfo(d.prazoCorrecao, d.status);
+  const alerta = emAtraso
+    ? `<div style="background:var(--danger-soft);color:var(--danger);border-radius:8px;padding:10px 14px;font-size:13px;font-weight:500;margin-bottom:14px;">⚠️ Esta divergência está com o prazo de correção vencido.</div>`
+    : proximo
+      ? `<div style="background:var(--warning-soft);color:#8a6a1f;border-radius:8px;padding:10px 14px;font-size:13px;font-weight:500;margin-bottom:14px;">⏳ Prazo de correção vence em breve.</div>`
+      : "";
+  const fotosHtml = d.fotos?.length
+    ? `<div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;">${d.fotos.map((f, fi) => `<img src="${f.dataUrl}" title="${f.nome}" style="width:76px;height:76px;object-fit:cover;border-radius:8px;border:1px solid var(--border);cursor:pointer;" onclick="verFotoDetalheDivergencia(${d.id},${fi})">`).join("")}</div>`
+    : '<p style="color:var(--ink-faint);font-size:13px;margin:4px 0 0;">Nenhuma foto anexada.</p>';
+  openModal(
+    `
+    <div class="modal-header"><h3>Divergência nº ${d.id}</h3><button class="modal-close" onclick="closeModal()">×</button></div>
+    <div class="modal-body">
+      ${alerta}
+      <div class="grid grid-2" style="gap:14px;font-size:13px;">
+        <div><div class="stat-label">Data</div><div style="font-weight:500;">${fmtDate(d.data)}</div></div>
+        <div><div class="stat-label">Setor</div><div style="font-weight:500;">${d.setor}</div></div>
+        <div><div class="stat-label">SKU</div><div style="font-weight:500;">${d.sku}</div></div>
+        <div><div class="stat-label">Descrição</div><div style="font-weight:500;">${d.descricao || "—"}</div></div>
+        <div><div class="stat-label">Fornecedor</div><div style="font-weight:500;">${d.fornecedor || "—"}</div></div>
+        <div><div class="stat-label">Valor Total</div><div style="font-weight:500;">${money(d.valorUnit * d.qtd)}</div></div>
+        <div><div class="stat-label">Código de Divergência</div><div style="font-weight:500;">${codDivLabel(d)}</div></div>
+        <div><div class="stat-label">Status</div><div>${statusBadge(d.status)}</div></div>
+        <div><div class="stat-label">Prazo para Correção</div><div>${prazoBadgeHtml(d.prazoCorrecao, d.status)}</div></div>
+        <div><div class="stat-label">Data de Conclusão</div><div style="font-weight:500;">${d.dataConclusao ? fmtDate(d.dataConclusao) : "—"}</div></div>
+        <div><div class="stat-label">Responsável</div><div style="font-weight:500;">${d.responsavel}</div></div>
+      </div>
+      ${d.obs ? `<div style="margin-top:14px;"><div class="stat-label">Observação</div><p style="margin:4px 0 0;font-size:13px;">${d.obs}</p></div>` : ""}
+      <div style="margin-top:14px;"><div class="stat-label">Fotos comprobatórias</div>${fotosHtml}</div>
+    </div>`,
+    true,
+  );
+}
+function exportarDivergenciasCSV() {
+  const lista = divergenciasFiltradas();
+  const linhas = [
+    [
+      "Setor",
+      "SKU",
+      "Descrição",
+      "Fornecedor",
+      "Quantidade",
+      "Valor Total",
+      "Código de Divergência",
+      "Status",
+      "Data",
+      "Prazo Correção",
+      "Data Conclusão",
+      "Responsável",
+    ],
+  ];
+  lista.forEach((d) =>
+    linhas.push([
+      d.setor,
+      d.sku,
+      d.descricao || "",
+      d.fornecedor || "",
+      d.qtd,
+      d.valorUnit * d.qtd,
+      codDivLabel(d),
+      d.status,
+      fmtDate(d.data),
+      d.prazoCorrecao ? fmtDate(d.prazoCorrecao) : "",
+      d.dataConclusao ? fmtDate(d.dataConclusao) : "",
+      d.responsavel,
+    ]),
+  );
+  const csv = linhas
+    .map((l) => l.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(";"))
+    .join("\n");
+  const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "divergencias_produtos.csv";
+  a.click();
+  URL.revokeObjectURL(url);
+}
+function imprimirDivergencias() {
+  const lista = divergenciasFiltradas();
+  const w = window.open("", "_blank");
+  if (!w) {
+    alert("Permita pop-ups para imprimir o relatório.");
+    return;
+  }
+  const linhas = lista
+    .map(
+      (d) =>
+        `<tr><td>${d.setor}</td><td>${d.sku}</td><td>${d.descricao || ""}</td><td>${d.status}</td><td>${fmtDate(d.data)}</td><td>${d.dataConclusao ? fmtDate(d.dataConclusao) : "—"}</td><td>${d.responsavel}</td></tr>`,
+    )
+    .join("");
+  w.document
+    .write(`<!DOCTYPE html><html><head><title>Divergências — Inspeção de Produtos</title>
+    <style>body{font-family:Arial,sans-serif;padding:24px;color:#14171a;} h1{font-size:18px;} table{width:100%;border-collapse:collapse;font-size:12px;} th,td{border:1px solid #ccc;padding:6px 8px;text-align:left;}</style>
+    </head><body>
+    <h1>Divergências — Inspeção de Produtos (${lista.length} registro(s))</h1>
+    <table><thead><tr><th>Setor</th><th>SKU</th><th>Descrição</th><th>Status</th><th>Data</th><th>Data Conclusão</th><th>Responsável</th></tr></thead><tbody>${linhas}</tbody></table>
+    </body></html>`);
+  w.document.close();
+  w.focus();
+  setTimeout(() => {
+    try {
+      w.print();
+    } catch (e) {}
+  }, 300);
+}
+function delDivergencia(id) {
+  if (!confirm("Excluir esta divergência?")) return;
+  const d = divergencias.find((x) => x.id === id);
+  divergencias = divergencias.filter((d) => d.id !== id);
+  if (d)
+    registrarHistorico(
+      "divergencias",
+      id,
+      "EXCLUSAO",
+      `${currentUser.nome} excluiu a divergência nº ${id} (${d.sku}, setor ${d.setor}).`,
+    );
+  renderProdutosTabBody();
+}
+function abrirHistoricoRegistro(tabela, registroId, titulo) {
+  const itens = historicoAlteracoes.filter(
+    (h) => h.tabela === tabela && h.registroId === registroId,
+  );
+  const rows = itens
+    .map(
+      (h) => `
+    <div style="display:flex;align-items:flex-start;gap:10px;font-size:14px;border-bottom:1px solid var(--border-soft);padding:10px 0;">
+      <span style="font-size:16px;">${ACAO_ICON[h.acao]}</span>
+      <div style="flex:1;">
+        <div>${h.descricao}</div>
+        <div style="font-size:12px;color:var(--ink-faint);margin-top:2px;">${h.dataHora.toLocaleString("pt-BR")}</div>
+      </div>
+    </div>`,
+    )
+    .join("");
+  openModal(
+    `
+    <div class="modal-header"><h3>${titulo}</h3><button class="modal-close" onclick="closeModal()">×</button></div>
+    <div class="modal-body">
+      <div style="max-height:55vh;overflow-y:auto;">
+        ${rows || '<p style="text-align:center;color:var(--ink-faint);padding:24px 0;">Nenhuma alteração registrada ainda para este registro.</p>'}
+      </div>
+    </div>`,
+    true,
+  );
+}
+function abrirAuditoriaModal() {
+  paintAuditoriaModal("");
+}
+function paintAuditoriaModal(filtroTabela) {
+  const itens = historicoAlteracoes.filter(
+    (h) => !filtroTabela || h.tabela === filtroTabela,
+  );
+  const rows = itens
+    .map(
+      (h) => `
+    <div style="display:flex;align-items:flex-start;gap:10px;font-size:14px;border-bottom:1px solid var(--border-soft);padding:10px 0;">
+      <span style="font-size:16px;">${ACAO_ICON[h.acao]}</span>
+      <div style="flex:1;">
+        <div>${h.descricao}</div>
+        <div style="font-size:12px;color:var(--ink-faint);margin-top:2px;">${TABELA_LABEL[h.tabela] || h.tabela} · ${h.dataHora.toLocaleString("pt-BR")}</div>
+      </div>
+    </div>`,
+    )
+    .join("");
+  const opcoes = Object.entries(TABELA_LABEL)
+    .map(
+      ([k, l]) =>
+        `<option value="${k}" ${filtroTabela === k ? "selected" : ""}>${l}</option>`,
+    )
+    .join("");
+  openModal(
+    `
+    <div class="modal-header"><h3>Histórico de Alterações</h3><button class="modal-close" onclick="closeModal()">×</button></div>
+    <div class="modal-body">
+      <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:12px;margin-bottom:8px;">
+        <label class="field" style="max-width:320px;"><span>Módulo</span>
+          <select onchange="paintAuditoriaModal(this.value)">
+            <option value="">Todos os módulos</option>
+            ${opcoes}
+          </select>
+        </label>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-ghost" onclick="alert('Exportação disponível na versão completa do sistema.')">⬇ Excel</button>
+          <button class="btn btn-ghost" onclick="alert('Exportação disponível na versão completa do sistema.')">⬇ PDF</button>
+        </div>
+      </div>
+      <div style="max-height:50vh;overflow-y:auto;">
+        ${rows || '<p style="text-align:center;color:var(--ink-faint);padding:24px 0;">Nenhuma alteração registrada.</p>'}
+      </div>
+    </div>`,
+    true,
+  );
+}
+function renderCadastroProdutos() {
+  const body = document.getElementById("produtos-body");
+  body.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
+      <input id="cp-busca" placeholder="Buscar por SKU, descrição, grupo ou família..." style="max-width:320px;" oninput="renderCadastroProdutosRows()">
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="btn btn-ghost" onclick="exportarCadastroProdutos()">⬇ Exportar Planilha (.xlsx)</button>
+        ${
+          podeEditar()
+            ? `<button class="btn btn-ghost" onclick="document.getElementById('cp-import-input').click();">⬆ Importar Planilha</button>
+        <input type="file" id="cp-import-input" accept=".xlsx,.xls,.csv" class="hidden" onchange="importarCadastroProdutos(this)">
+        <button class="btn btn-brass" onclick="abrirProdutoModal()">+ Cadastrar Produto</button>`
+            : ""
+        }
+      </div>
+    </div>
+    <div id="cp-import-msg"></div>
+    <div style="font-size:14px;color:var(--ink-muted);margin-bottom:4px;">${PRODUTOS.length} produto(s) cadastrado(s)</div>
+    <div id="cp-limite-aviso" style="font-size:12px;color:var(--ink-faint);margin-bottom:12px;"></div>
+    <div class="card" style="overflow:hidden;"><div style="overflow-x:auto;"><table>
+      <thead><tr><th>SKU</th><th>Descrição</th><th>Grupo</th><th style="text-align:right;">Valor</th><th>Fornecedor</th><th>Família</th><th></th></tr></thead>
+      <tbody id="cp-rows"></tbody>
+    </table></div></div>`;
+  renderCadastroProdutosRows();
+}
+const CADASTRO_LIMITE_LINHAS = 200;
+function renderCadastroProdutosRows() {
+  const rowsEl = document.getElementById("cp-rows");
+  if (!rowsEl) return;
+  const busca = (
+    document.getElementById("cp-busca")?.value || ""
+  ).toLowerCase();
+  const filtrada = PRODUTOS.filter(
+    (p) =>
+      !busca ||
+      [p.descricao, p.codigo, p.grupo, p.familia].some((v) =>
+        (v || "").toLowerCase().includes(busca),
+      ),
+  );
+  const lista = filtrada.slice(0, CADASTRO_LIMITE_LINHAS);
+  rowsEl.innerHTML =
+    lista
+      .map(
+        (p) => `<tr>
+    <td style="font-family:monospace;font-size:12px;color:var(--ink-soft);">${p.codigo}</td>
+    <td style="font-weight:500;">${p.descricao}</td>
+    <td>${p.grupo || "—"}</td>
+    <td style="text-align:right;">${money(p.preco)}</td>
+    <td>${p.fornecedor}</td>
+    <td>${p.familia || "—"}</td>
+    <td style="text-align:right;">${podeEditar() ? `<button class="icon-btn" title="Editar" onclick="abrirProdutoModal(${PRODUTOS.indexOf(p)})">✏️</button><button class="icon-btn danger" title="Excluir" onclick="delProduto(${PRODUTOS.indexOf(p)})">🗑️</button>` : ""}</td>
+  </tr>`,
+      )
+      .join("") ||
+    '<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--ink-faint);">Nenhum produto encontrado.</td></tr>';
+  const avisoEl = document.getElementById("cp-limite-aviso");
+  if (avisoEl) {
+    avisoEl.innerHTML =
+      filtrada.length > CADASTRO_LIMITE_LINHAS
+        ? `Exibindo os primeiros ${CADASTRO_LIMITE_LINHAS} de ${filtrada.length} produto(s) encontrado(s). Refine a busca para encontrar outros itens.`
+        : "";
+  }
+}
+function delProduto(i) {
+  if (!confirm(`Excluir o produto "${PRODUTOS[i].descricao}"?`)) return;
+  PRODUTOS.splice(i, 1);
+  salvarEstado();
+  renderCadastroProdutosRows();
+}
+function abrirProdutoModal(i) {
+  const editando = typeof i === "number" ? PRODUTOS[i] : null;
+  openModal(`
+    <div class="modal-header"><h3>${editando ? "Editar Produto" : "Cadastrar Produto"}</h3><button class="modal-close" onclick="closeModal()">×</button></div>
+    <div class="modal-body">
+      <label class="field"><span>Código (SKU)</span><input id="pf-codigo" value="${editando ? editando.codigo : ""}" ${editando ? "disabled" : ""}></label>
+      <label class="field"><span>Descrição</span><input id="pf-descricao" value="${editando ? editando.descricao : ""}"></label>
+      <div class="grid grid-2">
+        <label class="field"><span>Grupo</span><input id="pf-grupo" value="${editando ? editando.grupo || "" : ""}"></label>
+        <label class="field"><span>Valor</span><input id="pf-preco" type="number" step="0.01" value="${editando ? editando.preco : 0}"></label>
+      </div>
+      <div class="grid grid-2">
+        <label class="field"><span>Fornecedor</span><input id="pf-fornecedor" value="${editando ? editando.fornecedor : ""}"></label>
+        <label class="field"><span>Família</span><input id="pf-familia" value="${editando ? editando.familia || "" : ""}"></label>
+      </div>
+      <div id="pf-erro" style="display:none;color:var(--danger);background:var(--danger-soft);border-radius:8px;padding:8px 12px;font-size:13px;"></div>
+      <div style="display:flex;justify-content:flex-end;gap:12px;">
+        <button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>
+        <button class="btn btn-brass" onclick="salvarProduto(${typeof i === "number" ? i : "null"})">Salvar</button>
+      </div>
+    </div>`);
+}
+function salvarProduto(i) {
+  const codigo = document.getElementById("pf-codigo").value.trim();
+  const descricao = document.getElementById("pf-descricao").value.trim();
+  const grupo = document.getElementById("pf-grupo").value.trim();
+  const preco = Number(document.getElementById("pf-preco").value) || 0;
+  const fornecedor = document.getElementById("pf-fornecedor").value.trim();
+  const familia = document.getElementById("pf-familia").value.trim();
+  const erroEl = document.getElementById("pf-erro");
+  if (!descricao || !codigo) {
+    erroEl.textContent = "Preencha SKU e descrição.";
+    erroEl.style.display = "block";
+    return;
+  }
+  if (i === null || i === undefined) {
+    const novoId = PRODUTOS.reduce((m, p) => Math.max(m, p.id), 0) + 1;
+    PRODUTOS.push({
+      id: novoId,
+      codigo,
+      descricao,
+      grupo,
+      preco,
+      fornecedor,
+      familia,
+    });
+  } else {
+    Object.assign(PRODUTOS[i], {
+      descricao,
+      grupo,
+      preco,
+      fornecedor,
+      familia,
+    });
+  }
+  salvarEstado();
+  closeModal();
+  renderCadastroProdutosRows();
+}
+function exportarCadastroProdutos() {
+  const data = PRODUTOS.map((p) => ({
+    SKU: p.codigo,
+    Descrição: p.descricao,
+    Grupo: p.grupo || "",
+    Valor: p.preco,
+    Fornecedor: p.fornecedor || "",
+    Família: p.familia || "",
+  }));
+  const ws = XLSX.utils.json_to_sheet(data);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Produtos");
+  XLSX.writeFile(wb, `cadastro-produtos-${HOJE}.xlsx`);
+}
+function normalizarChaveCabecalho(s) {
+  return String(s)
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .replace(/[^a-z0-9]/g, "");
+}
+function parseNumeroPlanilha(v) {
+  if (v === "" || v == null) return 0;
+  if (typeof v === "number") return isNaN(v) ? 0 : v;
+  let s = String(v).trim();
+  if (s.includes(",")) {
+    s = s.replace(/\./g, "").replace(",", ".");
+  }
+  const n = parseFloat(s);
+  return isNaN(n) ? 0 : n;
+}
+function decodificarTextoPlanilha(buffer) {
+  // Tenta UTF-8 primeiro; se detectar caracteres de substituição (indicando bytes inválidos em UTF-8),
+  // refaz a decodificação como ISO-8859-1/Windows-1252 (comum em planilhas exportadas do Excel no Windows).
+  const utf8 = new TextDecoder("utf-8").decode(buffer);
+  if (!utf8.includes(" ")) return utf8;
+  return new TextDecoder("iso-8859-1").decode(buffer);
+}
+function importarCadastroProdutos(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const msgEl = document.getElementById("cp-import-msg");
+  const isCsv = /\.csv$/i.test(file.name);
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const wb = isCsv
+        ? XLSX.read(decodificarTextoPlanilha(e.target.result), {
+            type: "string",
+          })
+        : XLSX.read(new Uint8Array(e.target.result), { type: "array" });
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      // Em CSV, o SheetJS pode "converter" valores como "560,56" para o número 56056 (tratando a vírgula
+      // como separador de milhar). Usando raw:false lemos o texto original formatado ("560,56") e deixamos
+      // o parseNumeroPlanilha interpretar corretamente a vírgula decimal brasileira. Em .xlsx, os números já
+      // vêm corretos internamente, então mantemos raw:true (padrão) para não introduzir formatação indevida.
+      const rows = XLSX.utils.sheet_to_json(ws, {
+        defval: "",
+        raw: !isCsv,
+      });
+      let criados = 0,
+        atualizados = 0,
+        ignorados = 0,
+        comPrecoZerado = 0,
+        totalValidos = 0;
+      let nextNovoId = PRODUTOS.reduce((m, p) => Math.max(m, p.id), 0) + 1;
+      const produtosPorCodigo = new Map(PRODUTOS.map((p) => [p.codigo, p]));
+      rows.forEach((r) => {
+        const get = (...keys) => {
+          const alvo = keys.map(normalizarChaveCabecalho);
+          const found = Object.keys(r).find((rk) =>
+            alvo.includes(normalizarChaveCabecalho(rk)),
+          );
+          return found ? String(r[found]).trim() : "";
+        };
+        const codigo = get("SKU", "Código", "Codigo", "Código (SKU)");
+        const descricao = get("DESCRIÇÃO", "DESCRICAO", "Descrição");
+        const grupo = get("GRUPO");
+        const precoStr = get(
+          "Valor",
+          "VALOR",
+          "ULT. PREÇO",
+          "ULT PREÇO",
+          "ULTIMO PREÇO",
+          "Último Preço",
+          "PREÇO",
+          "PRECO",
+        );
+        const fornecedor = get("FORNECEDOR");
+        const familia = get("FAMILIA", "FAMÍLIA");
+        if (!codigo || !descricao) {
+          ignorados++;
+          return;
+        }
+        const preco = parseNumeroPlanilha(precoStr);
+        totalValidos++;
+        if (preco === 0) comPrecoZerado++;
+        const existente = produtosPorCodigo.get(codigo);
+        if (existente) {
+          Object.assign(existente, {
+            descricao,
+            grupo,
+            preco,
+            fornecedor,
+            familia,
+          });
+          atualizados++;
+        } else {
+          const novo = {
+            id: nextNovoId++,
+            codigo,
+            descricao,
+            grupo,
+            preco,
+            fornecedor,
+            familia,
+          };
+          PRODUTOS.push(novo);
+          produtosPorCodigo.set(codigo, novo);
+          criados++;
+        }
+      });
+      const avisoPreco =
+        totalValidos > 0 && comPrecoZerado / totalValidos > 0.3
+          ? ` ⚠️ ${comPrecoZerado} de ${totalValidos} produto(s) importado(s) ficaram com valor R$ 0,00 — confira se a coluna "Valor" da sua planilha está preenchida e com o nome esperado.`
+          : "";
+      msgEl.innerHTML = `<div class="toast">✅ Importação concluída: ${criados} produto(s) novo(s), ${atualizados} atualizado(s)${ignorados ? `, ${ignorados} linha(s) ignorada(s) por falta de SKU/Descrição` : ""}.${avisoPreco}</div>`;
+      salvarEstado();
+      renderCadastroProdutosRows();
+    } catch (err) {
+      msgEl.innerHTML = `<div class="toast" style="background:var(--danger-soft);color:var(--danger);">Não foi possível ler o arquivo. Verifique se é uma planilha .xlsx ou .csv válida, com colunas SKU, Descrição, Grupo, Valor, Fornecedor e Família.</div>`;
+    }
+    input.value = "";
+  };
+  reader.readAsArrayBuffer(file);
+}
+let divFotosTemp = [];
+function divFotosPreviewHtml() {
+  if (divFotosTemp.length === 0)
+    return `<div style="font-size:12px;color:var(--ink-faint);">Nenhuma imagem anexada ainda.</div>`;
+  return divFotosTemp
+    .map(
+      (a, i) =>
+        `<div class="foto-thumb"><img src="${a.dataUrl}" title="${a.nome}" onclick="verDivFoto(${i})"><button type="button" onclick="removerDivFoto(${i})">×</button></div>`,
+    )
+    .join("");
+}
+function onDivFotoChange(input) {
+  const files = Array.from(input.files || []);
+  files.forEach((file) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      divFotosTemp.push({ nome: file.name, dataUrl: e.target.result });
+      const preview = document.getElementById("f-fotos-preview");
+      if (preview) preview.innerHTML = divFotosPreviewHtml();
+    };
+    reader.readAsDataURL(file);
+  });
+  input.value = "";
+}
+function removerDivFoto(i) {
+  divFotosTemp.splice(i, 1);
+  const preview = document.getElementById("f-fotos-preview");
+  if (preview) preview.innerHTML = divFotosPreviewHtml();
+}
+function verDivFoto(i) {
+  const a = divFotosTemp[i];
+  if (!a) return;
+  openModal(
+    `<div class="modal-header"><h3>${a.nome}</h3><button class="modal-close" onclick="closeModal()">×</button></div>
+  <div class="modal-body"><img src="${a.dataUrl}" style="width:100%;border-radius:12px;"></div>`,
+    true,
+  );
+}
+function verFotosDivergencia(id) {
+  const d = divergencias.find((x) => x.id === id);
+  if (!d || !d.fotos || !d.fotos.length) {
+    openModal(`<div class="modal-header"><h3>Fotos</h3><button class="modal-close" onclick="closeModal()">×</button></div>
+    <div class="modal-body"><p style="color:var(--ink-muted);font-size:14px;margin:0;">Nenhuma imagem anexada a esta divergência.</p></div>`);
+    return;
+  }
+  const imgs = d.fotos
+    .map(
+      (a) =>
+        `<img src="${a.dataUrl}" title="${a.nome}" style="width:100%;border-radius:10px;">`,
+    )
+    .join("");
+  openModal(
+    `<div class="modal-header"><h3>Fotos — Divergência nº ${d.id}</h3><button class="modal-close" onclick="closeModal()">×</button></div>
+  <div class="modal-body"><div class="grid grid-2" style="gap:12px;">${imgs}</div></div>`,
+    true,
+  );
+}
+function verFotoDetalheDivergencia(id, idx) {
+  const d = divergencias.find((x) => x.id === id);
+  const f = d?.fotos?.[idx];
+  if (!f) return;
+  openModal(
+    `<div class="modal-header"><h3>${f.nome}</h3><button class="modal-close" onclick="closeModal()">×</button></div>
+  <div class="modal-body"><img src="${f.dataUrl}" style="width:100%;border-radius:12px;"></div>`,
+    true,
+  );
+}
+function codDivLabel(d) {
+  if (!d.codDiv) return "—";
+  return d.codDiv === "OUTROS"
+    ? `OUTROS — ${d.outroCodDiv || "(sem descrição)"}`
+    : d.codDiv;
+}
+function openDivergenciaModal(id) {
+  const editando =
+    typeof id === "number" ? divergencias.find((d) => d.id === id) : null;
+  divFotosTemp = editando ? [...(editando.fotos || [])] : [];
+  const codOpts = CODIGOS_DIVERGENCIA.map(
+    (c) =>
+      `<option value="${c}" ${editando && editando.codDiv === c ? "selected" : ""}>${c}</option>`,
+  ).join("");
+  const setoresOpts = ["RECEBIMENTO", "EXPEDICAO", "MERCADO", "VERTICAL"]
+    .map(
+      (s) =>
+        `<option ${editando && editando.setor === s ? "selected" : ""}>${s}</option>`,
+    )
+    .join("");
+  const skuConhecido =
+    editando && PRODUTOS.some((p) => p.codigo === editando.sku);
+  const produtoEditando = editando
+    ? PRODUTOS.find((p) => p.codigo === editando.sku)
+    : null;
+  const buscaInicial = editando
+    ? skuConhecido
+      ? `${editando.sku} — ${produtoEditando.descricao}`
+      : `${editando.sku} (produto fora do cadastro atual)`
+    : "";
+  fSkuMatches = [];
+  openModal(`
+    <div class="modal-header"><h3>${editando ? "Editar Divergência" : "Incluir Divergência"}</h3><button class="modal-close" onclick="closeModal()">×</button></div>
+    <div class="modal-body">
+      <div class="grid grid-2">
+        <label class="field"><span>Setor *</span><select id="f-setor">${setoresOpts}</select></label>
+        <label class="field" style="position:relative;">
+          <span>SKU / Produto *</span>
+          <input id="f-sku-busca" type="text" autocomplete="off" placeholder="Digite o SKU ou a descrição do produto..." value="${buscaInicial}"
+            oninput="filtrarProdutoSku(this.value)"
+            onfocus="filtrarProdutoSku(this.value)"
+            onblur="setTimeout(()=>{const d=document.getElementById('f-sku-dropdown');if(d)d.style.display='none';},150)">
+          <input type="hidden" id="f-sku" value="${editando ? editando.sku : ""}">
+          <div id="f-sku-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:30;background:var(--surface,#fff);border:1px solid var(--border,#ddd);border-radius:8px;max-height:240px;overflow-y:auto;box-shadow:0 6px 18px rgba(0,0,0,.12);margin-top:2px;"></div>
+        </label>
+      </div>
+      <label class="field"><span>Descrição</span><input id="f-descricao" value="${editando ? editando.descricao || "" : ""}" disabled></label>
+      <div class="grid" style="grid-template-columns:1fr 1fr 1fr;gap:12px;">
+        <label class="field"><span>Fornecedor</span><input id="f-fornecedor" value="${editando ? editando.fornecedor || "" : ""}" disabled></label>
+        <label class="field"><span>Valor Unitário</span><input id="f-valor" type="number" step="0.01" value="${editando ? editando.valorUnit : 0}" disabled></label>
+        <label class="field"><span>Quantidade *</span><input id="f-qtd" type="number" value="${editando ? editando.qtd : 1}" min="1" oninput="updateTotal()"></label>
+      </div>
+      <p style="font-size:12px;color:var(--ink-faint);margin:-8px 0 12px;">Descrição, fornecedor e valor unitário são preenchidos automaticamente a partir do Cadastro de Produtos ao selecionar o SKU.</p>
+      <div class="card" style="padding:12px 16px;display:flex;justify-content:space-between;background:var(--surface-alt);border:none;">
+        <span style="color:var(--ink-soft);">Valor Total</span>
+        <span class="font-display" style="font-size:18px;color:var(--brass-700);" id="f-total">${money(editando ? editando.valorUnit * editando.qtd : 0)}</span>
+      </div>
+      <label class="field"><span>Código de Divergência *</span><select id="f-coddiv" onchange="onCodDivChange()"><option value="">Selecione...</option>${codOpts}</select></label>
+      <div id="f-coddiv-outro-wrap" style="display:${editando && editando.codDiv === "OUTROS" ? "block" : "none"};">
+        <label class="field"><span>Descreva a divergência *</span><textarea id="f-coddiv-outro" rows="2">${editando ? editando.outroCodDiv || "" : ""}</textarea></label>
+      </div>
+      <label class="field"><span>Observação</span><textarea id="f-obs" rows="2">${editando ? editando.obs || "" : ""}</textarea></label>
+      <div class="grid grid-2">
+        <label class="field"><span>Prazo para Correção</span><input id="f-prazo" type="date" value="${editando ? editando.prazoCorrecao || "" : ""}"></label>
+        <label class="field"><span>Status *</span><select id="f-status">
+          <option value="PENDENTE" ${editando && editando.status === "PENDENTE" ? "selected" : ""}>Pendente</option>
+          <option value="EM_ESPERA" ${editando && editando.status === "EM_ESPERA" ? "selected" : ""}>Em Espera</option>
+          <option value="CORRIGIDO" ${editando && editando.status === "CORRIGIDO" ? "selected" : ""}>Corrigido</option>
+        </select></label>
+      </div>
+      <label class="field"><span>Responsável *</span><input id="f-responsavel" value="${editando ? editando.responsavel || "" : ""}"></label>
+      <div>
+        <label class="field"><span>Fotos comprobatórias</span></label>
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+          <button type="button" class="btn btn-ghost" onclick="document.getElementById('f-fotos-input').click();">📎 Anexar / Tirar Foto</button>
+          <input type="file" id="f-fotos-input" accept="image/jpeg,image/jpg,image/png" capture="environment" multiple class="hidden" onchange="onDivFotoChange(this)">
+        </div>
+        <div id="f-fotos-preview" style="display:flex;flex-wrap:wrap;gap:10px;margin-top:10px;">${divFotosPreviewHtml()}</div>
+      </div>
+      <div id="f-erro" style="display:none;color:var(--danger);background:var(--danger-soft);border-radius:8px;padding:8px 12px;font-size:13px;"></div>
+      <div style="display:flex;justify-content:flex-end;gap:12px;">
+        <button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>
+        <button class="btn btn-brass" onclick="salvarDivergencia(${typeof id === "number" ? id : "null"})">Salvar</button>
+      </div>
+    </div>`);
+}
+function onCodDivChange() {
+  const val = document.getElementById("f-coddiv").value;
+  const wrap = document.getElementById("f-coddiv-outro-wrap");
+  if (wrap) wrap.style.display = val === "OUTROS" ? "block" : "none";
+}
+let fSkuMatches = [];
+function filtrarProdutoSku(q) {
+  const dropdown = document.getElementById("f-sku-dropdown");
+  if (!dropdown) return;
+  const termo = normalizarChaveCabecalho(q || "");
+  if (!termo) {
+    dropdown.style.display = "none";
+    dropdown.innerHTML = "";
+    fSkuMatches = [];
+    return;
+  }
+  fSkuMatches = PRODUTOS.filter(
+    (p) =>
+      normalizarChaveCabecalho(p.codigo).includes(termo) ||
+      normalizarChaveCabecalho(p.descricao).includes(termo),
+  ).slice(0, 30);
+  if (!fSkuMatches.length) {
+    dropdown.innerHTML = `<div style="padding:10px 12px;color:var(--ink-faint);font-size:13px;">Nenhum produto encontrado.</div>`;
+  } else {
+    dropdown.innerHTML =
+      fSkuMatches
+        .map(
+          (p, i) =>
+            `<div style="padding:8px 12px;cursor:pointer;font-size:13px;border-bottom:1px solid var(--border,#eee);" onmouseover="this.style.background='var(--surface-alt,#f5f5f5)'" onmouseout="this.style.background=''" onmousedown="selecionarProdutoSkuAt(${i})"><strong>${p.codigo}</strong> — ${p.descricao}</div>`,
+        )
+        .join("") +
+      (PRODUTOS.filter(
+        (p) =>
+          normalizarChaveCabecalho(p.codigo).includes(termo) ||
+          normalizarChaveCabecalho(p.descricao).includes(termo),
+      ).length > 30
+        ? `<div style="padding:8px 12px;color:var(--ink-faint);font-size:12px;">Mostrando os 30 primeiros resultados. Refine a busca para encontrar outros produtos.</div>`
+        : "");
+  }
+  dropdown.style.display = "block";
+}
+function selecionarProdutoSkuAt(i) {
+  const p = fSkuMatches[i];
+  if (!p) return;
+  document.getElementById("f-sku").value = p.codigo;
+  document.getElementById("f-sku-busca").value = `${p.codigo} — ${p.descricao}`;
+  const dropdown = document.getElementById("f-sku-dropdown");
+  if (dropdown) {
+    dropdown.style.display = "none";
+    dropdown.innerHTML = "";
+  }
+  autofillProduto();
+}
+function autofillProduto() {
+  const sku = document.getElementById("f-sku").value;
+  const p = PRODUTOS.find((x) => x.codigo === sku);
+  if (p) {
+    document.getElementById("f-descricao").value = p.descricao;
+    document.getElementById("f-fornecedor").value = p.fornecedor;
+    document.getElementById("f-valor").value = p.preco;
+  } else {
+    document.getElementById("f-descricao").value = "";
+    document.getElementById("f-fornecedor").value = "";
+    document.getElementById("f-valor").value = 0;
+  }
+  updateTotal();
+}
+function updateTotal() {
+  const v = parseFloat(document.getElementById("f-valor").value) || 0;
+  const q = parseInt(document.getElementById("f-qtd").value) || 0;
+  document.getElementById("f-total").textContent = money(v * q);
+}
+function salvarDivergencia(id) {
+  const erroEl = document.getElementById("f-erro");
+  const mostrarErro = (msg) => {
+    erroEl.textContent = msg;
+    erroEl.style.display = "block";
+  };
+  const setor = document.getElementById("f-setor").value;
+  const sku = document.getElementById("f-sku").value.trim();
+  const qtd = parseInt(document.getElementById("f-qtd").value) || 0;
+  const codDiv = document.getElementById("f-coddiv").value;
+  const outroCodDiv =
+    document.getElementById("f-coddiv-outro")?.value.trim() || "";
+  const status = document.getElementById("f-status").value;
+  const responsavel = document.getElementById("f-responsavel").value.trim();
+  if (!setor) {
+    mostrarErro("Selecione o setor.");
+    return;
+  }
+  if (!sku) {
+    mostrarErro("Selecione o produto (SKU).");
+    return;
+  }
+  if (qtd <= 0) {
+    mostrarErro("Quantidade deve ser maior que zero.");
+    return;
+  }
+  if (!codDiv) {
+    mostrarErro("Selecione o Código de Divergência.");
+    return;
+  }
+  if (codDiv === "OUTROS" && !outroCodDiv) {
+    mostrarErro(
+      'Descreva a divergência quando o Código de Divergência for "OUTROS".',
+    );
+    return;
+  }
+  if (!status) {
+    mostrarErro("Selecione o status.");
+    return;
+  }
+  if (!responsavel) {
+    mostrarErro("Informe o responsável.");
+    return;
+  }
+
+  const editandoAtual =
+    typeof id === "number" ? divergencias.find((d) => d.id === id) : null;
+  const dataConclusao = calcularDataConclusao(
+    editandoAtual ? editandoAtual.status : "",
+    status,
+    editandoAtual ? editandoAtual.dataConclusao : "",
+  );
+  const dados = {
+    setor,
+    sku,
+    descricao: document.getElementById("f-descricao").value,
+    fornecedor: document.getElementById("f-fornecedor").value,
+    valorUnit: parseFloat(document.getElementById("f-valor").value) || 0,
+    qtd,
+    codDiv,
+    outroCodDiv,
+    obs: document.getElementById("f-obs").value,
+    prazoCorrecao: document.getElementById("f-prazo").value || "",
+    status,
+    responsavel,
+    fotos: [...divFotosTemp],
+    dataConclusao,
+  };
+
+  if (typeof id === "number") {
+    const atual = divergencias.find((d) => d.id === id);
+    const LABELS = {
+      status: "status",
+      responsavel: "responsável",
+      prazoCorrecao: "prazo de correção",
+      setor: "setor",
+      fornecedor: "fornecedor",
+      qtd: "quantidade",
+      valorUnit: "valor unitário",
+    };
+    const STATUS_LABEL = {
+      PENDENTE: "Pendente",
+      EM_ESPERA: "Em Espera",
+      CORRIGIDO: "Corrigido",
+    };
+    Object.keys(dados).forEach((campo) => {
+      const antes = atual[campo];
+      const depois = dados[campo];
+      if (String(antes ?? "") !== String(depois ?? "") && LABELS[campo]) {
+        const fmt = (v) =>
+          campo === "status" ? STATUS_LABEL[v] || v : v || "(vazio)";
+        registrarHistorico(
+          "divergencias",
+          id,
+          "EDICAO",
+          `${currentUser.nome} alterou ${LABELS[campo]} do registro nº ${id} de "${fmt(antes)}" para "${fmt(depois)}".`,
+        );
+      }
+    });
+    Object.assign(atual, dados);
+  } else {
+    const novo = {
+      id: nextId++,
+      data: new Date().toISOString().slice(0, 10),
+      ...dados,
+    };
+    divergencias.unshift(novo);
+    registrarHistorico(
+      "divergencias",
+      novo.id,
+      "CRIACAO",
+      `${currentUser.nome} registrou a divergência nº ${novo.id} (${sku}) no setor ${setor}.`,
+    );
+  }
+  closeModal();
+  renderProdutosTabBody();
+}
+
+/* ==================== INSPEÇÃO DE ESTOQUE ==================== */
+let gaiolasTab = "novo";
+let estoqueDivergenciasState = [];
+function blankDivergenciaEstoque() {
+  return {
+    tipo: "",
+    divergencia: "",
+    outroDesc: "",
+    obs: "",
+    status: "PENDENTE",
+    fotos: [],
+  };
+}
+function renderGaiolas() {
+  const el = document.getElementById("page-content");
+  const tabs = [["novo", "Nova Inspeção"]];
+  if (podeVerIndicadores())
+    tabs.push(
+      ["pendencias", "Pendências/Divergências"],
+      ["historico", "Histórico"],
+    );
+  el.innerHTML = `
+  ${podeVerIndicadores() ? renderResumoModulo("gaiolas") : ""}
+  <div class="tabs">${tabs.map(([k, l]) => `<button class="tab-btn ${gaiolasTab === k ? "active" : ""}" onclick="gaiolasTab='${k}';renderGaiolas();">${l}</button>`).join("")}</div>
+  <div id="gaiolas-body"></div>`;
+  if (gaiolasTab === "novo") renderNovoGaiolas();
+  else if (gaiolasTab === "pendencias") renderPendenciasGaiolas();
+  else renderHistoricoGaiolas();
+}
+function renderNovoGaiolas() {
+  estoqueDivergenciasState = [blankDivergenciaEstoque()];
+  paintGaiolasForm();
+}
+function divergenciaEstoqueFotosPreviewHtml(idx) {
+  const d = estoqueDivergenciasState[idx];
+  if (!d || !d.fotos.length)
+    return `<div style="font-size:12px;color:var(--ink-faint);">Nenhuma imagem anexada ainda.</div>`;
+  return d.fotos
+    .map(
+      (f, fi) =>
+        `<div class="foto-thumb"><img src="${f.dataUrl}" title="${f.nome}" onclick="verFotoEstoque(${idx},${fi})"><button type="button" onclick="removerFotoEstoque(${idx},${fi})">×</button></div>`,
+    )
+    .join("");
+}
+function onFotoEstoqueChange(idx, input) {
+  const files = Array.from(input.files || []);
+  files.forEach((file) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      estoqueDivergenciasState[idx].fotos.push({
+        nome: file.name,
+        dataUrl: e.target.result,
+      });
+      const preview = document.getElementById(`ge-fotos-preview-${idx}`);
+      if (preview) preview.innerHTML = divergenciaEstoqueFotosPreviewHtml(idx);
+    };
+    reader.readAsDataURL(file);
+  });
+  input.value = "";
+}
+function removerFotoEstoque(idx, fi) {
+  estoqueDivergenciasState[idx].fotos.splice(fi, 1);
+  const preview = document.getElementById(`ge-fotos-preview-${idx}`);
+  if (preview) preview.innerHTML = divergenciaEstoqueFotosPreviewHtml(idx);
+}
+function verFotoEstoque(idx, fi) {
+  const f = estoqueDivergenciasState[idx]?.fotos[fi];
+  if (!f) return;
+  openModal(
+    `<div class="modal-header"><h3>${f.nome}</h3><button class="modal-close" onclick="closeModal()">×</button></div>
+  <div class="modal-body"><img src="${f.dataUrl}" style="width:100%;border-radius:12px;"></div>`,
+    true,
+  );
+}
+function onTipoDivergenciaEstoqueChange(idx, val) {
+  estoqueDivergenciasState[idx].tipo = val;
+  estoqueDivergenciasState[idx].divergencia = "";
+  estoqueDivergenciasState[idx].outroDesc = "";
+  paintGaiolasForm();
+}
+function onDivergenciaEstoqueChange(idx, val) {
+  estoqueDivergenciasState[idx].divergencia = val;
+  if (val !== "Outros") estoqueDivergenciasState[idx].outroDesc = "";
+  paintGaiolasForm();
+}
+function updateEstoqueField(idx, field, val) {
+  estoqueDivergenciasState[idx][field] = val;
+}
+function adicionarDivergenciaEstoque() {
+  estoqueDivergenciasState.push(blankDivergenciaEstoque());
+  paintGaiolasForm();
+}
+function removerDivergenciaEstoque(idx) {
+  estoqueDivergenciasState.splice(idx, 1);
+  if (estoqueDivergenciasState.length === 0)
+    estoqueDivergenciasState.push(blankDivergenciaEstoque());
+  paintGaiolasForm();
+}
+function divergenciaEstoqueCardHtml(d, idx) {
+  const opcoes = d.tipo ? TIPOS_DIVERGENCIA_ESTOQUE[d.tipo] : [];
+  return `<div class="estoque-div-card">
+    <div class="estoque-div-head">
+      <div style="font-weight:600;font-size:14px;">Divergência ${idx + 1}</div>
+      ${estoqueDivergenciasState.length > 1 ? `<button type="button" class="icon-btn danger" title="Remover divergência" onclick="removerDivergenciaEstoque(${idx})">🗑️</button>` : ""}
+    </div>
+    <div class="grid grid-2" style="gap:12px;">
+      <label class="field"><span>Tipo de Divergência *</span><select onchange="onTipoDivergenciaEstoqueChange(${idx},this.value)">
+        <option value="">Selecione...</option>
+        ${Object.keys(TIPO_DIVERGENCIA_ESTOQUE_LABEL)
+          .map(
+            (k) =>
+              `<option value="${k}" ${d.tipo === k ? "selected" : ""}>${TIPO_DIVERGENCIA_ESTOQUE_LABEL[k]}</option>`,
+          )
+          .join("")}
+      </select></label>
+      <label class="field"><span>Divergência *</span><select ${!d.tipo ? "disabled" : ""} onchange="onDivergenciaEstoqueChange(${idx},this.value)">
+        <option value="">${d.tipo ? "Selecione..." : "Selecione o tipo primeiro"}</option>
+        ${opcoes.map((o) => `<option value="${o}" ${d.divergencia === o ? "selected" : ""}>${o}</option>`).join("")}
+      </select></label>
+    </div>
+    ${
+      d.divergencia === "Outros"
+        ? `
+    <label class="field full"><span>Descreva a divergência *</span><textarea rows="2" oninput="updateEstoqueField(${idx},'outroDesc',this.value)">${d.outroDesc || ""}</textarea></label>
+    ${!d.outroDesc?.trim() ? '<p style="color:var(--danger);font-size:12px;margin:-8px 0 8px;">Obrigatório quando a divergência selecionada é "Outros".</p>' : ""}
+    `
+        : ""
+    }
+    <div class="grid grid-2" style="gap:12px;margin-top:12px;">
+      <label class="field"><span>Status *</span><select onchange="updateEstoqueField(${idx},'status',this.value)">
+        <option value="PENDENTE" ${d.status === "PENDENTE" ? "selected" : ""}>Pendente</option>
+        <option value="EM_ESPERA" ${d.status === "EM_ESPERA" ? "selected" : ""}>Em Espera</option>
+        <option value="CORRIGIDO" ${d.status === "CORRIGIDO" ? "selected" : ""}>Corrigido</option>
+      </select></label>
+      <label class="field"><span>Observação</span><input value="${d.obs || ""}" oninput="updateEstoqueField(${idx},'obs',this.value)"></label>
+    </div>
+    <div style="margin-top:12px;">
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+        <span style="font-size:12px;font-weight:500;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.02em;">Fotos</span>
+        <button type="button" class="btn btn-ghost" onclick="document.getElementById('ge-foto-input-${idx}').click();">📎 Anexar Imagens</button>
+        <input type="file" id="ge-foto-input-${idx}" accept="image/*" multiple class="hidden" onchange="onFotoEstoqueChange(${idx},this)">
+      </div>
+      <div id="ge-fotos-preview-${idx}" style="display:flex;flex-wrap:wrap;gap:10px;margin-top:10px;">${divergenciaEstoqueFotosPreviewHtml(idx)}</div>
+    </div>
+  </div>`;
+}
+function paintGaiolasForm() {
+  const body = document.getElementById("gaiolas-body");
+  const dataFmt = new Date(HOJE + "T00:00:00").toLocaleDateString("pt-BR");
+  body.innerHTML = `
+    <div class="card" style="padding:20px;margin-bottom:20px;">
+      <div class="grid grid-2" style="gap:12px;">
+        <label class="field"><span>Data da Inspeção</span><input value="${dataFmt}" disabled></label>
+        <label class="field"><span>Responsável</span><input value="${currentUser.nome}" disabled></label>
+      </div>
+    </div>
+    ${estoqueDivergenciasState.map((d, idx) => divergenciaEstoqueCardHtml(d, idx)).join("")}
+    <div style="margin-bottom:20px;">
+      <button type="button" class="btn btn-ghost" onclick="adicionarDivergenciaEstoque()">+ Incluir Nova Divergência</button>
+    </div>
+    <div id="gaiolas-msg"></div>
+    <div style="display:flex;justify-content:flex-end;padding:8px 0 24px;">
+      <button class="btn btn-brass" onclick="salvarGaiolas()">Salvar Inspeção</button>
+    </div>`;
+}
+function validarEstoque() {
+  for (const d of estoqueDivergenciasState) {
+    if (!d.tipo)
+      return "Selecione o Tipo de Divergência em todas as divergências incluídas.";
+    if (!d.divergencia)
+      return "Selecione a Divergência em todas as divergências incluídas.";
+    if (d.divergencia === "Outros" && !d.outroDesc?.trim())
+      return 'Descreva a divergência quando selecionar "Outros".';
+    if (!d.status)
+      return "Selecione o Status em todas as divergências incluídas.";
+  }
+  return null;
+}
+function salvarGaiolas() {
+  const msg = document.getElementById("gaiolas-msg");
+  const erro = validarEstoque();
+  if (erro) {
+    msg.innerHTML = `<div class="toast" style="background:var(--danger-soft);color:var(--danger);">${erro}</div>`;
+    return;
+  }
+  const novo = {
+    id: nextEstoqueId++,
+    data: HOJE,
+    responsavel: currentUser.nome,
+    divergencias: estoqueDivergenciasState.map((d, i) => ({
+      ordem: i + 1,
+      tipo: d.tipo,
+      divergencia: d.divergencia,
+      outroDesc: d.outroDesc,
+      obs: d.obs,
+      status: d.status,
+      fotos: [...d.fotos],
+    })),
+  };
+  inspecoesEstoque.unshift(novo);
+  const resumoTipos = [
+    ...new Set(
+      novo.divergencias.map((d) => TIPO_DIVERGENCIA_ESTOQUE_LABEL[d.tipo]),
+    ),
+  ].join(", ");
+  registrarHistorico(
+    "estoque_inspecoes",
+    novo.id,
+    "CRIACAO",
+    `${currentUser.nome} registrou a Inspeção de Estoque nº ${novo.id} com ${novo.divergencias.length} divergência(s) (${resumoTipos}).`,
+  );
+  msg.innerHTML = `<div class="toast">✅ Inspeção registrada com sucesso! ${novo.divergencias.length} divergência(s) salva(s).</div>`;
+  setTimeout(() => renderNovoGaiolas(), 1400);
+}
+function estoqueDivergenciasFlat() {
+  const list = [];
+  inspecoesEstoque.forEach((i) =>
+    i.divergencias.forEach((d) =>
+      list.push({
+        ...d,
+        inspecaoId: i.id,
+        data: i.data,
+        responsavel: i.responsavel,
+      }),
+    ),
+  );
+  return list;
+}
+function renderPendenciasGaiolas() {
+  const body = document.getElementById("gaiolas-body");
+  const pend = estoqueDivergenciasFlat().filter(
+    (d) => d.status !== "CORRIGIDO",
+  );
+  const rows = pend
+    .map(
+      (p) => `<tr>
+    <td style="color:var(--ink-faint);">${fmtDate(p.data)}</td>
+    <td style="font-weight:500;">${TIPO_DIVERGENCIA_ESTOQUE_LABEL[p.tipo]}</td>
+    <td>${p.divergencia === "Outros" ? p.outroDesc : p.divergencia}</td>
+    <td>${p.responsavel}</td>
+    <td>${statusBadge(p.status)}</td>
+    <td style="text-align:right;white-space:nowrap;">
+      <button class="icon-btn" title="Histórico de alterações" onclick="abrirHistoricoRegistro('estoque_inspecoes',${p.inspecaoId}*1000+${p.ordem},'Histórico — Divergência de Estoque')">🕐</button>
+      <button class="icon-btn" title="Tratar pendência" onclick="editarPendenciaGaiolas(${p.inspecaoId},${p.ordem})">✏️</button>
+    </td></tr>`,
+    )
+    .join("");
+  body.innerHTML = `<div style="font-size:14px;color:var(--ink-muted);margin-bottom:12px;">${pend.length} pendência(s) encontrada(s)</div>
+  <div class="card" style="overflow:hidden;"><div style="overflow-x:auto;"><table>
+    <thead><tr><th>Data</th><th>Tipo</th><th>Divergência</th><th>Responsável</th><th>Status</th><th></th></tr></thead>
+    <tbody>${rows || '<tr><td colspan=6 style="text-align:center;padding:40px;color:var(--ink-faint);">Nenhuma pendência.</td></tr>'}</tbody>
+  </table></div></div>`;
+}
+function editarPendenciaGaiolas(inspecaoId, ordem) {
+  const inspecao = inspecoesEstoque.find((i) => i.id === inspecaoId);
+  const d = inspecao.divergencias.find((x) => x.ordem === ordem);
+  openModal(`
+    <div class="modal-header"><h3>Tratar Divergência</h3><button class="modal-close" onclick="closeModal()">×</button></div>
+    <div class="modal-body">
+      <div class="card" style="padding:10px 14px;background:var(--surface-alt);border:none;font-size:14px;">${TIPO_DIVERGENCIA_ESTOQUE_LABEL[d.tipo]} — ${d.divergencia === "Outros" ? d.outroDesc : d.divergencia}</div>
+      <label class="field"><span>Observação</span><textarea id="pg-obs" rows="2">${d.obs || ""}</textarea></label>
+      <label class="field"><span>Status</span><select id="pg-status">
+        <option value="PENDENTE" ${d.status === "PENDENTE" ? "selected" : ""}>Pendente</option>
+        <option value="EM_ESPERA" ${d.status === "EM_ESPERA" ? "selected" : ""}>Em Espera</option>
+        <option value="CORRIGIDO" ${d.status === "CORRIGIDO" ? "selected" : ""}>Corrigido</option>
+      </select></label>
+      <div style="display:flex;justify-content:flex-end;gap:12px;">
+        <button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>
+        <button class="btn btn-brass" onclick="salvarPendenciaGaiolas(${inspecaoId},${ordem})">Salvar</button>
+      </div>
+    </div>`);
+}
+function salvarPendenciaGaiolas(inspecaoId, ordem) {
+  const inspecao = inspecoesEstoque.find((i) => i.id === inspecaoId);
+  const d = inspecao.divergencias.find((x) => x.ordem === ordem);
+  const antes = { ...d };
+  d.obs = document.getElementById("pg-obs").value;
+  d.status = document.getElementById("pg-status").value;
+  d.dataConclusao = calcularDataConclusao(
+    antes.status,
+    d.status,
+    antes.dataConclusao,
+  );
+  const STATUS_LABEL = {
+    PENDENTE: "Pendente",
+    EM_ESPERA: "Em Espera",
+    CORRIGIDO: "Corrigido",
+  };
+  const registroId = inspecaoId * 1000 + ordem;
+  if (antes.status !== d.status) {
+    registrarHistorico(
+      "estoque_inspecoes",
+      registroId,
+      "EDICAO",
+      `${currentUser.nome} alterou status da divergência nº ${registroId} de "${STATUS_LABEL[antes.status] || antes.status}" para "${STATUS_LABEL[d.status]}".`,
+    );
+  }
+  closeModal();
+  renderPendenciasGaiolas();
+}
+function abrirDetalheInspecaoEstoque(id) {
+  const insp = inspecoesEstoque.find((x) => x.id === id);
+  if (!insp) return;
+  const pendAbertas = insp.divergencias.filter(
+    (d) => d.status !== "CORRIGIDO",
+  ).length;
+  const itensHtml = insp.divergencias
+    .map((d) => {
+      const destaque =
+        d.status === "CORRIGIDO"
+          ? "border-left:3px solid var(--success);"
+          : "border-left:3px solid var(--danger);background:rgba(193,91,74,.04);";
+      const fotosHtml =
+        d.fotos && d.fotos.length
+          ? `<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;">${d.fotos.map((f) => `<img src="${f.dataUrl}" title="${f.nome}" style="width:60px;height:60px;object-fit:cover;border-radius:6px;border:1px solid var(--border);">`).join("")}</div>`
+          : "";
+      return `<div style="padding:10px 14px;${destaque}border-radius:8px;margin-bottom:8px;">
+      <div style="display:flex;justify-content:space-between;gap:10px;font-size:13px;">
+        <div><strong>${TIPO_DIVERGENCIA_ESTOQUE_LABEL[d.tipo]}</strong> — ${d.divergencia === "Outros" ? d.outroDesc : d.divergencia}</div>
+        <div>${statusBadge(d.status)}</div>
+      </div>
+      ${d.obs ? `<div style="font-size:12px;color:var(--ink-soft);margin-top:6px;"><strong>Observação:</strong> ${d.obs}</div>` : ""}
+      <div style="font-size:12px;color:var(--ink-soft);margin-top:6px;"><strong>Data de Conclusão:</strong> ${d.dataConclusao ? fmtDate(d.dataConclusao) : "—"}</div>
+      ${fotosHtml}
+    </div>`;
+    })
+    .join("");
+  openModal(
+    `
+    <div class="modal-header"><h3>Inspeção de Estoque nº ${insp.id}</h3><button class="modal-close" onclick="closeModal()">×</button></div>
+    <div class="modal-body">
+      ${pendAbertas > 0 ? `<div style="background:var(--danger-soft);color:var(--danger);border-radius:8px;padding:10px 14px;font-size:13px;font-weight:500;margin-bottom:6px;">⚠️ ${pendAbertas} divergência(s) aberta(s) nesta inspeção.</div>` : ""}
+      <div class="grid grid-2" style="gap:14px;font-size:13px;">
+        <div><div class="stat-label">Data</div><div style="font-weight:500;">${fmtDate(insp.data)}</div></div>
+        <div><div class="stat-label">Responsável</div><div style="font-weight:500;">${insp.responsavel}</div></div>
+      </div>
+      <div style="margin-top:14px;"><div class="stat-label" style="margin-bottom:8px;">Divergências registradas</div>${itensHtml}</div>
+    </div>`,
+    true,
+  );
+}
+let gaiolasHistFiltros = {
+  dataIni: "",
+  dataFim: "",
+  tipo: "",
+  status: "",
+};
+function gaiolasHistFiltrados() {
+  return inspecoesEstoque.filter((insp) => {
+    if (gaiolasHistFiltros.dataIni && insp.data < gaiolasHistFiltros.dataIni)
+      return false;
+    if (gaiolasHistFiltros.dataFim && insp.data > gaiolasHistFiltros.dataFim)
+      return false;
+    if (
+      gaiolasHistFiltros.tipo &&
+      !insp.divergencias.some((d) => d.tipo === gaiolasHistFiltros.tipo)
+    )
+      return false;
+    const pendAbertas = insp.divergencias.filter(
+      (d) => d.status !== "CORRIGIDO",
+    ).length;
+    if (gaiolasHistFiltros.status === "com_pendencia" && pendAbertas === 0)
+      return false;
+    if (gaiolasHistFiltros.status === "sem_pendencia" && pendAbertas > 0)
+      return false;
+    return true;
+  });
+}
+function aplicarFiltroGaiolasHist() {
+  gaiolasHistFiltros = {
+    dataIni: document.getElementById("ghf-data-ini").value,
+    dataFim: document.getElementById("ghf-data-fim").value,
+    tipo: document.getElementById("ghf-tipo").value,
+    status: document.getElementById("ghf-status").value,
+  };
+  renderHistoricoGaiolas();
+}
+function limparFiltroGaiolasHist() {
+  gaiolasHistFiltros = { dataIni: "", dataFim: "", tipo: "", status: "" };
+  renderHistoricoGaiolas();
+}
+function renderHistoricoGaiolas() {
+  const body = document.getElementById("gaiolas-body");
+  const lista = gaiolasHistFiltrados();
+  const tipoOpts = Object.keys(TIPO_DIVERGENCIA_ESTOQUE_LABEL)
+    .map(
+      (k) =>
+        `<option value="${k}" ${gaiolasHistFiltros.tipo === k ? "selected" : ""}>${TIPO_DIVERGENCIA_ESTOQUE_LABEL[k]}</option>`,
+    )
+    .join("");
+  const rows = lista
+    .map((insp) => {
+      const pendAbertas = insp.divergencias.filter(
+        (d) => d.status !== "CORRIGIDO",
+      ).length;
+      const destaque =
+        pendAbertas > 0
+          ? "border-left:3px solid var(--danger);background:rgba(193,91,74,.04);"
+          : "";
+      const tiposResumo = [
+        ...new Set(
+          insp.divergencias.map((d) => TIPO_DIVERGENCIA_ESTOQUE_LABEL[d.tipo]),
+        ),
+      ].join(", ");
+      const totalFotos = insp.divergencias.reduce(
+        (a, d) => a + (d.fotos?.length || 0),
+        0,
+      );
+      const datasConclusao = insp.divergencias
+        .map((d) => d.dataConclusao)
+        .filter(Boolean)
+        .sort();
+      const ultimaConclusao = datasConclusao.length
+        ? datasConclusao[datasConclusao.length - 1]
+        : "";
+      return `<tr style="${destaque}">
+    <td style="color:var(--ink-faint);">${fmtDate(insp.data)}</td>
+    <td style="font-weight:500;">${tiposResumo}</td>
+    <td>${insp.responsavel}</td>
+    <td>${insp.divergencias.length}</td>
+    <td>${pendAbertas > 0 ? `<span class="badge naoconforme">${pendAbertas} aberta(s)</span>` : '<span class="badge conforme">Sem pendência</span>'}</td>
+    <td style="color:var(--ink-faint);white-space:nowrap;">${ultimaConclusao ? fmtDate(ultimaConclusao) : "—"}</td>
+    <td style="text-align:right;white-space:nowrap;">
+      <button class="icon-btn" title="Ver detalhes" onclick="abrirDetalheInspecaoEstoque(${insp.id})">👁️</button>
+      <button class="icon-btn" title="Ver fotos" onclick="abrirDetalheInspecaoEstoque(${insp.id})">📎 ${totalFotos}</button>
+    </td>
+  </tr>`;
+    })
+    .join("");
+  body.innerHTML = `
+  <div class="card" style="padding:18px 20px;margin-bottom:18px;">
+    <div class="grid" style="grid-template-columns:repeat(4,1fr) auto auto;gap:12px;align-items:end;">
+      <label class="field"><span>Período inicial</span><input type="date" id="ghf-data-ini" value="${gaiolasHistFiltros.dataIni}"></label>
+      <label class="field"><span>Período final</span><input type="date" id="ghf-data-fim" value="${gaiolasHistFiltros.dataFim}"></label>
+      <label class="field"><span>Tipo de Divergência</span><select id="ghf-tipo"><option value="">Todos</option>${tipoOpts}</select></label>
+      <label class="field"><span>Pendências</span><select id="ghf-status">
+        <option value="">Todas</option>
+        <option value="com_pendencia" ${gaiolasHistFiltros.status === "com_pendencia" ? "selected" : ""}>Com pendência aberta</option>
+        <option value="sem_pendencia" ${gaiolasHistFiltros.status === "sem_pendencia" ? "selected" : ""}>Sem pendência</option>
+      </select></label>
+      <button class="btn btn-brass" onclick="aplicarFiltroGaiolasHist()">Filtrar</button>
+      <button class="btn btn-ghost" onclick="limparFiltroGaiolasHist()">Limpar filtros</button>
+    </div>
+  </div>
+  <div style="font-size:14px;color:var(--ink-muted);margin-bottom:12px;">${lista.length} inspeção(ões) encontrada(s)</div>
+  <div class="card" style="overflow:hidden;"><div style="overflow-x:auto;"><table>
+    <thead><tr><th>Data</th><th>Tipos</th><th>Responsável</th><th>Divergências</th><th>Pendências</th><th>Data Conclusão</th><th></th></tr></thead>
+    <tbody>${rows || '<tr><td colspan=7 style="text-align:center;padding:40px;color:var(--ink-faint);">Nenhuma inspeção encontrada para os filtros aplicados.</td></tr>'}</tbody>
+  </table></div></div>`;
+}
+/* ==================== 5S ==================== */
+let checklist5sTab = "novo";
+let checklist5sItensState = [];
+let checklist5sAnexos = [];
+function render5S() {
+  const el = document.getElementById("page-content");
+  const tabs = [["novo", "Novo Checklist"]];
+  if (podeVerIndicadores())
+    tabs.push(
+      ["pendencias", "Pendências/Divergências"],
+      ["historico", "Histórico"],
+    );
+  el.innerHTML = `
+  ${podeVerIndicadores() ? renderResumoModulo("5s") : ""}
+  <div class="tabs">${tabs.map(([k, l]) => `<button class="tab-btn ${checklist5sTab === k ? "active" : ""}" onclick="checklist5sTab='${k}';render5S();">${l}</button>`).join("")}</div>
+  <div id="5s-body"></div>`;
+  if (checklist5sTab === "novo") renderNovo5S();
+  else if (checklist5sTab === "pendencias") renderPendencias5S();
+  else renderHistorico5S();
+}
+function renderNovo5S() {
+  checklist5sItensState = CHECKLIST_5S_ITENS_PADRAO.map((it, i) => ({
+    ordem: i + 1,
+    senso: it.senso,
+    desc: it.desc,
+    resp: null,
+    obs: "",
+    criticidade: "",
+    status: "PENDENTE",
+  }));
+  checklist5sAnexos = [];
+  paint5SForm();
+}
+function anexos5sPreviewHtml() {
+  if (checklist5sAnexos.length === 0)
+    return `<div style="font-size:12px;color:var(--ink-faint);">Nenhuma imagem anexada ainda.</div>`;
+  return checklist5sAnexos
+    .map(
+      (a, i) => `
+    <div style="position:relative;width:84px;height:84px;border-radius:10px;overflow:hidden;border:1px solid var(--border);flex-shrink:0;">
+      <img src="${a.dataUrl}" style="width:100%;height:100%;object-fit:cover;cursor:pointer;" onclick="verAnexo5S(${i})" title="${a.nome}">
+      <button type="button" onclick="removerAnexo5S(${i})" title="Remover" style="position:absolute;top:2px;right:2px;background:rgba(20,23,26,.65);color:#fff;border:none;border-radius:999px;width:20px;height:20px;font-size:12px;line-height:1;">×</button>
+    </div>`,
+    )
+    .join("");
+}
+function onAnexo5SChange(input) {
+  const files = Array.from(input.files || []);
+  files.forEach((file) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      checklist5sAnexos.push({
+        nome: file.name,
+        dataUrl: e.target.result,
+      });
+      const preview = document.getElementById("s-anexos-preview");
+      if (preview) preview.innerHTML = anexos5sPreviewHtml();
+    };
+    reader.readAsDataURL(file);
+  });
+  input.value = "";
+}
+function removerAnexo5S(i) {
+  checklist5sAnexos.splice(i, 1);
+  const preview = document.getElementById("s-anexos-preview");
+  if (preview) preview.innerHTML = anexos5sPreviewHtml();
+}
+function verAnexo5S(i) {
+  const a = checklist5sAnexos[i];
+  if (!a) return;
+  openModal(
+    `<div class="modal-header"><h3>${a.nome}</h3><button class="modal-close" onclick="closeModal()">×</button></div>
+  <div class="modal-body"><img src="${a.dataUrl}" style="width:100%;border-radius:12px;"></div>`,
+    true,
+  );
+}
+function verAnexosChecklist5S(id) {
+  const c = checklist5s.find((x) => x.id === id);
+  if (!c || !c.anexos || !c.anexos.length) {
+    openModal(`<div class="modal-header"><h3>Anexos</h3><button class="modal-close" onclick="closeModal()">×</button></div>
+    <div class="modal-body"><p style="color:var(--ink-muted);font-size:14px;margin:0;">Nenhuma imagem anexada a este checklist.</p></div>`);
+    return;
+  }
+  const imgs = c.anexos
+    .map(
+      (a) =>
+        `<img src="${a.dataUrl}" title="${a.nome}" style="width:100%;border-radius:10px;">`,
+    )
+    .join("");
+  openModal(
+    `<div class="modal-header"><h3>Anexos — Checklist 5S nº ${c.id}</h3><button class="modal-close" onclick="closeModal()">×</button></div>
+  <div class="modal-body"><div class="grid grid-2" style="gap:12px;">${imgs}</div></div>`,
+    true,
+  );
+}
+function abrirDetalheChecklist(tipo, id) {
+  if (tipo !== "5s") return;
+  const c = checklist5s.find((x) => x.id === id);
+  if (!c) return;
+  const pendAbertas = c.itens.filter(
+    (i) => i.resp === "NAO_CONFORME" && i.status !== "CORRIGIDO",
+  ).length;
+  const STATUS_LABEL = {
+    PENDENTE: "Pendente",
+    EM_ESPERA: "Em Espera",
+    CORRIGIDO: "Corrigido",
+  };
+  const itensHtml = c.itens
+    .map((it) => {
+      if (it.resp !== "NAO_CONFORME") {
+        return `<div style="padding:10px 14px;border-radius:8px;margin-bottom:8px;background:var(--surface-alt);">
+        <div style="display:flex;justify-content:space-between;gap:10px;font-size:13px;">
+          <div>${it.senso ? `<span class="senso-tag">${it.senso}</span> ` : ""}${it.desc}</div>
+          <div>${it.resp === "CONFORME" ? '<span class="badge conforme">Conforme</span>' : '<span class="badge">N.A.</span>'}</div>
+        </div>
+      </div>`;
+      }
+      const destaque =
+        it.status === "CORRIGIDO"
+          ? "border-left:3px solid var(--success);"
+          : "border-left:3px solid var(--danger);background:rgba(193,91,74,.04);";
+      return `<div style="padding:10px 14px;${destaque}border-radius:8px;margin-bottom:8px;">
+      <div style="display:flex;justify-content:space-between;gap:10px;font-size:13px;">
+        <div>${it.senso ? `<span class="senso-tag">${it.senso}</span> ` : ""}<strong>${it.desc}</strong></div>
+        <div>${statusBadge(it.status)}</div>
+      </div>
+      ${it.obs ? `<div style="font-size:12px;color:var(--ink-soft);margin-top:6px;"><strong>Observação:</strong> ${it.obs}</div>` : ""}
+      ${it.acaoCorretiva ? `<div style="font-size:12px;color:var(--ink-soft);margin-top:4px;"><strong>Ação Corretiva:</strong> ${it.acaoCorretiva}</div>` : ""}
+      <div style="font-size:12px;color:var(--ink-soft);margin-top:4px;"><strong>Responsável:</strong> ${it.respNc || "—"} · <strong>Criticidade:</strong> ${it.criticidade || "—"} · <strong>Prazo:</strong> ${it.prazo ? fmtDate(it.prazo) : "—"}</div>
+      <div style="font-size:12px;color:var(--ink-soft);margin-top:4px;"><strong>Data de Conclusão:</strong> ${it.dataConclusao ? fmtDate(it.dataConclusao) : "—"}</div>
+    </div>`;
+    })
+    .join("");
+  openModal(
+    `
+    <div class="modal-header"><h3>Check List 5S nº ${c.id}</h3><button class="modal-close" onclick="closeModal()">×</button></div>
+    <div class="modal-body">
+      ${pendAbertas > 0 ? `<div style="background:var(--danger-soft);color:var(--danger);border-radius:8px;padding:10px 14px;font-size:13px;font-weight:500;margin-bottom:6px;">⚠️ ${pendAbertas} item(ns) não conforme(s) em aberto nesta checklist.</div>` : ""}
+      <div class="grid grid-2" style="gap:14px;font-size:13px;">
+        <div><div class="stat-label">Data</div><div style="font-weight:500;">${fmtDate(c.data)}</div></div>
+        <div><div class="stat-label">Setor</div><div style="font-weight:500;">${c.setor}</div></div>
+        <div><div class="stat-label">Turno</div><div style="font-weight:500;">${c.turno}</div></div>
+        <div><div class="stat-label">Responsável</div><div style="font-weight:500;">${c.responsavel}</div></div>
+        <div><div class="stat-label">Conformidade</div><div style="font-weight:500;">${c.conformidade}%</div></div>
+      </div>
+      <div style="margin-top:14px;"><div class="stat-label" style="margin-bottom:8px;">Itens do checklist</div>${itensHtml}</div>
+    </div>`,
+    true,
+  );
+}
+function checklistItemHtml(it, idx, ctx) {
+  return `<div class="checklist-item">
+    <div class="checklist-item-top">
+      <div class="checklist-item-title">${it.senso ? `<span class="senso-tag">${it.senso}</span><br>` : ""}${idx + 1}. ${it.desc}</div>
+      <div class="resposta-btns">
+        <button class="resposta-btn conforme ${it.resp === "CONFORME" ? "active" : ""}" onclick="setResp('${ctx}',${idx},'CONFORME')">✓ Conforme</button>
+        <button class="resposta-btn nao ${it.resp === "NAO_CONFORME" ? "active" : ""}" onclick="setResp('${ctx}',${idx},'NAO_CONFORME')">✕ Não Conforme</button>
+        <button class="resposta-btn na ${it.resp === "NA" ? "active" : ""}" onclick="setResp('${ctx}',${idx},'NA')">− N.A.</button>
+      </div>
+    </div>
+    ${
+      it.resp === "NAO_CONFORME"
+        ? `
+    <div class="nc-fields">
+      <label class="field full"><span>Observação *</span><textarea rows="2" oninput="updateField('${ctx}',${idx},'obs',this.value)">${it.obs || ""}</textarea></label>
+      ${!it.obs?.trim() ? '<p style="color:var(--danger);font-size:12px;margin:-8px 0 0;">Obrigatório quando o item está Não Conforme.</p>' : ""}
+      <label class="field full"><span>Ação Corretiva *</span><textarea rows="2" oninput="updateField('${ctx}',${idx},'acaoCorretiva',this.value)">${it.acaoCorretiva || ""}</textarea></label>
+      ${!it.acaoCorretiva?.trim() ? '<p style="color:var(--danger);font-size:12px;margin:-8px 0 0;">Obrigatório quando o item está Não Conforme.</p>' : ""}
+      <label class="field"><span>Responsável</span><input value="${it.respNc || ""}" oninput="updateField('${ctx}',${idx},'respNc',this.value)"></label>
+      <label class="field"><span>Prazo</span><input type="date" value="${it.prazo || ""}" oninput="updateField('${ctx}',${idx},'prazo',this.value)"></label>
+      <label class="field"><span>Criticidade</span><select onchange="updateField('${ctx}',${idx},'criticidade',this.value)">
+        <option value="">Selecione...</option>
+        <option value="BAIXA" ${it.criticidade === "BAIXA" ? "selected" : ""}>Baixa</option>
+        <option value="MEDIA" ${it.criticidade === "MEDIA" ? "selected" : ""}>Média</option>
+        <option value="ALTA" ${it.criticidade === "ALTA" ? "selected" : ""}>Alta</option>
+        <option value="CRITICA" ${it.criticidade === "CRITICA" ? "selected" : ""}>Crítica</option>
+      </select></label>
+    </div>`
+        : ""
+    }
+  </div>`;
+}
+function setResp(ctx, idx, val) {
+  const arr = checklist5sItensState;
+  arr[idx].resp = val;
+  paint5SForm();
+}
+function updateField(ctx, idx, field, val) {
+  checklist5sItensState[idx][field] = val;
+}
+function paint5SForm() {
+  const body = document.getElementById("5s-body");
+  const respondidos = checklist5sItensState.filter((i) => i.resp).length;
+  const conformes = checklist5sItensState.filter(
+    (i) => i.resp === "CONFORME",
+  ).length;
+  const naoConf = checklist5sItensState.filter(
+    (i) => i.resp === "NAO_CONFORME",
+  ).length;
+  const aval = conformes + naoConf;
+  const pct = aval > 0 ? Math.round((conformes / aval) * 100) : null;
+  body.innerHTML = `
+    <div class="card" style="padding:20px;margin-bottom:20px;">
+      <div class="grid" style="grid-template-columns:repeat(4,1fr);gap:12px;">
+        <label class="field"><span>Setor/Área</span><select id="s-setor"><option>RECEBIMENTO</option><option>EXPEDICAO</option><option>MERCADO</option><option>VERTICAL</option><option>ARMAZENAGEM GERAL</option></select></label>
+        <label class="field"><span>Turno</span><select id="s-turno"><option>MANHA</option><option>TARDE</option><option>NOITE</option></select></label>
+        <label class="field"><span>Data</span><input id="s-data" type="date" value="${new Date().toISOString().slice(0, 10)}"></label>
+        <label class="field"><span>Responsável</span><input id="s-resp"></label>
+      </div>
+    </div>
+    <div class="card" style="padding:20px;margin-bottom:20px;">
+      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+        <div style="flex:1;min-width:200px;">
+          <div style="font-weight:500;font-size:14px;margin-bottom:2px;">📎 Anexos do Checklist</div>
+          <div style="font-size:12px;color:var(--ink-muted);">Fotos de evidência do setor/turno inspecionado (opcional).</div>
+        </div>
+        <button type="button" class="btn btn-ghost" onclick="document.getElementById('s-anexo-input').click();">📎 Anexar Imagens</button>
+        <input type="file" id="s-anexo-input" accept="image/*" multiple class="hidden" onchange="onAnexo5SChange(this)">
+      </div>
+      <div id="s-anexos-preview" style="display:flex;flex-wrap:wrap;gap:10px;margin-top:14px;">${anexos5sPreviewHtml()}</div>
+    </div>
+    <div style="display:flex;justify-content:space-between;margin-bottom:16px;font-size:14px;">
+      <span style="color:var(--ink-muted);">${respondidos} de ${checklist5sItensState.length} itens respondidos</span>
+      <span class="font-display" style="color:var(--brass-700);font-size:17px;">Conformidade: ${pct === null ? "—" : pct + "%"}</span>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px;">${checklist5sItensState.map((it, idx) => checklistItemHtml(it, idx, "5s")).join("")}</div>
+    <div id="5s-msg"></div>
+    <div style="display:flex;justify-content:flex-end;padding:24px 0;">
+      <button class="btn btn-brass" onclick="salvar5S()">Salvar Checklist</button>
+    </div>`;
+}
+function salvar5S() {
+  const resp = document.getElementById("s-resp").value;
+  const msg = document.getElementById("5s-msg");
+  if (!resp) {
+    msg.innerHTML =
+      '<div class="toast" style="background:var(--danger-soft);color:var(--danger);">Preencha o responsável.</div>';
+    return;
+  }
+  if (checklist5sItensState.some((i) => !i.resp)) {
+    msg.innerHTML =
+      '<div class="toast" style="background:var(--danger-soft);color:var(--danger);">Responda todos os itens.</div>';
+    return;
+  }
+  const semJustificativa = checklist5sItensState.find(
+    (i) =>
+      i.resp === "NAO_CONFORME" && (!i.obs?.trim() || !i.acaoCorretiva?.trim()),
+  );
+  if (semJustificativa) {
+    msg.innerHTML = `<div class="toast" style="background:var(--danger-soft);color:var(--danger);">O item "${semJustificativa.desc}" está Não Conforme e precisa de observação e ação corretiva.</div>`;
+    return;
+  }
+  const conformes = checklist5sItensState.filter(
+    (i) => i.resp === "CONFORME",
+  ).length;
+  const naoConf = checklist5sItensState.filter(
+    (i) => i.resp === "NAO_CONFORME",
+  ).length;
+  const pct = Math.round((conformes / (conformes + naoConf || 1)) * 100);
+  const setor = document.getElementById("s-setor").value;
+  const novo = {
+    id: nextId++,
+    setor,
+    turno: document.getElementById("s-turno").value,
+    responsavel: resp,
+    data: document.getElementById("s-data").value,
+    conformidade: pct,
+    itens: checklist5sItensState.map((i) => ({
+      ordem: i.ordem,
+      senso: i.senso,
+      desc: i.desc,
+      resp: i.resp,
+      obs: i.obs,
+      acaoCorretiva: i.acaoCorretiva,
+      respNc: i.respNc,
+      prazo: i.prazo,
+      criticidade: i.criticidade,
+      status: i.resp === "NAO_CONFORME" ? "PENDENTE" : null,
+    })),
+    anexos: [...checklist5sAnexos],
+  };
+  checklist5s.unshift(novo);
+  registrarHistorico(
+    "checklist_5s",
+    novo.id,
+    "CRIACAO",
+    `${currentUser.nome} registrou o checklist 5S nº ${novo.id} (setor ${setor}, turno ${novo.turno}) com ${pct}% de conformidade${novo.anexos.length ? ` e ${novo.anexos.length} imagem(ns) anexada(s)` : ""}.`,
+  );
+  msg.innerHTML = `<div class="toast">✅ Checklist 5S registrado com sucesso! Conformidade: ${pct}%</div>`;
+  setTimeout(() => renderNovo5S(), 1400);
+}
+function renderPendencias5S() {
+  const body = document.getElementById("5s-body");
+  const pend = [];
+  checklist5s.forEach((c) =>
+    c.itens
+      .filter((i) => i.resp === "NAO_CONFORME")
+      .forEach((i) =>
+        pend.push({
+          ...i,
+          setor: c.setor,
+          turno: c.turno,
+          checklistId: c.id,
+        }),
+      ),
+  );
+  const rows = pend
+    .map(
+      (p) => `<tr>
+    <td><div style="font-weight:500;">${p.setor}</div><div style="font-size:11px;color:var(--ink-faint);">${p.turno}</div></td>
+    <td>${p.senso}</td><td>${p.desc}</td><td>${critBadge(p.criticidade)}</td><td>${statusBadge(p.status || "PENDENTE")}</td>
+    <td>${prazoBadgeHtml(p.prazo, p.status)}</td>
+    <td style="text-align:right;white-space:nowrap;">
+      <button class="icon-btn" title="Histórico de alterações" onclick="abrirHistoricoRegistro('checklist_5s_itens',${p.checklistId}*1000+${p.ordem},'Histórico — Item de 5S')">🕐</button>
+      <button class="icon-btn" title="Tratar pendência" onclick="editarPendencia5S(${p.checklistId},${p.ordem})">✏️</button>
+    </td></tr>`,
+    )
+    .join("");
+  body.innerHTML = `<div style="font-size:14px;color:var(--ink-muted);margin-bottom:12px;">${pend.length} pendência(s) encontrada(s)</div>
+  <div class="card" style="overflow:hidden;"><div style="overflow-x:auto;"><table>
+    <thead><tr><th>Setor/Turno</th><th>Senso</th><th>Item Não Conforme</th><th>Criticidade</th><th>Status</th><th>Prazo</th><th></th></tr></thead>
+    <tbody>${rows || '<tr><td colspan=7 style="text-align:center;padding:40px;color:var(--ink-faint);">Nenhuma pendência.</td></tr>'}</tbody>
+  </table></div></div>`;
+}
+function editarPendencia5S(checklistId, ordem) {
+  const checklist = checklist5s.find((c) => c.id === checklistId);
+  const item = checklist.itens.find((i) => i.ordem === ordem);
+  openModal(`
+    <div class="modal-header"><h3>Tratar Pendência</h3><button class="modal-close" onclick="closeModal()">×</button></div>
+    <div class="modal-body">
+      <div class="card" style="padding:10px 14px;background:var(--surface-alt);border:none;font-size:14px;">${item.desc}</div>
+      <label class="field"><span>Observação</span><textarea id="p5-obs" rows="2">${item.obs || ""}</textarea></label>
+      <label class="field"><span>Ação Corretiva</span><textarea id="p5-acao" rows="2">${item.acaoCorretiva || ""}</textarea></label>
+      <div class="grid grid-2">
+        <label class="field"><span>Responsável</span><input id="p5-resp" value="${item.respNc || ""}"></label>
+        <label class="field"><span>Prazo</span><input id="p5-prazo" type="date" value="${item.prazo || ""}"></label>
+        <label class="field"><span>Criticidade</span><select id="p5-crit">
+          <option value="">—</option>
+          <option value="BAIXA" ${item.criticidade === "BAIXA" ? "selected" : ""}>Baixa</option>
+          <option value="MEDIA" ${item.criticidade === "MEDIA" ? "selected" : ""}>Média</option>
+          <option value="ALTA" ${item.criticidade === "ALTA" ? "selected" : ""}>Alta</option>
+          <option value="CRITICA" ${item.criticidade === "CRITICA" ? "selected" : ""}>Crítica</option>
+        </select></label>
+        <label class="field"><span>Status</span><select id="p5-status">
+          <option value="PENDENTE" ${item.status === "PENDENTE" ? "selected" : ""}>Pendente</option>
+          <option value="EM_ESPERA" ${item.status === "EM_ESPERA" ? "selected" : ""}>Em Espera</option>
+          <option value="CORRIGIDO" ${item.status === "CORRIGIDO" ? "selected" : ""}>Corrigido</option>
+        </select></label>
+      </div>
+      <div style="display:flex;justify-content:flex-end;gap:12px;">
+        <button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>
+        <button class="btn btn-brass" onclick="salvarPendencia5S(${checklistId},${ordem})">Salvar</button>
+      </div>
+    </div>`);
+}
+function salvarPendencia5S(checklistId, ordem) {
+  const checklist = checklist5s.find((c) => c.id === checklistId);
+  const item = checklist.itens.find((i) => i.ordem === ordem);
+  const antes = { ...item };
+  item.obs = document.getElementById("p5-obs").value;
+  item.acaoCorretiva = document.getElementById("p5-acao").value;
+  item.respNc = document.getElementById("p5-resp").value;
+  item.prazo = document.getElementById("p5-prazo").value;
+  item.criticidade = document.getElementById("p5-crit").value;
+  item.status = document.getElementById("p5-status").value;
+  item.dataConclusao = calcularDataConclusao(
+    antes.status,
+    item.status,
+    antes.dataConclusao,
+  );
+  const STATUS_LABEL = {
+    PENDENTE: "Pendente",
+    EM_ESPERA: "Em Espera",
+    CORRIGIDO: "Corrigido",
+  };
+  const registroId = checklistId * 1000 + ordem;
+  if (antes.status !== item.status) {
+    registrarHistorico(
+      "checklist_5s_itens",
+      registroId,
+      "EDICAO",
+      `${currentUser.nome} alterou status do item nº ${registroId} de "${STATUS_LABEL[antes.status] || antes.status}" para "${STATUS_LABEL[item.status]}".`,
+    );
+  }
+  if (antes.prazo !== item.prazo) {
+    registrarHistorico(
+      "checklist_5s_itens",
+      registroId,
+      "EDICAO",
+      `${currentUser.nome} alterou prazo do item nº ${registroId} de "${antes.prazo || "(vazio)"}" para "${item.prazo || "(vazio)"}".`,
+    );
+  }
+  closeModal();
+  renderPendencias5S();
+}
+let s5HistFiltros = { dataIni: "", dataFim: "", setor: "", status: "" };
+function s5HistFiltrados() {
+  return checklist5s.filter((c) => {
+    if (s5HistFiltros.dataIni && c.data < s5HistFiltros.dataIni) return false;
+    if (s5HistFiltros.dataFim && c.data > s5HistFiltros.dataFim) return false;
+    if (s5HistFiltros.setor && c.setor !== s5HistFiltros.setor) return false;
+    const pendAbertas = c.itens.filter(
+      (i) => i.resp === "NAO_CONFORME" && i.status !== "CORRIGIDO",
+    ).length;
+    if (s5HistFiltros.status === "com_pendencia" && pendAbertas === 0)
+      return false;
+    if (s5HistFiltros.status === "sem_pendencia" && pendAbertas > 0)
+      return false;
+    return true;
+  });
+}
+function aplicarFiltroS5Hist() {
+  s5HistFiltros = {
+    dataIni: document.getElementById("s5hf-data-ini").value,
+    dataFim: document.getElementById("s5hf-data-fim").value,
+    setor: document.getElementById("s5hf-setor").value,
+    status: document.getElementById("s5hf-status").value,
+  };
+  renderHistorico5S();
+}
+function limparFiltroS5Hist() {
+  s5HistFiltros = { dataIni: "", dataFim: "", setor: "", status: "" };
+  renderHistorico5S();
+}
+function renderHistorico5S() {
+  const body = document.getElementById("5s-body");
+  const lista = s5HistFiltrados();
+  const setoresOpts = [...new Set(checklist5s.map((c) => c.setor))]
+    .map(
+      (s) =>
+        `<option value="${s}" ${s5HistFiltros.setor === s ? "selected" : ""}>${s}</option>`,
+    )
+    .join("");
+  const rows = lista
+    .map((c) => {
+      const pendAbertas = c.itens.filter(
+        (i) => i.resp === "NAO_CONFORME" && i.status !== "CORRIGIDO",
+      ).length;
+      const destaque =
+        pendAbertas > 0
+          ? "border-left:3px solid var(--danger);background:rgba(193,91,74,.04);"
+          : "";
+      const datasConclusao = c.itens
+        .map((i) => i.dataConclusao)
+        .filter(Boolean)
+        .sort();
+      const ultimaConclusao = datasConclusao.length
+        ? datasConclusao[datasConclusao.length - 1]
+        : "";
+      return `<tr style="${destaque}">
+    <td style="color:var(--ink-faint);">${fmtDate(c.data)}</td>
+    <td><div style="font-weight:500;">${c.setor}</div><div style="font-size:11px;color:var(--ink-faint);">${c.turno}</div></td>
+    <td>${c.responsavel}</td>
+    <td><span style="font-weight:500;color:${c.conformidade < 70 ? "var(--danger)" : "var(--success)"};">${c.conformidade}%</span></td>
+    <td>${pendAbertas > 0 ? `<span class="badge naoconforme">${pendAbertas} aberta(s)</span>` : '<span class="badge conforme">Sem pendência</span>'}</td>
+    <td style="color:var(--ink-faint);white-space:nowrap;">${ultimaConclusao ? fmtDate(ultimaConclusao) : "—"}</td>
+    <td style="text-align:right;white-space:nowrap;">
+      <button class="icon-btn" title="Ver detalhes" onclick="abrirDetalheChecklist('5s',${c.id})">👁️</button>
+      <button class="icon-btn" title="Ver anexos" onclick="verAnexosChecklist5S(${c.id})">📎 ${c.anexos?.length || 0}</button>
+    </td>
+  </tr>`;
+    })
+    .join("");
+  body.innerHTML = `
+  <div class="card" style="padding:18px 20px;margin-bottom:18px;">
+    <div class="grid" style="grid-template-columns:repeat(4,1fr) auto auto;gap:12px;align-items:end;">
+      <label class="field"><span>Período inicial</span><input type="date" id="s5hf-data-ini" value="${s5HistFiltros.dataIni}"></label>
+      <label class="field"><span>Período final</span><input type="date" id="s5hf-data-fim" value="${s5HistFiltros.dataFim}"></label>
+      <label class="field"><span>Setor</span><select id="s5hf-setor"><option value="">Todos</option>${setoresOpts}</select></label>
+      <label class="field"><span>Pendências</span><select id="s5hf-status">
+        <option value="">Todas</option>
+        <option value="com_pendencia" ${s5HistFiltros.status === "com_pendencia" ? "selected" : ""}>Com pendência aberta</option>
+        <option value="sem_pendencia" ${s5HistFiltros.status === "sem_pendencia" ? "selected" : ""}>Sem pendência</option>
+      </select></label>
+      <button class="btn btn-brass" onclick="aplicarFiltroS5Hist()">Filtrar</button>
+      <button class="btn btn-ghost" onclick="limparFiltroS5Hist()">Limpar filtros</button>
+    </div>
+  </div>
+  <div style="font-size:14px;color:var(--ink-muted);margin-bottom:12px;">${lista.length} checklist(s) encontrado(s)</div>
+  <div class="card" style="overflow:hidden;"><div style="overflow-x:auto;"><table>
+    <thead><tr><th>Data</th><th>Setor/Turno</th><th>Responsável</th><th>% Conformidade</th><th>Pendências</th><th>Data Conclusão</th><th></th></tr></thead>
+    <tbody>${rows || '<tr><td colspan=7 style="text-align:center;padding:40px;color:var(--ink-faint);">Nenhum checklist encontrado para os filtros aplicados.</td></tr>'}</tbody>
+  </table></div></div>`;
+}
+
+/* ==================== INSPEÇÃO DE RECEBIMENTO ==================== */
+function toLocalISO(d) {
+  const pad = (n) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+}
+function fmtDataHoraBR(iso) {
+  if (!iso) return "—";
+  const [datePart, timePart] = iso.split("T");
+  const [y, m, d] = datePart.split("-");
+  const [hh, mi] = (timePart || "00:00").split(":");
+  return `${d}/${m}/${y} ${hh}:${mi}`;
+}
+function badgeConforme(v) {
+  if (v === "conforme") return '<span class="badge conforme">Conforme</span>';
+  if (v === "nao_conforme")
+    return '<span class="badge naoconforme">Não conforme</span>';
+  return '<span style="color:var(--ink-faint);">—</span>';
+}
+let recebimentoTab = "novo";
+function renderRecebimento() {
+  if (currentUser.perfil === "OPERADOR") {
+    abrirNovaInspecao();
+    return;
+  }
+  const el = document.getElementById("page-content");
+  const tabs = [
+    ["novo", "Nova Inspeção"],
+    ["pendencias", "Pendências/Divergências"],
+    ["historico", "Histórico"],
+  ];
+  el.innerHTML = `
+    ${podeVerIndicadores() ? renderResumoModulo("recebimento") : ""}
+    <div class="tabs">${tabs
+      .map(([k, l]) => {
+        const onclick =
+          k === "novo"
+            ? `abrirNovaInspecao()`
+            : `inspEditandoId=null;recebimentoTab='${k}';renderRecebimento();`;
+        return `<button class="tab-btn ${recebimentoTab === k ? "active" : ""}" onclick="${onclick}">${l}</button>`;
+      })
+      .join("")}</div>
+    <div id="recebimento-body"></div>`;
+  renderRecebimentoTabBody();
+}
+function renderRecebimentoTabBody() {
+  if (recebimentoTab === "novo") {
+    const editando = inspEditandoId
+      ? inspecoesRecebimento.find((i) => i.id === inspEditandoId)
+      : null;
+    inspFotos = inspFotos || {
+      produto: editando
+        ? [...(editando.divergenciaFornecedor?.produto?.fotos || [])]
+        : [],
+      caminhao: editando
+        ? [...(editando.divergenciaFornecedor?.caminhao?.fotos || [])]
+        : [],
+      operacional: editando
+        ? [...(editando.divergenciaOperacional?.fotos || [])]
+        : [],
+    };
+    inspDataAtual =
+      inspDataAtual ||
+      (editando ? new Date(editando.dataInspecao) : new Date());
+    renderInspecaoForm(editando);
+  } else if (recebimentoTab === "pendencias") renderPendenciasRecebimento();
+  else renderHistoricoRecebimento();
+}
+function renderPendenciasRecebimento() {
+  const el = document.getElementById("recebimento-body");
+  const lista = inspecoesRecebimento.filter((i) => {
+    if (
+      recebimentoFiltros.dataIni &&
+      i.dataInspecao.slice(0, 10) < recebimentoFiltros.dataIni
+    )
+      return false;
+    if (
+      recebimentoFiltros.dataFim &&
+      i.dataInspecao.slice(0, 10) > recebimentoFiltros.dataFim
+    )
+      return false;
+    if (
+      recebimentoFiltros.fornecedor &&
+      i.fornecedor !== recebimentoFiltros.fornecedor
+    )
+      return false;
+    if (
+      recebimentoFiltros.status &&
+      i.statusFinal !== recebimentoFiltros.status
+    )
+      return false;
+    return true;
+  });
+  const fornecedorOpts = FORNECEDORES_LIST.filter((f) => f !== "OUTROS")
+    .map(
+      (f) =>
+        `<option value="${f}" ${recebimentoFiltros.fornecedor === f ? "selected" : ""}>${f}</option>`,
+    )
+    .join("");
+  const rows = lista
+    .map(
+      (i) => `<tr>
+    <td style="font-weight:500;">${i.id}</td>
+    <td style="color:var(--ink-faint);white-space:nowrap;">${fmtDataHoraBR(i.dataInspecao)}</td>
+    <td>${i.fornecedor === "OUTROS" ? i.fornecedorOutro : i.fornecedor}</td>
+    <td>${badgeConforme(i.resultadoFornecedor)}</td>
+    <td>${badgeConforme(i.resultadoOperacional)}</td>
+    <td><span class="badge ${STATUS_INSPECAO_BADGE[i.statusFinal]}">${STATUS_INSPECAO_LABEL[i.statusFinal]}</span></td>
+    <td style="color:var(--ink-soft);">${i.usuarioResponsavel}</td>
+    <td style="text-align:right;white-space:nowrap;">
+      <button class="icon-btn" title="Visualizar" onclick="verInspecao('${i.id}')">👁️</button>
+      <button class="icon-btn" title="Editar" onclick="abrirNovaInspecao('${i.id}')">✏️</button>
+      <button class="icon-btn" title="Imprimir" onclick="imprimirInspecao('${i.id}')">🖨️</button>
+      <button class="icon-btn" title="Exportar" onclick="exportarInspecaoCSV('${i.id}')">⬇️</button>
+    </td>
+  </tr>`,
+    )
+    .join("");
+  el.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:20px;flex-wrap:wrap;">
+      <div>
+        <h2 class="font-display" style="margin:0 0 4px;font-size:19px;">Pendências/Divergências</h2>
+        <p style="margin:0;color:var(--ink-muted);font-size:14px;max-width:640px;">Inspeções de recebimento registradas — conformes e não conformes.</p>
+      </div>
+      <button class="btn btn-brass" onclick="abrirNovaInspecao()">+ Nova Inspeção</button>
+    </div>
+    <div class="card" style="padding:18px 20px;margin-bottom:20px;">
+      <div class="grid" style="grid-template-columns:repeat(4,1fr) auto auto;gap:12px;align-items:end;">
+        <label class="field"><span>Período inicial</span><input type="date" id="rf-data-ini" value="${recebimentoFiltros.dataIni}"></label>
+        <label class="field"><span>Período final</span><input type="date" id="rf-data-fim" value="${recebimentoFiltros.dataFim}"></label>
+        <label class="field"><span>Fornecedor</span><select id="rf-fornecedor"><option value="">Todos</option>${fornecedorOpts}</select></label>
+        <label class="field"><span>Status</span><select id="rf-status">
+          <option value="">Todos</option>
+          <option value="conforme" ${recebimentoFiltros.status === "conforme" ? "selected" : ""}>Conforme</option>
+          <option value="conforme_ressalva" ${recebimentoFiltros.status === "conforme_ressalva" ? "selected" : ""}>Conforme com ressalva</option>
+          <option value="nao_conforme" ${recebimentoFiltros.status === "nao_conforme" ? "selected" : ""}>Não conforme</option>
+        </select></label>
+        <button class="btn btn-brass" onclick="aplicarFiltrosRecebimento()">Filtrar</button>
+        <button class="btn btn-ghost" onclick="limparFiltrosRecebimento()">Limpar filtros</button>
+      </div>
+    </div>
+    <div style="font-size:14px;color:var(--ink-muted);margin-bottom:12px;">${lista.length} inspeção(ões) encontrada(s)</div>
+    <div class="card" style="overflow:hidden;"><div style="overflow-x:auto;"><table>
+      <thead><tr><th>Nº</th><th>Data</th><th>Fornecedor</th><th>Result. Fornecedor</th><th>Result. Operacional</th><th>Status</th><th>Responsável</th><th></th></tr></thead>
+      <tbody>${rows || `<tr><td colspan="8" style="text-align:center;color:var(--ink-faint);padding:24px;">Nenhuma inspeção encontrada.</td></tr>`}</tbody>
+    </table></div></div>`;
+}
+let recebHistFiltros = { dataIni: "", dataFim: "" };
+function recebHistFiltrados() {
+  return historicoAlteracoes.filter((h) => {
+    if (h.tabela !== "inspecoes_recebimento") return false;
+    const dia = h.dataHora.toISOString().slice(0, 10);
+    if (recebHistFiltros.dataIni && dia < recebHistFiltros.dataIni)
+      return false;
+    if (recebHistFiltros.dataFim && dia > recebHistFiltros.dataFim)
+      return false;
+    return true;
+  });
+}
+function aplicarFiltroRecebHist() {
+  recebHistFiltros = {
+    dataIni: document.getElementById("rhf-data-ini").value,
+    dataFim: document.getElementById("rhf-data-fim").value,
+  };
+  renderHistoricoRecebimento();
+}
+function limparFiltroRecebHist() {
+  recebHistFiltros = { dataIni: "", dataFim: "" };
+  renderHistoricoRecebimento();
+}
+function renderHistoricoRecebimento() {
+  const el = document.getElementById("recebimento-body");
+  const itens = recebHistFiltrados();
+  const rows = itens
+    .map(
+      (h) => `
+    <div style="display:flex;align-items:flex-start;gap:10px;font-size:14px;border-bottom:1px solid var(--border-soft);padding:10px 0;">
+      <span style="font-size:16px;">${ACAO_ICON[h.acao]}</span>
+      <div style="flex:1;">
+        <div>${h.descricao}</div>
+        <div style="font-size:12px;color:var(--ink-faint);margin-top:2px;">${h.dataHora.toLocaleString("pt-BR")}</div>
+      </div>
+    </div>`,
+    )
+    .join("");
+  el.innerHTML = `
+    <div style="margin-bottom:20px;">
+      <h2 class="font-display" style="margin:0 0 4px;font-size:19px;">Histórico</h2>
+      <p style="margin:0;color:var(--ink-muted);font-size:14px;max-width:640px;">Registro cronológico de criações e edições de inspeções de recebimento.</p>
+    </div>
+    <div class="card" style="padding:18px 20px;margin-bottom:18px;">
+      <div class="grid" style="grid-template-columns:repeat(2,1fr) auto auto;gap:12px;align-items:end;">
+        <label class="field"><span>Período inicial</span><input type="date" id="rhf-data-ini" value="${recebHistFiltros.dataIni}"></label>
+        <label class="field"><span>Período final</span><input type="date" id="rhf-data-fim" value="${recebHistFiltros.dataFim}"></label>
+        <button class="btn btn-brass" onclick="aplicarFiltroRecebHist()">Filtrar</button>
+        <button class="btn btn-ghost" onclick="limparFiltroRecebHist()">Limpar filtros</button>
+      </div>
+    </div>
+    <div style="font-size:14px;color:var(--ink-muted);margin-bottom:12px;">${itens.length} evento(s) encontrado(s)</div>
+    <div class="card" style="padding:8px 20px;">${rows || '<div style="text-align:center;padding:40px;color:var(--ink-faint);">Nenhum evento de histórico encontrado.</div>'}</div>`;
+}
+function aplicarFiltrosRecebimento() {
+  recebimentoFiltros = {
+    dataIni: document.getElementById("rf-data-ini").value,
+    dataFim: document.getElementById("rf-data-fim").value,
+    fornecedor: document.getElementById("rf-fornecedor").value,
+    status: document.getElementById("rf-status").value,
+  };
+  renderPendenciasRecebimento();
+}
+function limparFiltrosRecebimento() {
+  recebimentoFiltros = {
+    dataIni: "",
+    dataFim: "",
+    fornecedor: "",
+    status: "",
+  };
+  renderPendenciasRecebimento();
+}
+
+function fotoUploadHtml(grupo, label, obrigatoria) {
+  return `
+    <label class="field"><span>${label}${obrigatoria ? " *" : ""}</span></label>
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+      <button type="button" class="btn btn-ghost" onclick="document.getElementById('insp-foto-${grupo}-input').click();">📎 Anexar / Tirar Foto</button>
+      <input type="file" id="insp-foto-${grupo}-input" accept="image/jpeg,image/jpg,image/png" capture="environment" multiple class="hidden" onchange="onInspFotoChange('${grupo}',this)">
+    </div>
+    <div id="insp-foto-${grupo}-preview" style="display:flex;flex-wrap:wrap;gap:10px;margin-top:10px;">${inspFotoPreviewHtml(grupo)}</div>`;
+}
+function inspFotoPreviewHtml(grupo) {
+  const arr = inspFotos[grupo];
+  if (!arr.length)
+    return `<div style="font-size:12px;color:var(--ink-faint);">Nenhuma imagem anexada ainda.</div>`;
+  return arr
+    .map(
+      (a, i) =>
+        `<div class="foto-thumb"><img src="${a.dataUrl}" title="${a.nome}" onclick="verFotoInsp('${grupo}',${i})"><button type="button" onclick="removerFotoInsp('${grupo}',${i})">×</button></div>`,
+    )
+    .join("");
+}
+function onInspFotoChange(grupo, input) {
+  const files = Array.from(input.files || []).filter((f) =>
+    ["image/jpeg", "image/jpg", "image/png"].includes(f.type),
+  );
+  files.forEach((file) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      inspFotos[grupo].push({
+        nome: file.name,
+        dataUrl: e.target.result,
+      });
+      const preview = document.getElementById(`insp-foto-${grupo}-preview`);
+      if (preview) preview.innerHTML = inspFotoPreviewHtml(grupo);
+      atualizarBotaoFinalizar();
+    };
+    reader.readAsDataURL(file);
+  });
+  input.value = "";
+}
+function removerFotoInsp(grupo, i) {
+  inspFotos[grupo].splice(i, 1);
+  const preview = document.getElementById(`insp-foto-${grupo}-preview`);
+  if (preview) preview.innerHTML = inspFotoPreviewHtml(grupo);
+  atualizarBotaoFinalizar();
+}
+function verFotoInsp(grupo, i) {
+  const a = inspFotos[grupo][i];
+  if (!a) return;
+  openModal(
+    `<div class="modal-header"><h3>${a.nome}</h3><button class="modal-close" onclick="closeModal()">×</button></div><div class="modal-body"><img src="${a.dataUrl}" style="width:100%;border-radius:12px;"></div>`,
+    true,
+  );
+}
+
+function abrirNovaInspecao(editId) {
+  inspEditandoId = editId || null;
+  const editando = editId
+    ? inspecoesRecebimento.find((i) => i.id === editId)
+    : null;
+  inspFotos = {
+    produto: editando
+      ? [...(editando.divergenciaFornecedor?.produto?.fotos || [])]
+      : [],
+    caminhao: editando
+      ? [...(editando.divergenciaFornecedor?.caminhao?.fotos || [])]
+      : [],
+    operacional: editando
+      ? [...(editando.divergenciaOperacional?.fotos || [])]
+      : [],
+  };
+  inspDataAtual = editando ? new Date(editando.dataInspecao) : new Date();
+  recebimentoView = "nova";
+  if (currentUser.perfil === "OPERADOR") {
+    renderInspecaoForm(editando);
+  } else {
+    recebimentoTab = "novo";
+    renderRecebimento();
+  }
+}
+function renderInspecaoForm(editando) {
+  const el =
+    document.getElementById("recebimento-body") ||
+    document.getElementById("page-content");
+  const dataFmt = fmtDataHoraBR(toLocalISO(inspDataAtual));
+  const fornecedorOpts = FORNECEDORES_LIST.map(
+    (f) =>
+      `<option value="${f}" ${editando && editando.fornecedor === f ? "selected" : ""}>${f}</option>`,
+  ).join("");
+  const outroWrapHidden = !(editando && editando.fornecedor === "OUTROS");
+  const resFornecedorC =
+    editando && editando.resultadoFornecedor === "conforme";
+  const resFornecedorNC =
+    editando && editando.resultadoFornecedor === "nao_conforme";
+  const divFor = editando?.divergenciaFornecedor || {};
+  const tipoDiv = divFor.tipo || "";
+  const produtoDiv = divFor.produto || {};
+  const caminhaoDiv = divFor.caminhao || {};
+  const resOperacionalC =
+    editando && editando.resultadoOperacional === "conforme";
+  const resOperacionalNC =
+    editando && editando.resultadoOperacional === "nao_conforme";
+  const divOp = editando?.divergenciaOperacional || {
+    tipos: [],
+    quantidade: 0,
+    observacao: "",
+  };
+
+  const motivosChips = MOTIVOS_DIVERGENCIA_PRODUTO.map(
+    (m) => `
+    <label class="chk-chip ${produtoDiv.motivos?.includes(m) ? "checked" : ""}">
+      <input type="checkbox" class="insp-motivo" value="${m}" ${produtoDiv.motivos?.includes(m) ? "checked" : ""} onchange="toggleChipClass(this);onMotivoProdutoChange();atualizarBotaoFinalizar();"> ${m}
+    </label>`,
+  ).join("");
+  const tiposOpChips = TIPOS_DIVERGENCIA_OPERACIONAL.map(
+    (t) => `
+    <label class="chk-chip ${divOp.tipos?.includes(t) ? "checked" : ""}">
+      <input type="checkbox" class="insp-op-tipo" value="${t}" ${divOp.tipos?.includes(t) ? "checked" : ""} onchange="toggleChipClass(this);atualizarBotaoFinalizar();"> ${t}
+    </label>`,
+  ).join("");
+
+  el.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:10px;">
+      <h2 class="font-display" style="margin:0;font-size:19px;">${editando ? `Editar Inspeção — ${editando.id}` : "Nova Inspeção de Recebimento"}</h2>
+      ${currentUser.perfil !== "OPERADOR" ? `<button class="btn btn-ghost" onclick="cancelarInspecao()">← Voltar para a lista</button>` : ""}
+    </div>
+
+    <div class="step-card">
+      <h3 class="step-title"><span class="step-num" id="insp-step-1">1</span> Identificação</h3>
+      <div class="grid grid-2">
+        <label class="field"><span>Data da inspeção</span>
+          <input type="text" value="${dataFmt}" disabled style="background:var(--surface-alt);color:var(--ink-soft);">
+        </label>
+        <label class="field"><span>Fornecedor *</span>
+          <select id="insp-fornecedor" onchange="onFornecedorChange();atualizarBotaoFinalizar();">
+            <option value="">Selecione...</option>${fornecedorOpts}
+          </select>
+        </label>
+      </div>
+      ${
+        currentUser.perfil === "GESTAO"
+          ? `
+      <label style="display:flex;align-items:center;gap:8px;margin-top:12px;font-size:12px;color:var(--ink-muted);">
+        <input type="checkbox" id="insp-data-manual-toggle" onchange="onDataManualToggle()"> Ajustar data/hora manualmente (somente Gestão)
+      </label>
+      <label class="field hidden" id="insp-data-manual-wrap" style="margin-top:8px;max-width:260px;">
+        <span>Data/Hora da inspeção</span>
+        <input type="datetime-local" id="insp-data-manual" value="${toLocalISO(inspDataAtual).slice(0, 16)}" onchange="atualizarBotaoFinalizar();">
+      </label>`
+          : ""
+      }
+      <label id="insp-fornecedor-outro-wrap" class="field ${outroWrapHidden ? "hidden" : ""}" style="margin-top:12px;">
+        <span>Nome do novo fornecedor *</span><input id="insp-fornecedor-outro" value="${editando?.fornecedorOutro || ""}" oninput="atualizarBotaoFinalizar();">
+      </label>
+    </div>
+
+    <div class="step-card">
+      <h3 class="step-title"><span class="step-num" id="insp-step-2">2</span> Avaliação do fornecedor</h3>
+      <div class="radio-list">
+        <label class="radio-chip conforme ${resFornecedorC ? "checked" : ""}">
+          <input type="radio" name="insp-res-fornecedor" value="conforme" ${resFornecedorC ? "checked" : ""} onchange="syncRadioGroup('insp-res-fornecedor');onResultadoFornecedorChange();atualizarBotaoFinalizar();"> ✓ Conforme
+        </label>
+        <label class="radio-chip naoconforme ${resFornecedorNC ? "checked" : ""}">
+          <input type="radio" name="insp-res-fornecedor" value="nao_conforme" ${resFornecedorNC ? "checked" : ""} onchange="syncRadioGroup('insp-res-fornecedor');onResultadoFornecedorChange();atualizarBotaoFinalizar();"> ✕ Não conforme
+        </label>
+      </div>
+
+      <div id="insp-fornecedor-checklist" class="${resFornecedorNC ? "" : "hidden"}" style="margin-top:20px;padding-top:20px;border-top:1px solid var(--border-soft);">
+        <div style="font-weight:500;font-size:14px;margin-bottom:14px;">Checklist de não conformidade do fornecedor</div>
+        <label class="field" style="margin-bottom:16px;max-width:320px;"><span>Tipo de divergência *</span>
+          <select id="insp-tipo-div" onchange="onTipoDivergenciaChange();atualizarBotaoFinalizar();">
+            <option value="">Selecione...</option>
+            <option value="produto" ${tipoDiv === "produto" ? "selected" : ""}>Produto</option>
+            <option value="caminhao" ${tipoDiv === "caminhao" ? "selected" : ""}>Caminhão</option>
+          </select>
+        </label>
+
+        <div id="insp-produto-fields" class="${tipoDiv === "produto" ? "" : "hidden"}">
+          <div class="grid grid-2">
+            <label class="field"><span>SKU *</span><input id="insp-p-sku" value="${produtoDiv.sku || ""}" list="produtos-list-insp" oninput="autofillProdutoInsp();atualizarBotaoFinalizar();"></label>
+            <label class="field"><span>Descrição do produto *</span><input id="insp-p-desc" value="${produtoDiv.descricao || ""}" oninput="atualizarBotaoFinalizar();"></label>
+          </div>
+          <datalist id="produtos-list-insp">${PRODUTOS.map((p) => `<option value="${p.codigo}">${p.descricao}</option>`).join("")}</datalist>
+          <div class="grid grid-2">
+            <label class="field"><span>Quantidade *</span><input id="insp-p-qtd" type="number" min="1" value="${produtoDiv.quantidade || ""}" oninput="atualizarBotaoFinalizar();"></label>
+            <label class="field"><span>Valor total *</span><input id="insp-p-valor" type="text" inputmode="numeric" value="${produtoDiv.valorTotal ? Number(produtoDiv.valorTotal).toLocaleString("pt-BR", { minimumFractionDigits: 2 }) : ""}" placeholder="0,00" oninput="maskMoeda(this);atualizarBotaoFinalizar();"></label>
+          </div>
+          <label class="field" style="margin:12px 0 6px;"><span>Motivo da divergência *</span></label>
+          <div class="chk-list">${motivosChips}</div>
+          <label id="insp-motivo-outro-wrap" class="field ${produtoDiv.motivos?.includes("OUTROS") ? "" : "hidden"}" style="margin-top:12px;">
+            <span>Descreva a divergência *</span><textarea id="insp-motivo-outro-desc" rows="2" oninput="atualizarBotaoFinalizar();">${produtoDiv.outroMotivo || ""}</textarea>
+          </label>
+          <label class="field" style="margin-top:12px;"><span>Observações sobre o produto</span><textarea id="insp-p-obs" rows="2">${produtoDiv.observacao || ""}</textarea></label>
+          <div style="margin-top:14px;">${fotoUploadHtml("produto", "Foto do produto", false)}</div>
+        </div>
+
+        <div id="insp-caminhao-fields" class="${tipoDiv === "caminhao" ? "" : "hidden"}">
+          <div class="grid grid-2">
+            <label class="field"><span>Placa do caminhão *</span><input id="insp-c-placa" value="${caminhaoDiv.placa || ""}" placeholder="ABC-1234 ou ABC-1D23" maxlength="8" oninput="maskPlaca(this);atualizarBotaoFinalizar();"></label>
+          </div>
+          <label class="field" style="margin-top:12px;"><span>Observação</span><textarea id="insp-c-obs" rows="2">${caminhaoDiv.observacao || ""}</textarea></label>
+          <div style="margin-top:14px;">${fotoUploadHtml("caminhao", "Foto do caminhão", false)}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="step-card">
+      <h3 class="step-title"><span class="step-num" id="insp-step-3">3</span> Avaliação operacional</h3>
+      <div class="radio-list">
+        <label class="radio-chip conforme ${resOperacionalC ? "checked" : ""}">
+          <input type="radio" name="insp-res-operacional" value="conforme" ${resOperacionalC ? "checked" : ""} onchange="syncRadioGroup('insp-res-operacional');onResultadoOperacionalChange();atualizarBotaoFinalizar();"> ✓ Conforme
+        </label>
+        <label class="radio-chip naoconforme ${resOperacionalNC ? "checked" : ""}">
+          <input type="radio" name="insp-res-operacional" value="nao_conforme" ${resOperacionalNC ? "checked" : ""} onchange="syncRadioGroup('insp-res-operacional');onResultadoOperacionalChange();atualizarBotaoFinalizar();"> ✕ Não conforme
+        </label>
+      </div>
+      <div id="insp-operacional-checklist" class="${resOperacionalNC ? "" : "hidden"}" style="margin-top:20px;padding-top:20px;border-top:1px solid var(--border-soft);">
+        <div style="font-weight:500;font-size:14px;margin-bottom:14px;">Checklist de não conformidade operacional</div>
+        <label class="field" style="margin-bottom:6px;"><span>Tipo de divergência operacional *</span></label>
+        <div class="chk-list">${tiposOpChips}</div>
+        <div class="grid grid-2" style="margin-top:16px;">
+          <label class="field"><span>Quantidade *</span><input id="insp-op-qtd" type="number" min="1" value="${divOp.quantidade || ""}" oninput="atualizarBotaoFinalizar();"></label>
+        </div>
+        <label class="field" style="margin-top:12px;"><span>Observação</span><textarea id="insp-op-obs" rows="2">${divOp.observacao || ""}</textarea></label>
+        <div style="margin-top:14px;">${fotoUploadHtml("operacional", "Foto (evidência obrigatória)", true)}</div>
+      </div>
+    </div>
+
+    <div class="step-card">
+      <h3 class="step-title"><span class="step-num" id="insp-step-4">4</span> Finalização</h3>
+      <div id="insp-erro"></div>
+      <div style="display:flex;justify-content:flex-end;gap:12px;margin-top:8px;">
+        <button class="btn btn-ghost" onclick="cancelarInspecao()">Cancelar</button>
+        <button class="btn btn-brass" id="insp-btn-finalizar" onclick="finalizarInspecao()" disabled>Finalizar inspeção</button>
+      </div>
+    </div>`;
+  atualizarBotaoFinalizar();
+}
+
+function onFornecedorChange() {
+  const v = document.getElementById("insp-fornecedor").value;
+  document
+    .getElementById("insp-fornecedor-outro-wrap")
+    .classList.toggle("hidden", v !== "OUTROS");
+}
+function onDataManualToggle() {
+  const chk = document.getElementById("insp-data-manual-toggle").checked;
+  document
+    .getElementById("insp-data-manual-wrap")
+    .classList.toggle("hidden", !chk);
+}
+function onResultadoFornecedorChange() {
+  const v = document.querySelector(
+    'input[name="insp-res-fornecedor"]:checked',
+  )?.value;
+  document
+    .getElementById("insp-fornecedor-checklist")
+    .classList.toggle("hidden", v !== "nao_conforme");
+}
+function onTipoDivergenciaChange() {
+  const v = document.getElementById("insp-tipo-div").value;
+  document
+    .getElementById("insp-produto-fields")
+    .classList.toggle("hidden", v !== "produto");
+  document
+    .getElementById("insp-caminhao-fields")
+    .classList.toggle("hidden", v !== "caminhao");
+}
+function onMotivoProdutoChange() {
+  const checked = Array.from(
+    document.querySelectorAll(".insp-motivo:checked"),
+  ).map((c) => c.value);
+  document
+    .getElementById("insp-motivo-outro-wrap")
+    .classList.toggle("hidden", !checked.includes("OUTROS"));
+}
+function onResultadoOperacionalChange() {
+  const v = document.querySelector(
+    'input[name="insp-res-operacional"]:checked',
+  )?.value;
+  document
+    .getElementById("insp-operacional-checklist")
+    .classList.toggle("hidden", v !== "nao_conforme");
+}
+function toggleChipClass(input) {
+  input.closest("label").classList.toggle("checked", input.checked);
+}
+function syncRadioGroup(name) {
+  document
+    .querySelectorAll(`input[name="${name}"]`)
+    .forEach((inp) =>
+      inp.closest("label").classList.toggle("checked", inp.checked),
+    );
+}
+function autofillProdutoInsp() {
+  const sku = document.getElementById("insp-p-sku").value;
+  const p = PRODUTOS.find((x) => x.codigo === sku);
+  if (p) {
+    document.getElementById("insp-p-desc").value = p.descricao;
+  }
+}
+function maskPlaca(input) {
+  let v = input.value
+    .toUpperCase()
+    .replace(/[^A-Z0-9]/g, "")
+    .slice(0, 7);
+  input.value = v.length > 3 ? v.slice(0, 3) + "-" + v.slice(3) : v;
+}
+function maskMoeda(input) {
+  let digits = input.value.replace(/\D/g, "");
+  if (!digits) {
+    input.value = "";
+    return;
+  }
+  const num = parseInt(digits, 10) / 100;
+  input.value = num.toLocaleString("pt-BR", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+}
+function parseMoeda(str) {
+  if (!str) return 0;
+  return parseFloat(String(str).replace(/\./g, "").replace(",", ".")) || 0;
+}
+
+function validarInspecao() {
+  const erros = [];
+  const fornecedor = document.getElementById("insp-fornecedor")?.value;
+  if (!fornecedor) erros.push("Selecione o fornecedor.");
+  if (fornecedor === "OUTROS") {
+    const outro = document
+      .getElementById("insp-fornecedor-outro")
+      ?.value.trim();
+    if (!outro) erros.push("Informe o nome do novo fornecedor.");
+  }
+  const resFornecedor = document.querySelector(
+    'input[name="insp-res-fornecedor"]:checked',
+  )?.value;
+  if (!resFornecedor)
+    erros.push("Avalie o fornecedor (Conforme / Não conforme).");
+  if (resFornecedor === "nao_conforme") {
+    const tipo = document.getElementById("insp-tipo-div")?.value;
+    if (!tipo)
+      erros.push(
+        "Selecione o tipo de divergência do fornecedor (Produto ou Caminhão).",
+      );
+    else if (tipo === "produto") {
+      const sku = document.getElementById("insp-p-sku")?.value.trim();
+      const desc = document.getElementById("insp-p-desc")?.value.trim();
+      const qtd = parseInt(document.getElementById("insp-p-qtd")?.value) || 0;
+      const valor = parseMoeda(document.getElementById("insp-p-valor")?.value);
+      const motivos = Array.from(
+        document.querySelectorAll(".insp-motivo:checked"),
+      ).map((c) => c.value);
+      if (!sku) erros.push("Informe o SKU do produto.");
+      if (!desc) erros.push("Informe a descrição do produto.");
+      if (qtd <= 0)
+        erros.push("Quantidade do produto deve ser maior que zero.");
+      if (valor <= 0) erros.push("Informe o valor total do produto.");
+      if (motivos.length === 0)
+        erros.push("Selecione ao menos um motivo da divergência do produto.");
+      if (
+        motivos.includes("OUTROS") &&
+        !document.getElementById("insp-motivo-outro-desc")?.value.trim()
+      )
+        erros.push("Descreva a divergência (motivo Outros).");
+    } else if (tipo === "caminhao") {
+      const placa = document.getElementById("insp-c-placa")?.value.trim();
+      if (!placa) erros.push("Informe a placa do caminhão.");
+    }
+  }
+  const resOperacional = document.querySelector(
+    'input[name="insp-res-operacional"]:checked',
+  )?.value;
+  if (!resOperacional)
+    erros.push("Avalie a operação (Conforme / Não conforme).");
+  if (resOperacional === "nao_conforme") {
+    const tipos = Array.from(
+      document.querySelectorAll(".insp-op-tipo:checked"),
+    ).map((c) => c.value);
+    const qtd = parseInt(document.getElementById("insp-op-qtd")?.value) || 0;
+    if (tipos.length === 0)
+      erros.push("Selecione ao menos um tipo de divergência operacional.");
+    if (qtd <= 0)
+      erros.push("Informe a quantidade da divergência operacional.");
+    if (inspFotos.operacional.length === 0)
+      erros.push("Anexe ao menos uma foto da divergência operacional.");
+  }
+  return erros;
+}
+function atualizarBotaoFinalizar() {
+  const btn = document.getElementById("insp-btn-finalizar");
+  if (!btn) return;
+  const erros = validarInspecao();
+  btn.disabled = erros.length > 0;
+
+  const fornecedor = document.getElementById("insp-fornecedor")?.value;
+  const fornecedorOutroOk =
+    fornecedor !== "OUTROS" ||
+    !!document.getElementById("insp-fornecedor-outro")?.value.trim();
+  const step1 = document.getElementById("insp-step-1");
+  if (step1) step1.classList.toggle("done", !!fornecedor && fornecedorOutroOk);
+
+  const resFornecedor = document.querySelector(
+    'input[name="insp-res-fornecedor"]:checked',
+  )?.value;
+  let step2Ok = false;
+  if (resFornecedor === "conforme") step2Ok = true;
+  else if (resFornecedor === "nao_conforme") {
+    const tipo = document.getElementById("insp-tipo-div")?.value;
+    if (tipo === "produto") {
+      const sku = document.getElementById("insp-p-sku")?.value.trim();
+      const desc = document.getElementById("insp-p-desc")?.value.trim();
+      const qtd = parseInt(document.getElementById("insp-p-qtd")?.value) || 0;
+      const valor = parseMoeda(document.getElementById("insp-p-valor")?.value);
+      const motivos = Array.from(
+        document.querySelectorAll(".insp-motivo:checked"),
+      ).map((c) => c.value);
+      const outroOk =
+        !motivos.includes("OUTROS") ||
+        !!document.getElementById("insp-motivo-outro-desc")?.value.trim();
+      step2Ok =
+        !!sku &&
+        !!desc &&
+        qtd > 0 &&
+        valor > 0 &&
+        motivos.length > 0 &&
+        outroOk;
+    } else if (tipo === "caminhao") {
+      step2Ok = !!document.getElementById("insp-c-placa")?.value.trim();
+    }
+  }
+  const step2 = document.getElementById("insp-step-2");
+  if (step2) step2.classList.toggle("done", step2Ok);
+
+  const resOperacional = document.querySelector(
+    'input[name="insp-res-operacional"]:checked',
+  )?.value;
+  let step3Ok = false;
+  if (resOperacional === "conforme") step3Ok = true;
+  else if (resOperacional === "nao_conforme") {
+    const tipos = Array.from(
+      document.querySelectorAll(".insp-op-tipo:checked"),
+    ).map((c) => c.value);
+    const qtd = parseInt(document.getElementById("insp-op-qtd")?.value) || 0;
+    step3Ok = tipos.length > 0 && qtd > 0 && inspFotos.operacional.length > 0;
+  }
+  const step3 = document.getElementById("insp-step-3");
+  if (step3) step3.classList.toggle("done", step3Ok);
+
+  const step4 = document.getElementById("insp-step-4");
+  if (step4) step4.classList.toggle("done", erros.length === 0);
+}
+
+function finalizarInspecao() {
+  const erros = validarInspecao();
+  const msgEl = document.getElementById("insp-erro");
+  if (erros.length) {
+    msgEl.innerHTML = `<div class="toast" style="background:var(--danger-soft);color:var(--danger);flex-direction:column;align-items:flex-start;gap:4px;padding:14px 16px;">
+      <div style="font-weight:600;">Corrija os itens abaixo antes de finalizar:</div>
+      <ul style="margin:4px 0 0;padding-left:18px;">${erros.map((e) => `<li>${e}</li>`).join("")}</ul>
+    </div>`;
+    msgEl.scrollIntoView({ behavior: "smooth", block: "center" });
+    return;
+  }
+  const fornecedor = document.getElementById("insp-fornecedor").value;
+  const fornecedorOutro =
+    fornecedor === "OUTROS"
+      ? document.getElementById("insp-fornecedor-outro").value.trim()
+      : "";
+  const resultadoFornecedor = document.querySelector(
+    'input[name="insp-res-fornecedor"]:checked',
+  ).value;
+  const resultadoOperacional = document.querySelector(
+    'input[name="insp-res-operacional"]:checked',
+  ).value;
+
+  let divergenciaFornecedor = {
+    tipo: "",
+    produto: {
+      sku: "",
+      descricao: "",
+      quantidade: 0,
+      valorTotal: 0,
+      motivos: [],
+      outroMotivo: "",
+      observacao: "",
+      fotos: [],
+    },
+    caminhao: { placa: "", observacao: "", fotos: [] },
+  };
+  if (resultadoFornecedor === "nao_conforme") {
+    const tipo = document.getElementById("insp-tipo-div").value;
+    divergenciaFornecedor.tipo = tipo;
+    if (tipo === "produto") {
+      const motivos = Array.from(
+        document.querySelectorAll(".insp-motivo:checked"),
+      ).map((c) => c.value);
+      divergenciaFornecedor.produto = {
+        sku: document.getElementById("insp-p-sku").value.trim(),
+        descricao: document.getElementById("insp-p-desc").value.trim(),
+        quantidade: parseInt(document.getElementById("insp-p-qtd").value) || 0,
+        valorTotal: parseMoeda(document.getElementById("insp-p-valor").value),
+        motivos,
+        outroMotivo: motivos.includes("OUTROS")
+          ? document.getElementById("insp-motivo-outro-desc").value.trim()
+          : "",
+        observacao: document.getElementById("insp-p-obs").value.trim(),
+        fotos: [...inspFotos.produto],
+      };
+    } else if (tipo === "caminhao") {
+      divergenciaFornecedor.caminhao = {
+        placa: document.getElementById("insp-c-placa").value.trim(),
+        observacao: document.getElementById("insp-c-obs").value.trim(),
+        fotos: [...inspFotos.caminhao],
+      };
+    }
+  }
+
+  let divergenciaOperacional = {
+    tipos: [],
+    quantidade: 0,
+    observacao: "",
+    fotos: [],
+  };
+  if (resultadoOperacional === "nao_conforme") {
+    divergenciaOperacional = {
+      tipos: Array.from(document.querySelectorAll(".insp-op-tipo:checked")).map(
+        (c) => c.value,
+      ),
+      quantidade: parseInt(document.getElementById("insp-op-qtd").value) || 0,
+      observacao: document.getElementById("insp-op-obs").value.trim(),
+      fotos: [...inspFotos.operacional],
+    };
+  }
+
+  let statusFinal;
+  if (resultadoFornecedor === "conforme" && resultadoOperacional === "conforme")
+    statusFinal = "conforme";
+  else if (
+    resultadoFornecedor === "nao_conforme" &&
+    resultadoOperacional === "nao_conforme"
+  )
+    statusFinal = "nao_conforme";
+  else statusFinal = "conforme_ressalva";
+
+  let dataInspecaoIso = toLocalISO(inspDataAtual);
+  const manualToggle = document.getElementById("insp-data-manual-toggle");
+  if (manualToggle && manualToggle.checked) {
+    const manualVal = document.getElementById("insp-data-manual").value;
+    if (manualVal) dataInspecaoIso = manualVal + ":00";
+  }
+  const agora = toLocalISO(new Date());
+
+  if (inspEditandoId) {
+    const idx = inspecoesRecebimento.findIndex((i) => i.id === inspEditandoId);
+    const registro = {
+      ...inspecoesRecebimento[idx],
+      dataInspecao: dataInspecaoIso,
+      fornecedor,
+      fornecedorOutro,
+      resultadoFornecedor,
+      divergenciaFornecedor,
+      resultadoOperacional,
+      divergenciaOperacional,
+      statusFinal,
+      dataFinalizacao: agora,
+    };
+    inspecoesRecebimento[idx] = registro;
+    registrarHistorico(
+      "inspecoes_recebimento",
+      registro.id,
+      "EDICAO",
+      `${currentUser.nome} editou a inspeção de recebimento ${registro.id} (fornecedor ${fornecedor === "OUTROS" ? fornecedorOutro : fornecedor}) — status ${STATUS_INSPECAO_LABEL[statusFinal]}.`,
+    );
+    mostrarResumoInspecao(registro);
+  } else {
+    const registro = {
+      id: "INS-" + String(nextInspecaoId++).padStart(6, "0"),
+      dataInspecao: dataInspecaoIso,
+      fornecedor,
+      fornecedorOutro,
+      resultadoFornecedor,
+      divergenciaFornecedor,
+      resultadoOperacional,
+      divergenciaOperacional,
+      statusFinal,
+      usuarioResponsavel: currentUser.nome,
+      dataFinalizacao: agora,
+    };
+    inspecoesRecebimento.unshift(registro);
+    registrarHistorico(
+      "inspecoes_recebimento",
+      registro.id,
+      "CRIACAO",
+      `${currentUser.nome} finalizou a inspeção de recebimento ${registro.id} (fornecedor ${fornecedor === "OUTROS" ? fornecedorOutro : fornecedor}) — status ${STATUS_INSPECAO_LABEL[statusFinal]}.`,
+    );
+    mostrarResumoInspecao(registro);
+  }
+}
+function mostrarResumoInspecao(registro) {
+  openModal(
+    `
+    <div class="modal-header"><h3>✅ Inspeção finalizada com sucesso</h3><button class="modal-close" onclick="fecharResumoInspecao()">×</button></div>
+    <div class="modal-body">
+      <div class="grid grid-2" style="gap:14px;">
+        <div><div class="stat-label">Número da inspeção</div><div style="font-weight:600;font-size:15px;">${registro.id}</div></div>
+        <div><div class="stat-label">Data e hora</div><div style="font-weight:600;font-size:15px;">${fmtDataHoraBR(registro.dataInspecao)}</div></div>
+        <div><div class="stat-label">Fornecedor</div><div style="font-weight:600;font-size:15px;">${registro.fornecedor === "OUTROS" ? registro.fornecedorOutro : registro.fornecedor}</div></div>
+        <div><div class="stat-label">Status final</div><div><span class="badge ${STATUS_INSPECAO_BADGE[registro.statusFinal]}" style="font-size:13px;">${STATUS_INSPECAO_LABEL[registro.statusFinal]}</span></div></div>
+        <div><div class="stat-label">Resultado do fornecedor</div><div>${badgeConforme(registro.resultadoFornecedor)}</div></div>
+        <div><div class="stat-label">Resultado operacional</div><div>${badgeConforme(registro.resultadoOperacional)}</div></div>
+      </div>
+      <div style="display:flex;justify-content:flex-end;margin-top:20px;">
+        <button class="btn btn-brass" onclick="fecharResumoInspecao()">Concluir</button>
+      </div>
+    </div>`,
+    true,
+  );
+}
+function fecharResumoInspecao() {
+  closeModal();
+  inspEditandoId = null;
+  if (currentUser.perfil === "OPERADOR") {
+    abrirNovaInspecao();
+  } else {
+    recebimentoTab = "pendencias";
+    renderRecebimento();
+  }
+}
+function cancelarInspecao() {
+  if (
+    confirm(
+      "Deseja realmente cancelar esta inspeção em andamento? Os dados preenchidos serão perdidos.",
+    )
+  ) {
+    inspEditandoId = null;
+    if (currentUser.perfil === "OPERADOR") {
+      abrirNovaInspecao();
+    } else {
+      recebimentoTab = "pendencias";
+      renderRecebimento();
+    }
+  }
+}
+function verInspecao(id) {
+  const insp = inspecoesRecebimento.find((i) => i.id === id);
+  if (!insp) return;
+  openModal(inspecaoDetalheHtml(insp), true);
+}
+function inspecaoDetalheHtml(insp) {
+  const df = insp.divergenciaFornecedor;
+  const doOp = insp.divergenciaOperacional;
+  let fornecedorBloco =
+    '<p style="color:var(--ink-faint);font-size:13px;">Sem divergência registrada.</p>';
+  if (insp.resultadoFornecedor === "nao_conforme" && df) {
+    if (df.tipo === "produto") {
+      fornecedorBloco = `<div style="font-size:13px;line-height:1.7;">
+        <div><strong>SKU:</strong> ${df.produto.sku}</div>
+        <div><strong>Descrição:</strong> ${df.produto.descricao}</div>
+        <div><strong>Quantidade:</strong> ${df.produto.quantidade}</div>
+        <div><strong>Valor total:</strong> ${money(df.produto.valorTotal)}</div>
+        <div><strong>Motivos:</strong> ${df.produto.motivos.join(", ")}${df.produto.outroMotivo ? ` (${df.produto.outroMotivo})` : ""}</div>
+        ${df.produto.observacao ? `<div><strong>Observação:</strong> ${df.produto.observacao}</div>` : ""}
+      </div>
+      ${df.produto.fotos.length ? `<div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;">${df.produto.fotos.map((f) => `<img src="${f.dataUrl}" style="width:70px;height:70px;object-fit:cover;border-radius:8px;border:1px solid var(--border);">`).join("")}</div>` : ""}`;
+    } else if (df.tipo === "caminhao") {
+      fornecedorBloco = `<div style="font-size:13px;line-height:1.7;">
+        <div><strong>Placa:</strong> ${df.caminhao.placa}</div>
+        ${df.caminhao.observacao ? `<div><strong>Observação:</strong> ${df.caminhao.observacao}</div>` : ""}
+      </div>
+      ${df.caminhao.fotos.length ? `<div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;">${df.caminhao.fotos.map((f) => `<img src="${f.dataUrl}" style="width:70px;height:70px;object-fit:cover;border-radius:8px;border:1px solid var(--border);">`).join("")}</div>` : ""}`;
+    }
+  }
+  let operacionalBloco =
+    '<p style="color:var(--ink-faint);font-size:13px;">Sem divergência registrada.</p>';
+  if (insp.resultadoOperacional === "nao_conforme" && doOp) {
+    operacionalBloco = `<div style="font-size:13px;line-height:1.7;">
+      <div><strong>Tipos:</strong> ${doOp.tipos.join(", ")}</div>
+      <div><strong>Quantidade:</strong> ${doOp.quantidade}</div>
+      ${doOp.observacao ? `<div><strong>Observação:</strong> ${doOp.observacao}</div>` : ""}
+    </div>
+    ${doOp.fotos.length ? `<div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;">${doOp.fotos.map((f) => `<img src="${f.dataUrl}" style="width:70px;height:70px;object-fit:cover;border-radius:8px;border:1px solid var(--border);">`).join("")}</div>` : ""}`;
+  }
+  return `
+    <div class="modal-header"><h3>Inspeção ${insp.id}</h3><button class="modal-close" onclick="closeModal()">×</button></div>
+    <div class="modal-body">
+      <div class="grid grid-2" style="gap:14px;margin-bottom:8px;">
+        <div><div class="stat-label">Data e hora</div><div style="font-weight:500;">${fmtDataHoraBR(insp.dataInspecao)}</div></div>
+        <div><div class="stat-label">Fornecedor</div><div style="font-weight:500;">${insp.fornecedor === "OUTROS" ? insp.fornecedorOutro : insp.fornecedor}</div></div>
+        <div><div class="stat-label">Responsável</div><div style="font-weight:500;">${insp.usuarioResponsavel}</div></div>
+        <div><div class="stat-label">Status final</div><div><span class="badge ${STATUS_INSPECAO_BADGE[insp.statusFinal]}">${STATUS_INSPECAO_LABEL[insp.statusFinal]}</span></div></div>
+      </div>
+      <div style="border-top:1px solid var(--border-soft);padding-top:14px;margin-top:8px;">
+        <div style="font-weight:500;margin-bottom:6px;">Avaliação do fornecedor: ${badgeConforme(insp.resultadoFornecedor)}</div>
+        ${fornecedorBloco}
+      </div>
+      <div style="border-top:1px solid var(--border-soft);padding-top:14px;margin-top:14px;">
+        <div style="font-weight:500;margin-bottom:6px;">Avaliação operacional: ${badgeConforme(insp.resultadoOperacional)}</div>
+        ${operacionalBloco}
+      </div>
+    </div>`;
+}
+function imprimirInspecao(id) {
+  const insp = inspecoesRecebimento.find((i) => i.id === id);
+  if (!insp) return;
+  const w = window.open("", "_blank");
+  if (!w) {
+    alert("Permita pop-ups para imprimir a inspeção.");
+    return;
+  }
+  w.document
+    .write(`<!DOCTYPE html><html><head><title>Inspeção ${insp.id}</title>
+    <style>body{font-family:Arial,sans-serif;padding:24px;color:#14171a;} h1{font-size:18px;} .row{margin-bottom:6px;} img{width:90px;height:90px;object-fit:cover;border-radius:6px;margin:4px;}</style>
+    </head><body>
+    <h1>Inspeção de Recebimento — ${insp.id}</h1>
+    <div class="row"><strong>Data:</strong> ${fmtDataHoraBR(insp.dataInspecao)}</div>
+    <div class="row"><strong>Fornecedor:</strong> ${insp.fornecedor === "OUTROS" ? insp.fornecedorOutro : insp.fornecedor}</div>
+    <div class="row"><strong>Responsável:</strong> ${insp.usuarioResponsavel}</div>
+    <div class="row"><strong>Resultado do fornecedor:</strong> ${badgeConforme(insp.resultadoFornecedor).replace(/<[^>]+>/g, "")}</div>
+    <div class="row"><strong>Resultado operacional:</strong> ${badgeConforme(insp.resultadoOperacional).replace(/<[^>]+>/g, "")}</div>
+    <div class="row"><strong>Status final:</strong> ${STATUS_INSPECAO_LABEL[insp.statusFinal]}</div>
+    </body></html>`);
+  w.document.close();
+  w.focus();
+  setTimeout(() => {
+    try {
+      w.print();
+    } catch (e) {}
+  }, 300);
+}
+function exportarInspecaoCSV(id) {
+  const insp = inspecoesRecebimento.find((i) => i.id === id);
+  if (!insp) return;
+  const linhas = [
+    [
+      "Número",
+      "Data",
+      "Fornecedor",
+      "Resultado Fornecedor",
+      "Resultado Operacional",
+      "Status Final",
+      "Responsável",
+    ],
+    [
+      insp.id,
+      fmtDataHoraBR(insp.dataInspecao),
+      insp.fornecedor === "OUTROS" ? insp.fornecedorOutro : insp.fornecedor,
+      insp.resultadoFornecedor,
+      insp.resultadoOperacional,
+      STATUS_INSPECAO_LABEL[insp.statusFinal],
+      insp.usuarioResponsavel,
+    ],
+  ];
+  const csv = linhas
+    .map((l) => l.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(";"))
+    .join("\n");
+  const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `${insp.id}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+/* ==================== INDICADORES ==================== */
+let indicadoresTab = "painel";
+function renderIndicadores() {
+  const el = document.getElementById("page-content");
+  el.innerHTML = `<div class="tabs">
+    <button class="tab-btn ${indicadoresTab === "painel" ? "active" : ""}" onclick="indicadoresTab='painel';renderIndicadores();">📊 Painel Gerencial</button>
+    <button class="tab-btn ${indicadoresTab === "produtos" ? "active" : ""}" onclick="indicadoresTab='produtos';renderIndicadores();">Inspeção de Produtos</button>
+    <button class="tab-btn ${indicadoresTab === "gaiolas" ? "active" : ""}" onclick="indicadoresTab='gaiolas';renderIndicadores();">Inspeção de Estoque</button>
+    <button class="tab-btn ${indicadoresTab === "5s" ? "active" : ""}" onclick="indicadoresTab='5s';renderIndicadores();">Check List 5S</button>
+    <button class="tab-btn ${indicadoresTab === "recebimento" ? "active" : ""}" onclick="indicadoresTab='recebimento';renderIndicadores();">Inspeção de Recebimento</button>
+    <button class="tab-btn ${indicadoresTab === "relatorios" ? "active" : ""}" onclick="indicadoresTab='relatorios';renderIndicadores();">📑 Relatórios</button>
+  </div><div id="indicadores-body"></div>`;
+  if (indicadoresTab === "painel") renderPainelGerencial();
+  else if (indicadoresTab === "produtos") renderIndicadoresProdutos();
+  else if (indicadoresTab === "gaiolas") renderIndicadoresGaiolas();
+  else if (indicadoresTab === "5s") renderIndicadores5S();
+  else if (indicadoresTab === "recebimento") renderIndicadoresRecebimento();
+  else renderRelatorios();
+}
+/* ---- fonte unificada de registros (usada no Painel Gerencial e em Relatórios) ---- */
+function registrosUnificados() {
+  const regs = [];
+  divergencias.forEach((d) =>
+    regs.push({
+      tipo: "produtos",
+      data: d.data,
+      responsavel: d.responsavel,
+      refer: d.descricao,
+      setor: d.setor,
+      status: d.status === "CORRIGIDO" ? "aprovado" : "reprovado",
+      pendenciaStatus:
+        d.status === "CORRIGIDO"
+          ? "resolvida"
+          : d.status === "EM_ESPERA"
+            ? "em_andamento"
+            : "aberta",
+      temDivergencia: true,
+      origem: d,
+    }),
+  );
+  inspecoesEstoque.forEach((insp) => {
+    const abertas = insp.divergencias.filter(
+      (d) => d.status !== "CORRIGIDO",
+    ).length;
+    const tiposResumo = [
+      ...new Set(
+        insp.divergencias.map((d) => TIPO_DIVERGENCIA_ESTOQUE_LABEL[d.tipo]),
+      ),
+    ].join(", ");
+    regs.push({
+      tipo: "gaiolas",
+      data: insp.data,
+      responsavel: insp.responsavel,
+      refer: tiposResumo || "—",
+      setor: null,
+      status: abertas > 0 ? "reprovado" : "aprovado",
+      pendenciaStatus:
+        abertas > 0 ? "aberta" : insp.divergencias.length ? "resolvida" : "",
+      temDivergencia: insp.divergencias.length > 0,
+      origem: insp,
+    });
+  });
+  checklist5s.forEach((c) => {
+    const abertas = c.itens.filter(
+      (i) => i.resp === "NAO_CONFORME" && i.status !== "CORRIGIDO",
+    ).length;
+    const temNC = c.itens.some((i) => i.resp === "NAO_CONFORME");
+    regs.push({
+      tipo: "5s",
+      data: c.data,
+      responsavel: c.responsavel,
+      refer: c.setor,
+      setor: c.setor,
+      status: c.conformidade >= 70 ? "aprovado" : "reprovado",
+      pendenciaStatus: abertas > 0 ? "aberta" : temNC ? "resolvida" : "",
+      temDivergencia: temNC,
+      origem: c,
+    });
+  });
+  inspecoesRecebimento.forEach((i) => {
+    regs.push({
+      tipo: "recebimento",
+      data: i.dataInspecao.slice(0, 10),
+      responsavel: i.usuarioResponsavel,
+      refer: i.fornecedor === "OUTROS" ? i.fornecedorOutro : i.fornecedor,
+      setor: null,
+      status: i.statusFinal === "nao_conforme" ? "reprovado" : "aprovado",
+      pendenciaStatus: i.statusFinal === "conforme" ? "" : "aberta",
+      temDivergencia: i.statusFinal !== "conforme",
+      origem: i,
+    });
+  });
+  return regs;
+}
+const TIPO_REG_LABEL = {
+  produtos: "Inspeção de Produtos",
+  gaiolas: "Inspeção de Estoque",
+  "5s": "Check List 5S",
+  recebimento: "Inspeção de Recebimento",
+};
+function kpiDeltaHtml(atual, anterior) {
+  if (anterior === 0 && atual === 0)
+    return `<span class="kpi-delta flat">— sem variação</span>`;
+  if (anterior === 0)
+    return `<span class="kpi-delta up">▲ novo no período</span>`;
+  const pct = Math.round(((atual - anterior) / anterior) * 100);
+  if (pct === 0)
+    return `<span class="kpi-delta flat">— estável vs. período anterior</span>`;
+  const cls = pct > 0 ? "up" : "down";
+  const seta = pct > 0 ? "▲" : "▼";
+  return `<span class="kpi-delta ${cls}">${seta} ${Math.abs(pct)}% vs. período anterior</span>`;
+}
+function renderPainelGerencial() {
+  const body = document.getElementById("indicadores-body");
+  const regs = registrosUnificados();
+  const totalChecklists = regs.length;
+  const aprovados = regs.filter((r) => r.status === "aprovado").length;
+  const reprovados = regs.filter((r) => r.status === "reprovado").length;
+  const pendAbertas = regs.filter(
+    (r) =>
+      r.pendenciaStatus === "aberta" || r.pendenciaStatus === "em_andamento",
+  ).length;
+  const divEncontradas = regs.filter((r) => r.temDivergencia).length;
+  const pendResolvidas = regs.filter(
+    (r) => r.pendenciaStatus === "resolvida",
+  ).length;
+  const pctConformidade = totalChecklists
+    ? Math.round((aprovados / totalChecklists) * 100)
+    : 0;
+  // comparação com "período anterior" simulada dividindo os registros ordenados por data ao meio
+  const ordenados = [...regs].sort((a, b) => a.data.localeCompare(b.data));
+  const meio = Math.floor(ordenados.length / 2);
+  const anterior = ordenados.slice(0, meio);
+  const atualPeriodo = ordenados.slice(meio);
+  const pendAntes = anterior.filter(
+    (r) =>
+      r.pendenciaStatus === "aberta" || r.pendenciaStatus === "em_andamento",
+  ).length;
+  const pendAgora = atualPeriodo.filter(
+    (r) =>
+      r.pendenciaStatus === "aberta" || r.pendenciaStatus === "em_andamento",
+  ).length;
+  const conformAntes = anterior.length
+    ? Math.round(
+        (anterior.filter((r) => r.status === "aprovado").length /
+          anterior.length) *
+          100,
+      )
+    : 0;
+
+  // produtos com mais divergências (apenas registros de Inspeção de Produtos)
+  const produtoCount = {};
+  regs
+    .filter((r) => r.tipo === "produtos" && r.temDivergencia)
+    .forEach((r) => {
+      produtoCount[r.refer] = (produtoCount[r.refer] || 0) + 1;
+    });
+  const topProdutos = Object.entries(produtoCount)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 6);
+
+  // setores com mais divergências (Inspeção de Produtos + Check List 5S, únicos módulos com setor registrado)
+  const setorCount = {};
+  regs
+    .filter((r) => r.setor && r.temDivergencia)
+    .forEach((r) => {
+      setorCount[r.setor] = (setorCount[r.setor] || 0) + 1;
+    });
+  const topSetores = Object.entries(setorCount)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 6);
+
+  // pendências por responsável
+  const respCount = {};
+  regs
+    .filter(
+      (r) =>
+        r.pendenciaStatus === "aberta" || r.pendenciaStatus === "em_andamento",
+    )
+    .forEach((r) => {
+      respCount[r.responsavel] = (respCount[r.responsavel] || 0) + 1;
+    });
+
+  // evolução temporal (contagem de registros por data)
+  const porData = {};
+  regs.forEach((r) => {
+    porData[r.data] = (porData[r.data] || 0) + 1;
+  });
+  const datasOrdenadas = Object.keys(porData).sort();
+
+  body.innerHTML = `
+    <div class="grid grid-4" style="margin-bottom:16px;">
+      <div class="card kpi-card"><div class="kpi-top"><div class="kpi-label-row"><span class="stat-label">Total de Checklists</span><span class="kpi-tip" title="Soma de todos os checklists e inspeções registrados: Produtos, Gaiolas, 5S e Recebimento.">ⓘ</span></div><div class="stat-icon info">📋</div></div><div class="stat-value">${totalChecklists}</div>${kpiDeltaHtml(atualPeriodo.length, anterior.length)}</div>
+      <div class="card kpi-card"><div class="kpi-top"><div class="kpi-label-row"><span class="stat-label">% Conformidade Geral</span><span class="kpi-tip" title="Percentual de checklists/inspeções aprovados sobre o total registrado.">ⓘ</span></div><div class="stat-icon success">🎯</div></div><div class="stat-value accent">${pctConformidade}%</div>${kpiDeltaHtml(pctConformidade, conformAntes)}</div>
+      <div class="card kpi-card"><div class="kpi-top"><div class="kpi-label-row"><span class="stat-label">Pendências Abertas</span><span class="kpi-tip" title="Itens não conformes ou divergências ainda não corrigidas/resolvidas.">ⓘ</span></div><div class="stat-icon warn">⚠️</div></div><div class="stat-value">${pendAbertas}</div>${kpiDeltaHtml(pendAgora, pendAntes)}</div>
+      <div class="card kpi-card"><div class="kpi-top"><div class="kpi-label-row"><span class="stat-label">Divergências Encontradas</span><span class="kpi-tip" title="Registros com alguma divergência ou não conformidade identificada (produto, gaiola, 5S ou recebimento).">ⓘ</span></div><div class="stat-icon warn">🔍</div></div><div class="stat-value">${divEncontradas}</div><span class="kpi-delta flat">no total registrado</span></div>
+    </div>
+    <div class="grid grid-4" style="margin-bottom:24px;">
+      <div class="card kpi-card"><div class="kpi-top"><div class="kpi-label-row"><span class="stat-label">Aprovados</span><span class="kpi-tip" title="Checklists/inspeções sem reprovação.">ⓘ</span></div><div class="stat-icon success">✅</div></div><div class="stat-value">${aprovados}</div></div>
+      <div class="card kpi-card"><div class="kpi-top"><div class="kpi-label-row"><span class="stat-label">Reprovados</span><span class="kpi-tip" title="Checklists/inspeções com alguma não conformidade relevante.">ⓘ</span></div><div class="stat-icon">🔴</div></div><div class="stat-value">${reprovados}</div></div>
+      <div class="card kpi-card"><div class="kpi-top"><div class="kpi-label-row"><span class="stat-label">Pendências Resolvidas</span><span class="kpi-tip" title="Itens/divergências que já foram corrigidos.">ⓘ</span></div><div class="stat-icon purple">✔️</div></div><div class="stat-value">${pendResolvidas}</div></div>
+      <div class="card kpi-card"><div class="kpi-top"><div class="kpi-label-row"><span class="stat-label">Módulos Monitorados</span><span class="kpi-tip" title="Quantidade de módulos de qualidade ativos no painel.">ⓘ</span></div><div class="stat-icon muted">🧩</div></div><div class="stat-value">4</div></div>
+    </div>
+    <div class="grid grid-2" style="margin-bottom:24px;">
+      <div class="card" style="padding:24px;"><h3 class="font-display" style="margin:0 0 16px;font-size:16px;">Evolução dos Resultados por Período</h3><div style="position:relative;height:240px;"><canvas id="pg-evolucao"></canvas></div></div>
+      <div class="card" style="padding:24px;"><h3 class="font-display" style="margin:0 0 16px;font-size:16px;">Distribuição por Status</h3><div style="position:relative;height:240px;"><canvas id="pg-status"></canvas></div></div>
+    </div>
+    <div class="grid grid-2" style="margin-bottom:24px;">
+      <div class="card" style="padding:24px;"><h3 class="font-display" style="margin:0 0 16px;font-size:16px;">Produtos com Mais Divergências</h3><div style="position:relative;height:240px;">${topProdutos.length ? '<canvas id="pg-produtos"></canvas>' : '<p style="color:var(--ink-faint);font-size:13px;">Sem dados suficientes no período.</p>'}</div></div>
+      <div class="card" style="padding:24px;"><h3 class="font-display" style="margin:0 0 16px;font-size:16px;">Setores com Mais Divergências</h3><div style="position:relative;height:240px;">${topSetores.length ? '<canvas id="pg-setores"></canvas>' : '<p style="color:var(--ink-faint);font-size:13px;">Sem dados suficientes no período.</p>'}</div></div>
+    </div>
+    <div class="grid grid-2">
+      <div class="card" style="padding:24px;"><h3 class="font-display" style="margin:0 0 16px;font-size:16px;">Pendências por Responsável</h3><div style="position:relative;height:240px;"><canvas id="pg-responsavel"></canvas></div></div>
+    </div>`;
+  new Chart(document.getElementById("pg-evolucao"), {
+    type: "line",
+    data: {
+      labels: datasOrdenadas.map((d) => fmtDate(d)),
+      datasets: [
+        {
+          label: "Registros",
+          data: datasOrdenadas.map((d) => porData[d]),
+          borderColor: "#a8813a",
+          backgroundColor: "rgba(168,129,58,.15)",
+          fill: true,
+          tension: 0.3,
+        },
+      ],
+    },
+    options: chartOpts(false),
+  });
+  new Chart(document.getElementById("pg-status"), {
+    type: "doughnut",
+    data: {
+      labels: ["Aprovado", "Reprovado"],
+      datasets: [
+        {
+          data: [aprovados, reprovados],
+          backgroundColor: ["#4c8c6b", "#c15b4a"],
+        },
+      ],
+    },
+    options: { maintainAspectRatio: false },
+  });
+  if (topProdutos.length)
+    new Chart(document.getElementById("pg-produtos"), {
+      type: "bar",
+      data: {
+        labels: topProdutos.map((o) => o[0]),
+        datasets: [
+          {
+            data: topProdutos.map((o) => o[1]),
+            backgroundColor: "#d1a13a",
+            borderRadius: 6,
+          },
+        ],
+      },
+      options: { ...chartOpts(false), indexAxis: "y" },
+    });
+  if (topSetores.length)
+    new Chart(document.getElementById("pg-setores"), {
+      type: "bar",
+      data: {
+        labels: topSetores.map((o) => o[0]),
+        datasets: [
+          {
+            data: topSetores.map((o) => o[1]),
+            backgroundColor: "#4c5fbe",
+            borderRadius: 6,
+          },
+        ],
+      },
+      options: { ...chartOpts(false), indexAxis: "y" },
+    });
+  new Chart(document.getElementById("pg-responsavel"), {
+    type: "bar",
+    data: {
+      labels: Object.keys(respCount),
+      datasets: [
+        {
+          data: Object.values(respCount),
+          backgroundColor: "#c17b4a",
+          borderRadius: 6,
+        },
+      ],
+    },
+    options: chartOpts(false),
+  });
+}
+let relatoriosFiltros = {
+  dataIni: "",
+  dataFim: "",
+  tipo: "",
+  status: "",
+  responsavel: "",
+};
+function relatoriosFiltrados() {
+  return registrosUnificados()
+    .filter((r) => {
+      if (relatoriosFiltros.dataIni && r.data < relatoriosFiltros.dataIni)
+        return false;
+      if (relatoriosFiltros.dataFim && r.data > relatoriosFiltros.dataFim)
+        return false;
+      if (relatoriosFiltros.tipo && r.tipo !== relatoriosFiltros.tipo)
+        return false;
+      if (relatoriosFiltros.status && r.status !== relatoriosFiltros.status)
+        return false;
+      if (
+        relatoriosFiltros.responsavel &&
+        r.responsavel !== relatoriosFiltros.responsavel
+      )
+        return false;
+      return true;
+    })
+    .sort((a, b) => b.data.localeCompare(a.data));
+}
+function aplicarFiltroRelatorios() {
+  relatoriosFiltros = {
+    dataIni: document.getElementById("rlf-data-ini").value,
+    dataFim: document.getElementById("rlf-data-fim").value,
+    tipo: document.getElementById("rlf-tipo").value,
+    status: document.getElementById("rlf-status").value,
+    responsavel: document.getElementById("rlf-responsavel").value,
+  };
+  renderRelatorios();
+}
+function limparFiltroRelatorios() {
+  relatoriosFiltros = {
+    dataIni: "",
+    dataFim: "",
+    tipo: "",
+    status: "",
+    responsavel: "",
+  };
+  renderRelatorios();
+}
+function renderRelatorios() {
+  const body = document.getElementById("indicadores-body");
+  const lista = relatoriosFiltrados();
+  const responsaveis = [
+    ...new Set(registrosUnificados().map((r) => r.responsavel)),
+  ];
+  const respOpts = responsaveis
+    .map(
+      (r) =>
+        `<option value="${r}" ${relatoriosFiltros.responsavel === r ? "selected" : ""}>${r}</option>`,
+    )
+    .join("");
+  const totalAprov = lista.filter((r) => r.status === "aprovado").length;
+  const totalReprov = lista.length - totalAprov;
+  const rows = lista
+    .map(
+      (
+        r,
+      ) => `<tr style="${r.status === "reprovado" ? "border-left:3px solid var(--danger);background:rgba(193,91,74,.04);" : ""}">
+    <td style="color:var(--ink-faint);">${fmtDate(r.data)}</td>
+    <td>${TIPO_REG_LABEL[r.tipo]}</td>
+    <td>${r.refer}</td>
+    <td>${r.responsavel}</td>
+    <td><span class="badge ${r.status === "aprovado" ? "conforme" : "naoconforme"}">${r.status === "aprovado" ? "Aprovado" : "Reprovado"}</span></td>
+    <td>${r.pendenciaStatus ? `<span class="badge ${r.pendenciaStatus === "resolvida" ? "conforme" : r.pendenciaStatus === "em_andamento" ? "media" : "naoconforme"}">${{ aberta: "Aberta", em_andamento: "Em andamento", resolvida: "Resolvida" }[r.pendenciaStatus]}</span>` : '<span style="color:var(--ink-faint);">—</span>'}</td>
+  </tr>`,
+    )
+    .join("");
+  body.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:16px;flex-wrap:wrap;">
+      <div>
+        <h2 class="font-display" style="margin:0 0 4px;font-size:17px;">Relatórios Consolidados</h2>
+        <p style="margin:0;color:var(--ink-muted);font-size:13px;max-width:600px;">Consolida os registros de Produtos, Gaiolas, 5S e Inspeção de Recebimento, respeitando os filtros aplicados abaixo.</p>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-ghost" onclick="exportarRelatorioCSV()">⬇️ Exportar CSV/Excel</button>
+        <button class="btn btn-ghost" onclick="imprimirRelatorio()">🖨️ Exportar PDF</button>
+      </div>
+    </div>
+    <div class="card" style="padding:18px 20px;margin-bottom:18px;">
+      <div class="grid" style="grid-template-columns:repeat(5,1fr) auto auto;gap:12px;align-items:end;">
+        <label class="field"><span>Período inicial</span><input type="date" id="rlf-data-ini" value="${relatoriosFiltros.dataIni}"></label>
+        <label class="field"><span>Período final</span><input type="date" id="rlf-data-fim" value="${relatoriosFiltros.dataFim}"></label>
+        <label class="field"><span>Tipo de formulário</span><select id="rlf-tipo"><option value="">Todos</option>${Object.entries(
+          TIPO_REG_LABEL,
+        )
+          .map(
+            ([k, v]) =>
+              `<option value="${k}" ${relatoriosFiltros.tipo === k ? "selected" : ""}>${v}</option>`,
+          )
+          .join("")}</select></label>
+        <label class="field"><span>Status</span><select id="rlf-status"><option value="">Todos</option><option value="aprovado" ${relatoriosFiltros.status === "aprovado" ? "selected" : ""}>Aprovado</option><option value="reprovado" ${relatoriosFiltros.status === "reprovado" ? "selected" : ""}>Reprovado</option></select></label>
+        <label class="field"><span>Responsável</span><select id="rlf-responsavel"><option value="">Todos</option>${respOpts}</select></label>
+        <button class="btn btn-brass" onclick="aplicarFiltroRelatorios()">Filtrar</button>
+        <button class="btn btn-ghost" onclick="limparFiltroRelatorios()">Limpar filtros</button>
+      </div>
+    </div>
+    <div class="grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:18px;">
+      <div class="card stat-card"><div><div class="stat-label">Registros no Filtro</div><div class="stat-value">${lista.length}</div></div><div class="stat-icon info">📄</div></div>
+      <div class="card stat-card"><div><div class="stat-label">Aprovados</div><div class="stat-value">${totalAprov}</div></div><div class="stat-icon success">✅</div></div>
+      <div class="card stat-card"><div><div class="stat-label">Reprovados</div><div class="stat-value">${totalReprov}</div></div><div class="stat-icon">🔴</div></div>
+    </div>
+    <div class="card" style="overflow:hidden;"><div style="overflow-x:auto;"><table>
+      <thead><tr><th>Data</th><th>Formulário</th><th>Produto/Setor/Fornecedor</th><th>Responsável</th><th>Status</th><th>Pendência</th></tr></thead>
+      <tbody>${rows || '<tr><td colspan=6 style="text-align:center;padding:40px;color:var(--ink-faint);">Nenhum registro encontrado para os filtros aplicados.</td></tr>'}</tbody>
+    </table></div></div>`;
+}
+function exportarRelatorioCSV() {
+  const lista = relatoriosFiltrados();
+  const linhas = [
+    [
+      "Data",
+      "Formulário",
+      "Produto/Setor/Fornecedor",
+      "Responsável",
+      "Status",
+      "Pendência",
+    ],
+  ];
+  lista.forEach((r) =>
+    linhas.push([
+      fmtDate(r.data),
+      TIPO_REG_LABEL[r.tipo],
+      r.refer,
+      r.responsavel,
+      r.status === "aprovado" ? "Aprovado" : "Reprovado",
+      {
+        aberta: "Aberta",
+        em_andamento: "Em andamento",
+        resolvida: "Resolvida",
+        "": "—",
+      }[r.pendenciaStatus],
+    ]),
+  );
+  const csv =
+    "﻿" +
+    linhas
+      .map((l) => l.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(","))
+      .join("\n");
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = `relatorio-qualidade-${HOJE}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+}
+function imprimirRelatorio() {
+  const lista = relatoriosFiltrados();
+  const rows = lista
+    .map(
+      (r) =>
+        `<tr><td>${fmtDate(r.data)}</td><td>${TIPO_REG_LABEL[r.tipo]}</td><td>${r.refer}</td><td>${r.responsavel}</td><td>${r.status === "aprovado" ? "Aprovado" : "Reprovado"}</td></tr>`,
+    )
+    .join("");
+  try {
+    const w = window.open("", "_blank");
+    w.document.write(`<html><head><title>Relatório de Qualidade</title><style>
+      body{font-family:Arial,sans-serif;padding:24px;color:#14171a;} h1{font-size:18px;} table{width:100%;border-collapse:collapse;margin-top:12px;} th,td{border:1px solid #ddd;padding:6px 8px;font-size:12px;text-align:left;} th{background:#f2e6c8;}
+    </style></head><body>
+      <h1>Relatório Consolidado de Qualidade — CD King Star Colchões</h1>
+      <p>Gerado em ${fmtDate(HOJE)} · ${lista.length} registro(s)</p>
+      <table><thead><tr><th>Data</th><th>Formulário</th><th>Produto/Setor/Fornecedor</th><th>Responsável</th><th>Status</th></tr></thead><tbody>${rows}</tbody></table>
+    </body></html>`);
+    w.document.close();
+    w.focus();
+    setTimeout(() => w.print(), 300);
+  } catch (e) {}
+}
+function produtoPorSku(sku) {
+  return PRODUTOS.find((p) => p.codigo === sku);
+}
+let indProdutosFiltros = {
+  dataIni: "",
+  dataFim: "",
+  setor: "",
+  status: "",
+};
+function indProdutosFiltrado() {
+  return divergencias.filter((d) => {
+    if (indProdutosFiltros.dataIni && d.data < indProdutosFiltros.dataIni)
+      return false;
+    if (indProdutosFiltros.dataFim && d.data > indProdutosFiltros.dataFim)
+      return false;
+    if (indProdutosFiltros.setor && d.setor !== indProdutosFiltros.setor)
+      return false;
+    if (indProdutosFiltros.status && d.status !== indProdutosFiltros.status)
+      return false;
+    return true;
+  });
+}
+function aplicarFiltroIndProdutos() {
+  indProdutosFiltros = {
+    dataIni: document.getElementById("ip-data-ini").value,
+    dataFim: document.getElementById("ip-data-fim").value,
+    setor: document.getElementById("ip-setor").value,
+    status: document.getElementById("ip-status").value,
+  };
+  renderIndicadoresProdutos();
+}
+function limparFiltroIndProdutos() {
+  indProdutosFiltros = {
+    dataIni: "",
+    dataFim: "",
+    setor: "",
+    status: "",
+  };
+  renderIndicadoresProdutos();
+}
+function topRankingHtml(titulo, tip, entries, corBarra) {
+  if (!entries.length)
+    return `<div class="card" style="padding:24px;"><h3 class="font-display" style="margin:0 0 4px;font-size:16px;">${titulo}</h3><p style="color:var(--ink-faint);font-size:13px;margin:8px 0 0;">Sem dados suficientes no período.</p></div>`;
+  const max = entries[0][1];
+  const linhas = entries
+    .map(
+      ([label, val], i) => `
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:${i === entries.length - 1 ? 0 : 10}px;">
+      <div style="width:22px;font-size:12px;color:var(--ink-faint);font-weight:600;">#${i + 1}</div>
+      <div style="flex:1;min-width:0;">
+        <div style="display:flex;justify-content:space-between;gap:8px;font-size:13px;margin-bottom:3px;"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${label}</span><strong>${val}</strong></div>
+        <div style="background:var(--surface-alt);border-radius:6px;height:7px;overflow:hidden;"><div style="width:${max ? Math.round((val / max) * 100) : 0}%;background:${corBarra};height:100%;border-radius:6px;"></div></div>
+      </div>
+    </div>`,
+    )
+    .join("");
+  return `<div class="card" style="padding:24px;"><div style="display:flex;align-items:center;gap:6px;margin-bottom:14px;"><h3 class="font-display" style="margin:0;font-size:16px;">${titulo}</h3><span class="kpi-tip" title="${tip}">ⓘ</span></div>${linhas}</div>`;
+}
+function renderIndicadoresProdutos() {
+  const body = document.getElementById("indicadores-body");
+  const lista = indProdutosFiltrado();
+  const total = lista.length;
+  const pendente = lista.filter((d) => d.status === "PENDENTE").length;
+  const espera = lista.filter((d) => d.status === "EM_ESPERA").length;
+  const corrigido = lista.filter((d) => d.status === "CORRIGIDO").length;
+  const emAtraso = lista.filter(
+    (d) => prazoInfo(d.prazoCorrecao, d.status).emAtraso,
+  ).length;
+  const valorTotal = lista.reduce((a, d) => a + d.valorUnit * d.qtd, 0);
+  const valorMedio = total ? valorTotal / total : 0;
+  const setoresOptsFiltro = ["RECEBIMENTO", "EXPEDICAO", "MERCADO", "VERTICAL"]
+    .map(
+      (s) =>
+        `<option value="${s}" ${indProdutosFiltros.setor === s ? "selected" : ""}>${s}</option>`,
+    )
+    .join("");
+
+  const fornCount = {};
+  lista.forEach((d) => {
+    if (d.fornecedor)
+      fornCount[d.fornecedor] = (fornCount[d.fornecedor] || 0) + 1;
+  });
+  const topFornecedores = Object.entries(fornCount)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 6);
+
+  const codCount = {};
+  lista.forEach((d) => {
+    const l = codDivLabel(d);
+    codCount[l] = (codCount[l] || 0) + 1;
+  });
+  const topCodigos = Object.entries(codCount)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 6);
+
+  const familiaCount = {};
+  const grupoCount = {};
+  lista.forEach((d) => {
+    const p = produtoPorSku(d.sku);
+    const familia = p?.familia || "(não identificada)";
+    const grupo = p?.grupo || "(não identificado)";
+    familiaCount[familia] = (familiaCount[familia] || 0) + 1;
+    grupoCount[grupo] = (grupoCount[grupo] || 0) + 1;
+  });
+  const topFamilias = Object.entries(familiaCount)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 6);
+  const topGrupos = Object.entries(grupoCount)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 6);
+
+  const valorPorFornecedor = {};
+  lista.forEach((d) => {
+    if (d.fornecedor)
+      valorPorFornecedor[d.fornecedor] =
+        (valorPorFornecedor[d.fornecedor] || 0) + d.valorUnit * d.qtd;
+  });
+  const topValorFornecedor = Object.entries(valorPorFornecedor)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 6);
+
+  body.innerHTML = `
+    <div class="card" style="padding:18px 20px;margin-bottom:20px;">
+      <div class="grid" style="grid-template-columns:repeat(4,1fr) auto auto;gap:12px;align-items:end;">
+        <label class="field"><span>Período inicial</span><input type="date" id="ip-data-ini" value="${indProdutosFiltros.dataIni}"></label>
+        <label class="field"><span>Período final</span><input type="date" id="ip-data-fim" value="${indProdutosFiltros.dataFim}"></label>
+        <label class="field"><span>Setor</span><select id="ip-setor"><option value="">Todos</option>${setoresOptsFiltro}</select></label>
+        <label class="field"><span>Status</span><select id="ip-status">
+          <option value="">Todos</option>
+          <option value="PENDENTE" ${indProdutosFiltros.status === "PENDENTE" ? "selected" : ""}>Pendente</option>
+          <option value="EM_ESPERA" ${indProdutosFiltros.status === "EM_ESPERA" ? "selected" : ""}>Em Espera</option>
+          <option value="CORRIGIDO" ${indProdutosFiltros.status === "CORRIGIDO" ? "selected" : ""}>Corrigido</option>
+        </select></label>
+        <button class="btn btn-brass" onclick="aplicarFiltroIndProdutos()">Filtrar</button>
+        <button class="btn btn-ghost" onclick="limparFiltroIndProdutos()">Limpar filtros</button>
+      </div>
+    </div>
+    <div class="grid grid-4" style="margin-bottom:16px;">
+      <div class="card kpi-card"><div class="kpi-top"><div class="kpi-label-row"><span class="stat-label">Total de Registros</span><span class="kpi-tip" title="Total de divergências de produtos registradas, considerando os filtros aplicados.">ⓘ</span></div><div class="stat-icon info">📋</div></div><div class="stat-value">${total}</div></div>
+      <div class="card kpi-card"><div class="kpi-top"><div class="kpi-label-row"><span class="stat-label">Pendente</span><span class="kpi-tip" title="Divergências com status Pendente.">ⓘ</span></div><div class="stat-icon warn">⚠️</div></div><div class="stat-value">${pendente}</div></div>
+      <div class="card kpi-card"><div class="kpi-top"><div class="kpi-label-row"><span class="stat-label">Em Espera</span><span class="kpi-tip" title="Divergências com status Em Espera.">ⓘ</span></div><div class="stat-icon muted">⏳</div></div><div class="stat-value">${espera}</div></div>
+      <div class="card kpi-card"><div class="kpi-top"><div class="kpi-label-row"><span class="stat-label">Corrigido</span><span class="kpi-tip" title="Divergências com status Corrigido.">ⓘ</span></div><div class="stat-icon success">✅</div></div><div class="stat-value">${corrigido}</div></div>
+    </div>
+    <div class="grid grid-4" style="margin-bottom:24px;">
+      <div class="card kpi-card"><div class="kpi-top"><div class="kpi-label-row"><span class="stat-label">Valor Total Impactado</span><span class="kpi-tip" title="Soma do valor total (quantidade × valor unitário) de todas as divergências no período filtrado.">ⓘ</span></div><div class="stat-icon purple">💰</div></div><div class="stat-value accent">${money(valorTotal)}</div></div>
+      <div class="card kpi-card"><div class="kpi-top"><div class="kpi-label-row"><span class="stat-label">Valor Médio por Divergência</span><span class="kpi-tip" title="Valor total impactado dividido pelo número de divergências no período.">ⓘ</span></div><div class="stat-icon purple">📊</div></div><div class="stat-value accent">${money(valorMedio)}</div></div>
+      <div class="card kpi-card"><div class="kpi-top"><div class="kpi-label-row"><span class="stat-label">Em Atraso</span><span class="kpi-tip" title="Divergências com prazo de correção vencido.">ⓘ</span></div><div class="stat-icon">🔴</div></div><div class="stat-value" style="color:var(--danger);">${emAtraso}</div></div>
+      <div class="card kpi-card"><div class="kpi-top"><div class="kpi-label-row"><span class="stat-label">% Conformidade</span><span class="kpi-tip" title="Percentual de divergências já corrigidas sobre o total registrado no período.">ⓘ</span></div><div class="stat-icon success">🎯</div></div><div class="stat-value accent">${total ? Math.round((corrigido / total) * 100) : 0}%</div></div>
+    </div>
+    <div class="grid grid-2" style="margin-bottom:24px;">
+      <div class="card" style="padding:24px;"><h3 class="font-display" style="margin:0 0 16px;font-size:16px;">Status das Divergências</h3><div style="position:relative;height:240px;"><canvas id="ci-status"></canvas></div></div>
+      <div class="card" style="padding:24px;"><h3 class="font-display" style="margin:0 0 16px;font-size:16px;">Divergências por Setor</h3><div style="position:relative;height:240px;"><canvas id="ci-setor"></canvas></div></div>
+    </div>
+    <div class="grid grid-2" style="margin-bottom:24px;">
+      ${topRankingHtml("Fornecedor com Mais Divergências", "Ranking de fornecedores por quantidade de divergências registradas no período.", topFornecedores, "#c17b4a")}
+      ${topRankingHtml("Divergências Mais Comuns", "Ranking dos Códigos de Divergência mais frequentes no período.", topCodigos, "#d1a13a")}
+    </div>
+    <div class="grid grid-2" style="margin-bottom:24px;">
+      ${topRankingHtml("Família com Mais Divergência", "Ranking de Famílias de produto (Cadastro de Produtos) com mais divergências registradas.", topFamilias, "#4c5fbe")}
+      ${topRankingHtml("Grupo com Mais Divergência", "Ranking de Grupos de produto (Cadastro de Produtos) com mais divergências registradas.", topGrupos, "#4c8c6b")}
+    </div>
+    <div class="grid grid-2">
+      ${topRankingHtml(
+        "Valores — Fornecedores com Maior Impacto Financeiro",
+        "Ranking de fornecedores por valor total impactado (quantidade × valor unitário) no período.",
+        topValorFornecedor.map(([k, v]) => [k, Math.round(v * 100) / 100]),
+        "#a8813a",
+      )}
+      <div class="card" style="padding:24px;"><h3 class="font-display" style="margin:0 0 16px;font-size:16px;">Divergências por Fornecedor</h3><div style="position:relative;height:240px;"><canvas id="ci-forn-chart"></canvas></div></div>
+    </div>`;
+  const statusCount = groupCount(lista, "status");
+  new Chart(document.getElementById("ci-status"), {
+    type: "doughnut",
+    data: {
+      labels: Object.keys(statusCount).map(
+        (s) =>
+          ({
+            PENDENTE: "Pendente",
+            EM_ESPERA: "Em Espera",
+            CORRIGIDO: "Corrigido",
+          })[s],
+      ),
+      datasets: [
+        {
+          data: Object.values(statusCount),
+          backgroundColor: ["#d1a13a", "#4c5fbe", "#4c8c6b"],
+        },
+      ],
+    },
+    options: { maintainAspectRatio: false },
+  });
+  const setorCount = groupCount(lista, "setor");
+  new Chart(document.getElementById("ci-setor"), {
+    type: "bar",
+    data: {
+      labels: Object.keys(setorCount),
+      datasets: [
+        {
+          data: Object.values(setorCount),
+          backgroundColor: "#a8813a",
+          borderRadius: 6,
+        },
+      ],
+    },
+    options: chartOpts(false),
+  });
+  new Chart(document.getElementById("ci-forn-chart"), {
+    type: "bar",
+    data: {
+      labels: topFornecedores.map((f) => f[0]),
+      datasets: [
+        {
+          data: topFornecedores.map((f) => f[1]),
+          backgroundColor: "#c17b4a",
+          borderRadius: 6,
+        },
+      ],
+    },
+    options: { ...chartOpts(false), indexAxis: "y" },
+  });
+}
+let indGaiolasFiltros = {
+  dataIni: "",
+  dataFim: "",
+  tipo: "",
+  status: "",
+};
+function indGaiolasFiltrado() {
+  return estoqueDivergenciasFlat().filter((d) => {
+    if (indGaiolasFiltros.dataIni && d.data < indGaiolasFiltros.dataIni)
+      return false;
+    if (indGaiolasFiltros.dataFim && d.data > indGaiolasFiltros.dataFim)
+      return false;
+    if (indGaiolasFiltros.tipo && d.tipo !== indGaiolasFiltros.tipo)
+      return false;
+    if (indGaiolasFiltros.status && d.status !== indGaiolasFiltros.status)
+      return false;
+    return true;
+  });
+}
+function aplicarFiltroIndGaiolas() {
+  indGaiolasFiltros = {
+    dataIni: document.getElementById("ig-data-ini").value,
+    dataFim: document.getElementById("ig-data-fim").value,
+    tipo: document.getElementById("ig-tipo").value,
+    status: document.getElementById("ig-status").value,
+  };
+  renderIndicadoresGaiolas();
+}
+function limparFiltroIndGaiolas() {
+  indGaiolasFiltros = { dataIni: "", dataFim: "", tipo: "", status: "" };
+  renderIndicadoresGaiolas();
+}
+function renderIndicadoresGaiolas() {
+  const body = document.getElementById("indicadores-body");
+  const todasDiv = indGaiolasFiltrado();
+  const totalRegistros = todasDiv.length;
+  const pendente = todasDiv.filter((d) => d.status === "PENDENTE").length;
+  const espera = todasDiv.filter((d) => d.status === "EM_ESPERA").length;
+  const corrigido = todasDiv.filter((d) => d.status === "CORRIGIDO").length;
+  const pct = totalRegistros
+    ? Math.round((corrigido / totalRegistros) * 100)
+    : 0;
+  const tipoOpts = Object.keys(TIPO_DIVERGENCIA_ESTOQUE_LABEL)
+    .map(
+      (k) =>
+        `<option value="${k}" ${indGaiolasFiltros.tipo === k ? "selected" : ""}>${TIPO_DIVERGENCIA_ESTOQUE_LABEL[k]}</option>`,
+    )
+    .join("");
+  body.innerHTML = `
+    <div class="card" style="padding:18px 20px;margin-bottom:20px;">
+      <div class="grid" style="grid-template-columns:repeat(4,1fr) auto auto;gap:12px;align-items:end;">
+        <label class="field"><span>Período inicial</span><input type="date" id="ig-data-ini" value="${indGaiolasFiltros.dataIni}"></label>
+        <label class="field"><span>Período final</span><input type="date" id="ig-data-fim" value="${indGaiolasFiltros.dataFim}"></label>
+        <label class="field"><span>Tipo de Divergência</span><select id="ig-tipo"><option value="">Todos</option>${tipoOpts}</select></label>
+        <label class="field"><span>Status</span><select id="ig-status">
+          <option value="">Todos</option>
+          <option value="PENDENTE" ${indGaiolasFiltros.status === "PENDENTE" ? "selected" : ""}>Pendente</option>
+          <option value="EM_ESPERA" ${indGaiolasFiltros.status === "EM_ESPERA" ? "selected" : ""}>Em Espera</option>
+          <option value="CORRIGIDO" ${indGaiolasFiltros.status === "CORRIGIDO" ? "selected" : ""}>Corrigido</option>
+        </select></label>
+        <button class="btn btn-brass" onclick="aplicarFiltroIndGaiolas()">Filtrar</button>
+        <button class="btn btn-ghost" onclick="limparFiltroIndGaiolas()">Limpar filtros</button>
+      </div>
+    </div>
+    <div class="grid grid-4" style="margin-bottom:16px;">
+      <div class="card kpi-card"><div class="kpi-top"><div class="kpi-label-row"><span class="stat-label">Total de Registros</span><span class="kpi-tip" title="Total de divergências de Inspeção de Estoque no período filtrado.">ⓘ</span></div><div class="stat-icon info">📋</div></div><div class="stat-value">${totalRegistros}</div></div>
+      <div class="card kpi-card"><div class="kpi-top"><div class="kpi-label-row"><span class="stat-label">Pendente</span><span class="kpi-tip" title="Divergências com status Pendente.">ⓘ</span></div><div class="stat-icon warn">⚠️</div></div><div class="stat-value">${pendente}</div></div>
+      <div class="card kpi-card"><div class="kpi-top"><div class="kpi-label-row"><span class="stat-label">Em Espera</span><span class="kpi-tip" title="Divergências com status Em Espera.">ⓘ</span></div><div class="stat-icon muted">⏳</div></div><div class="stat-value">${espera}</div></div>
+      <div class="card kpi-card"><div class="kpi-top"><div class="kpi-label-row"><span class="stat-label">Corrigido</span><span class="kpi-tip" title="Divergências com status Corrigido.">ⓘ</span></div><div class="stat-icon success">✅</div></div><div class="stat-value">${corrigido}</div></div>
+    </div>
+    <div class="grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:24px;">
+      <div class="card kpi-card"><div class="kpi-top"><div class="kpi-label-row"><span class="stat-label">Inspeções Realizadas</span><span class="kpi-tip" title="Total de Inspeções de Estoque registradas (não filtrado por período).">ⓘ</span></div><div class="stat-icon purple">📋</div></div><div class="stat-value">${inspecoesEstoque.length}</div></div>
+      <div class="card kpi-card"><div class="kpi-top"><div class="kpi-label-row"><span class="stat-label">Quantidade de Divergências</span><span class="kpi-tip" title="Total de divergências identificadas no período filtrado.">ⓘ</span></div><div class="stat-icon muted">🔍</div></div><div class="stat-value">${totalRegistros}</div></div>
+      <div class="card kpi-card"><div class="kpi-top"><div class="kpi-label-row"><span class="stat-label">% Divergências Corrigidas</span><span class="kpi-tip" title="Percentual de divergências já corrigidas sobre o total no período filtrado.">ⓘ</span></div><div class="stat-icon success">🎯</div></div><div class="stat-value accent">${pct}%</div></div>
+    </div>
+    <div class="grid grid-2">
+      <div class="card" style="padding:24px;"><h3 class="font-display" style="margin:0 0 16px;font-size:16px;">Divergências por Tipo</h3><div style="position:relative;height:240px;"><canvas id="ci-gaiolas-tipo"></canvas></div></div>
+      <div class="card" style="padding:24px;"><h3 class="font-display" style="margin:0 0 16px;font-size:16px;">Distribuição por Status</h3><div style="position:relative;height:240px;"><canvas id="ci-gaiolas-status"></canvas></div></div>
+    </div>`;
+  const porTipo = {};
+  todasDiv.forEach((d) => {
+    const l = TIPO_DIVERGENCIA_ESTOQUE_LABEL[d.tipo] || d.tipo;
+    porTipo[l] = (porTipo[l] || 0) + 1;
+  });
+  new Chart(document.getElementById("ci-gaiolas-tipo"), {
+    type: "bar",
+    data: {
+      labels: Object.keys(porTipo),
+      datasets: [
+        {
+          data: Object.values(porTipo),
+          backgroundColor: "#a8813a",
+          borderRadius: 6,
+        },
+      ],
+    },
+    options: { ...chartOpts(false), indexAxis: "y" },
+  });
+  const statusCount = groupCount(todasDiv, "status");
+  new Chart(document.getElementById("ci-gaiolas-status"), {
+    type: "doughnut",
+    data: {
+      labels: Object.keys(statusCount).map(
+        (s) =>
+          ({
+            PENDENTE: "Pendente",
+            EM_ESPERA: "Em Espera",
+            CORRIGIDO: "Corrigido",
+          })[s],
+      ),
+      datasets: [
+        {
+          data: Object.values(statusCount),
+          backgroundColor: ["#d1a13a", "#4c5fbe", "#4c8c6b"],
+        },
+      ],
+    },
+    options: { maintainAspectRatio: false },
+  });
+}
+let ind5SFiltros = { dataIni: "", dataFim: "", setor: "" };
+function ind5SFiltrado() {
+  return checklist5s.filter((c) => {
+    if (ind5SFiltros.dataIni && c.data < ind5SFiltros.dataIni) return false;
+    if (ind5SFiltros.dataFim && c.data > ind5SFiltros.dataFim) return false;
+    if (ind5SFiltros.setor && c.setor !== ind5SFiltros.setor) return false;
+    return true;
+  });
+}
+function aplicarFiltroInd5S() {
+  ind5SFiltros = {
+    dataIni: document.getElementById("i5-data-ini").value,
+    dataFim: document.getElementById("i5-data-fim").value,
+    setor: document.getElementById("i5-setor").value,
+  };
+  renderIndicadores5S();
+}
+function limparFiltroInd5S() {
+  ind5SFiltros = { dataIni: "", dataFim: "", setor: "" };
+  renderIndicadores5S();
+}
+function renderIndicadores5S() {
+  const body = document.getElementById("indicadores-body");
+  const lista = ind5SFiltrado();
+  const media = lista.length
+    ? Math.round(lista.reduce((a, c) => a + c.conformidade, 0) / lista.length)
+    : 0;
+  const setoresOpts = [...new Set(checklist5s.map((c) => c.setor))]
+    .map(
+      (s) =>
+        `<option value="${s}" ${ind5SFiltros.setor === s ? "selected" : ""}>${s}</option>`,
+    )
+    .join("");
+
+  const perguntaStats = {};
+  lista.forEach((c) =>
+    c.itens.forEach((i) => {
+      if (!perguntaStats[i.desc])
+        perguntaStats[i.desc] = { conforme: 0, naoConforme: 0, na: 0 };
+      if (i.resp === "CONFORME") perguntaStats[i.desc].conforme++;
+      else if (i.resp === "NAO_CONFORME") perguntaStats[i.desc].naoConforme++;
+      else if (i.resp === "NA") perguntaStats[i.desc].na++;
+    }),
+  );
+  const perguntas = Object.entries(perguntaStats);
+  const maiorOfensor = [...perguntas].sort(
+    (a, b) => b[1].naoConforme - a[1].naoConforme,
+  )[0];
+  const melhorQualidade = [...perguntas]
+    .filter(([, v]) => v.conforme + v.naoConforme > 0)
+    .sort((a, b) => {
+      const taxaA = a[1].conforme / (a[1].conforme + a[1].naoConforme);
+      const taxaB = b[1].conforme / (b[1].conforme + b[1].naoConforme);
+      return taxaB - taxaA || b[1].conforme - a[1].conforme;
+    })[0];
+  const perguntasOrdenadas = perguntas
+    .sort((a, b) => b[1].naoConforme - a[1].naoConforme)
+    .slice(0, 10);
+
+  body.innerHTML = `
+    <div class="card" style="padding:18px 20px;margin-bottom:20px;">
+      <div class="grid" style="grid-template-columns:repeat(2,1fr) auto auto;gap:12px;align-items:end;">
+        <label class="field"><span>Período inicial</span><input type="date" id="i5-data-ini" value="${ind5SFiltros.dataIni}"></label>
+        <label class="field"><span>Período final</span><input type="date" id="i5-data-fim" value="${ind5SFiltros.dataFim}"></label>
+        <label class="field"><span>Setor</span><select id="i5-setor"><option value="">Todos</option>${setoresOpts}</select></label>
+        <button class="btn btn-brass" onclick="aplicarFiltroInd5S()">Filtrar</button>
+        <button class="btn btn-ghost" onclick="limparFiltroInd5S()">Limpar filtros</button>
+      </div>
+    </div>
+    <div class="grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:24px;">
+      <div class="card kpi-card"><div class="kpi-top"><div class="kpi-label-row"><span class="stat-label">% Conformidade Médio</span><span class="kpi-tip" title="Média de % de conformidade entre todas as inspeções 5S realizadas no período.">ⓘ</span></div><div class="stat-icon success">🧹</div></div><div class="stat-value accent">${media}%</div></div>
+      <div class="card kpi-card"><div class="kpi-top"><div class="kpi-label-row"><span class="stat-label">Pendências em Atraso</span><span class="kpi-tip" title="Itens não conformes com prazo de correção vencido.">ⓘ</span></div><div class="stat-icon warn">⚠️</div></div><div class="stat-value">0</div></div>
+      <div class="card kpi-card"><div class="kpi-top"><div class="kpi-label-row"><span class="stat-label">Inspeções no Período</span><span class="kpi-tip" title="Total de checklists 5S realizados no período filtrado.">ⓘ</span></div><div class="stat-icon purple">📈</div></div><div class="stat-value">${lista.length}</div></div>
+    </div>
+    <div class="grid grid-2" style="margin-bottom:24px;">
+      <div class="card kpi-card"><div class="kpi-top"><div class="kpi-label-row"><span class="stat-label">Maior Ofensor</span><span class="kpi-tip" title="Pergunta/item do checklist com mais respostas Não Conforme no período.">ⓘ</span></div><div class="stat-icon">🔴</div></div><div class="stat-value" style="font-size:15px;line-height:1.3;">${maiorOfensor ? maiorOfensor[0] : "—"}</div>${maiorOfensor ? `<span class="kpi-delta down">${maiorOfensor[1].naoConforme} não conforme(s)</span>` : ""}</div>
+      <div class="card kpi-card"><div class="kpi-top"><div class="kpi-label-row"><span class="stat-label">Ponto com Melhor Qualidade</span><span class="kpi-tip" title="Pergunta/item do checklist com a maior taxa de conformidade no período.">ⓘ</span></div><div class="stat-icon success">🏆</div></div><div class="stat-value" style="font-size:15px;line-height:1.3;">${melhorQualidade ? melhorQualidade[0] : "—"}</div>${melhorQualidade ? `<span class="kpi-delta up">${melhorQualidade[1].conforme} conforme(s)</span>` : ""}</div>
+    </div>
+    <div class="grid grid-2" style="margin-bottom:24px;">
+      <div class="card" style="padding:24px;"><h3 class="font-display" style="margin:0 0 16px;font-size:16px;">Não Conformidades por Senso</h3><div style="position:relative;height:240px;"><canvas id="ci-5s-senso"></canvas></div></div>
+      <div class="card" style="padding:24px;"><h3 class="font-display" style="margin:0 0 16px;font-size:16px;">Conforme × Não Conforme por Pergunta</h3><div style="position:relative;height:${Math.max(240, perguntasOrdenadas.length * 32)}px;"><canvas id="ci-5s-pergunta"></canvas></div></div>
+    </div>`;
+  const sensos = {
+    SEIRI: 0,
+    SEITON: 0,
+    SEISO: 0,
+    SEIKETSU: 0,
+    SHITSUKE: 0,
+  };
+  lista.forEach((c) =>
+    c.itens
+      .filter((i) => i.resp === "NAO_CONFORME")
+      .forEach((i) => sensos[i.senso]++),
+  );
+  new Chart(document.getElementById("ci-5s-senso"), {
+    type: "bar",
+    data: {
+      labels: Object.keys(sensos),
+      datasets: [
+        {
+          data: Object.values(sensos),
+          backgroundColor: "#a8813a",
+          borderRadius: 6,
+        },
+      ],
+    },
+    options: chartOpts(false),
+  });
+  new Chart(document.getElementById("ci-5s-pergunta"), {
+    type: "bar",
+    data: {
+      labels: perguntasOrdenadas.map((p) => p[0]),
+      datasets: [
+        {
+          label: "Conforme",
+          data: perguntasOrdenadas.map((p) => p[1].conforme),
+          backgroundColor: "#4c8c6b",
+          borderRadius: 4,
+        },
+        {
+          label: "Não Conforme",
+          data: perguntasOrdenadas.map((p) => p[1].naoConforme),
+          backgroundColor: "#c15b4a",
+          borderRadius: 4,
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      indexAxis: "y",
+      plugins: { legend: { display: true, position: "bottom" } },
+      scales: {
+        x: { beginAtZero: true, ticks: { precision: 0 }, stacked: true },
+        y: { stacked: true },
+      },
+    },
+  });
+}
+let indRecebimentoFiltros = {
+  dataIni: "",
+  dataFim: "",
+  fornecedor: "",
+  status: "",
+};
+function indRecebimentoFiltrado() {
+  return inspecoesRecebimento.filter((i) => {
+    const dia = i.dataInspecao.slice(0, 10);
+    if (indRecebimentoFiltros.dataIni && dia < indRecebimentoFiltros.dataIni)
+      return false;
+    if (indRecebimentoFiltros.dataFim && dia > indRecebimentoFiltros.dataFim)
+      return false;
+    if (
+      indRecebimentoFiltros.fornecedor &&
+      i.fornecedor !== indRecebimentoFiltros.fornecedor
+    )
+      return false;
+    if (
+      indRecebimentoFiltros.status &&
+      i.statusFinal !== indRecebimentoFiltros.status
+    )
+      return false;
+    return true;
+  });
+}
+function aplicarFiltroIndRecebimento() {
+  indRecebimentoFiltros = {
+    dataIni: document.getElementById("ir-data-ini").value,
+    dataFim: document.getElementById("ir-data-fim").value,
+    fornecedor: document.getElementById("ir-fornecedor").value,
+    status: document.getElementById("ir-status").value,
+  };
+  renderIndicadoresRecebimento();
+}
+function limparFiltroIndRecebimento() {
+  indRecebimentoFiltros = {
+    dataIni: "",
+    dataFim: "",
+    fornecedor: "",
+    status: "",
+  };
+  renderIndicadoresRecebimento();
+}
+function renderIndicadoresRecebimento() {
+  const body = document.getElementById("indicadores-body");
+  const lista = indRecebimentoFiltrado();
+  const conforme = lista.filter((i) => i.statusFinal === "conforme").length;
+  const ressalva = lista.filter(
+    (i) => i.statusFinal === "conforme_ressalva",
+  ).length;
+  const naoConforme = lista.filter(
+    (i) => i.statusFinal === "nao_conforme",
+  ).length;
+  const fornecedorOpts = FORNECEDORES_LIST.filter((f) => f !== "OUTROS")
+    .map(
+      (f) =>
+        `<option value="${f}" ${indRecebimentoFiltros.fornecedor === f ? "selected" : ""}>${f}</option>`,
+    )
+    .join("");
+
+  const fornecedorNC = {};
+  lista.forEach((i) => {
+    const f = i.fornecedor === "OUTROS" ? i.fornecedorOutro : i.fornecedor;
+    if (i.statusFinal !== "conforme")
+      fornecedorNC[f] = (fornecedorNC[f] || 0) + 1;
+  });
+  const rankingFornecedores = Object.entries(fornecedorNC)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 8);
+
+  let qtdDivergencias = 0;
+  const ofensorCount = {};
+  lista.forEach((i) => {
+    if (i.resultadoFornecedor === "nao_conforme") {
+      if (i.divergenciaFornecedor?.tipo === "produto") {
+        (i.divergenciaFornecedor.produto?.motivos || []).forEach((m) => {
+          qtdDivergencias++;
+          const label =
+            m === "OUTROS"
+              ? i.divergenciaFornecedor.produto.outroMotivo || "OUTROS"
+              : m;
+          ofensorCount[label] = (ofensorCount[label] || 0) + 1;
+        });
+      } else if (i.divergenciaFornecedor?.tipo === "caminhao") {
+        qtdDivergencias++;
+        ofensorCount["Divergência de Caminhão"] =
+          (ofensorCount["Divergência de Caminhão"] || 0) + 1;
+      }
+    }
+    if (i.resultadoOperacional === "nao_conforme") {
+      (i.divergenciaOperacional?.tipos || []).forEach((t) => {
+        qtdDivergencias++;
+        ofensorCount[t] = (ofensorCount[t] || 0) + 1;
+      });
+    }
+  });
+  const principaisOfensores = Object.entries(ofensorCount)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 8);
+
+  body.innerHTML = `
+    <div class="card" style="padding:18px 20px;margin-bottom:20px;">
+      <div class="grid" style="grid-template-columns:repeat(4,1fr) auto auto;gap:12px;align-items:end;">
+        <label class="field"><span>Período inicial</span><input type="date" id="ir-data-ini" value="${indRecebimentoFiltros.dataIni}"></label>
+        <label class="field"><span>Período final</span><input type="date" id="ir-data-fim" value="${indRecebimentoFiltros.dataFim}"></label>
+        <label class="field"><span>Fornecedor</span><select id="ir-fornecedor"><option value="">Todos</option>${fornecedorOpts}</select></label>
+        <label class="field"><span>Status</span><select id="ir-status">
+          <option value="">Todos</option>
+          <option value="conforme" ${indRecebimentoFiltros.status === "conforme" ? "selected" : ""}>Conforme</option>
+          <option value="conforme_ressalva" ${indRecebimentoFiltros.status === "conforme_ressalva" ? "selected" : ""}>Conforme com ressalva</option>
+          <option value="nao_conforme" ${indRecebimentoFiltros.status === "nao_conforme" ? "selected" : ""}>Não conforme</option>
+        </select></label>
+        <button class="btn btn-brass" onclick="aplicarFiltroIndRecebimento()">Filtrar</button>
+        <button class="btn btn-ghost" onclick="limparFiltroIndRecebimento()">Limpar filtros</button>
+      </div>
+    </div>
+    <div class="grid grid-4" style="margin-bottom:24px;">
+      <div class="card kpi-card"><div class="kpi-top"><div class="kpi-label-row"><span class="stat-label">Inspeções Conformes</span><span class="kpi-tip" title="Inspeções de recebimento com resultado Conforme no período filtrado.">ⓘ</span></div><div class="stat-icon success">✅</div></div><div class="stat-value">${conforme}</div></div>
+      <div class="card kpi-card"><div class="kpi-top"><div class="kpi-label-row"><span class="stat-label">Conforme com Ressalva</span><span class="kpi-tip" title="Inspeções com pelo menos uma não conformidade parcial (fornecedor ou operacional).">ⓘ</span></div><div class="stat-icon muted">⏳</div></div><div class="stat-value">${ressalva}</div></div>
+      <div class="card kpi-card"><div class="kpi-top"><div class="kpi-label-row"><span class="stat-label">Inspeções Não Conformes</span><span class="kpi-tip" title="Inspeções com resultado Não Conforme no período filtrado.">ⓘ</span></div><div class="stat-icon warn">⚠️</div></div><div class="stat-value">${naoConforme}</div></div>
+      <div class="card kpi-card"><div class="kpi-top"><div class="kpi-label-row"><span class="stat-label">Quantidade de Divergências</span><span class="kpi-tip" title="Total de ocorrências de divergência (motivos de produto, caminhão e itens operacionais) no período filtrado.">ⓘ</span></div><div class="stat-icon">🔍</div></div><div class="stat-value">${qtdDivergencias}</div></div>
+    </div>
+    <div class="grid grid-2" style="margin-bottom:24px;">
+      <div class="card" style="padding:24px;"><h3 class="font-display" style="margin:0 0 16px;font-size:16px;">Distribuição por Status</h3><div style="position:relative;height:240px;"><canvas id="ci-recebimento-status"></canvas></div></div>
+      ${topRankingHtml("Ranking dos Fornecedores", "Fornecedores com mais inspeções não conformes ou com ressalva no período.", rankingFornecedores, "#c17b4a")}
+    </div>
+    <div class="grid grid-2">
+      ${topRankingHtml("Principais Ofensores", "Motivos de divergência (produto, caminhão e itens operacionais) mais frequentes no período.", principaisOfensores, "#c15b4a")}
+      <div class="card" style="padding:24px;"><h3 class="font-display" style="margin:0 0 16px;font-size:16px;">Principais Ofensores</h3><div style="position:relative;height:240px;"><canvas id="ci-recebimento-ofensores"></canvas></div></div>
+    </div>`;
+  new Chart(document.getElementById("ci-recebimento-status"), {
+    type: "doughnut",
+    data: {
+      labels: ["Conforme", "Conforme c/ Ressalva", "Não Conforme"],
+      datasets: [
+        {
+          data: [conforme, ressalva, naoConforme],
+          backgroundColor: ["#4c8c6b", "#d1a13a", "#c15b4a"],
+        },
+      ],
+    },
+    options: { maintainAspectRatio: false },
+  });
+  new Chart(document.getElementById("ci-recebimento-ofensores"), {
+    type: "bar",
+    data: {
+      labels: principaisOfensores.map((o) => o[0]),
+      datasets: [
+        {
+          data: principaisOfensores.map((o) => o[1]),
+          backgroundColor: "#c15b4a",
+          borderRadius: 6,
+        },
+      ],
+    },
+    options: { ...chartOpts(false), indexAxis: "y" },
+  });
+}
+
+/* ==================== QUALIDADE (Ishikawa / Pareto / Heatmap) ==================== */
+// Mapa de causas (códigos/tipos de divergência usados em todos os módulos) para as 6 categorias
+// clássicas do Diagrama de Ishikawa. Qualquer código não mapeado cai em 'Método' como categoria padrão.
+const MAPA_ISHIKAWA = {
+  "PALLET QUEBRADO": "Máquina",
+  "PREGO EXPOSTO": "Máquina",
+  "GRAMPO EXPOSTO": "Máquina",
+  "GAIOLA NÃO CONFORME": "Máquina",
+  QUEBRADO: "Máquina",
+  AMASSADO: "Máquina",
+  "S/ PINO SUSTENTAÇÃO": "Máquina",
+  TORTO: "Máquina",
+  "FACA SOLTA": "Máquina",
+  RACHADO: "Máquina",
+  "ESTRADO SOLTO": "Máquina",
+  "PESINHO SOLTO": "Material",
+  "EMBALAGEM NÃO CONFORME": "Material",
+  "TECIDO RASGADO": "Material",
+  "TECIDO MANCHADO": "Material",
+  "ESTRUTURA QUEBRADA": "Material",
+  "TECIDO ESGARÇADO": "Material",
+  "TONALIDADE DIVERGENTE": "Material",
+  "TNT RASGADO": "Material",
+  "PRODUTO ÚMIDO": "Meio Ambiente",
+  "ETIQUETA ADULTERADA": "Método",
+  "GAIOLA SEM IDENTIFICAÇÃO": "Método",
+  "EMPILHAMENTO INCORRETO": "Método",
+  "LOTE NÃO IDENTIFICADO": "Método",
+  EMPILHAMENTO: "Método",
+  "LOCAL INCORRETO": "Método",
+  FIFO: "Método",
+  LOTE: "Método",
+  "IDENTIFICAÇÃO INCORRETA": "Método",
+  "ÁREA SEM IDENTIFICAÇÃO": "Método",
+  "MANUSEIO INCORRETO": "Mão de Obra",
+  MANUSEIO: "Mão de Obra",
+};
+function categoriaIshikawa(tipo) {
+  const k = (tipo || "").toString().toUpperCase().trim();
+  return MAPA_ISHIKAWA[k] || "Método";
+}
+const MAPA_ISHIKAWA_5S = {
+  SEIRI: "Método",
+  SEITON: "Método",
+  SEISO: "Meio Ambiente",
+  SEIKETSU: "Método",
+  SHITSUKE: "Mão de Obra",
+};
+const CATEGORIAS_ISHIKAWA = [
+  "Método",
+  "Máquina",
+  "Mão de Obra",
+  "Material",
+  "Meio Ambiente",
+  "Medida",
+];
+const SENSO_LABEL_QUALIDADE = {
+  SEIRI: "Seiri (Utilização)",
+  SEITON: "Seiton (Ordenação)",
+  SEISO: "Seiso (Limpeza)",
+  SEIKETSU: "Seiketsu (Padronização)",
+  SHITSUKE: "Shitsuke (Disciplina)",
+};
+
+// Fonte unificada de ocorrências de divergência/não conformidade de todos os módulos, usada pelo
+// Ishikawa, Pareto e Heatmap. Cada ocorrência: {origem, eixo (setor/fornecedor), tipo, categoria, data}.
+let qualidadeFiltros = { dataIni: "", dataFim: "", origem: "" };
+function ocorrenciasQualidade() {
+  const out = [];
+  divergencias.forEach((d) => {
+    out.push({
+      origem: "Inspeção de Produtos",
+      eixo: d.setor || "(sem setor)",
+      tipo:
+        codDivLabel(d) === "—"
+          ? "OUTROS"
+          : d.codDiv === "OUTROS"
+            ? d.outroCodDiv || "OUTROS"
+            : d.codDiv,
+      categoria: categoriaIshikawa(
+        d.codDiv === "OUTROS" ? d.outroCodDiv || "OUTROS" : d.codDiv,
+      ),
+      data: d.data,
+    });
+  });
+  inspecoesEstoque.forEach((insp) => {
+    insp.divergencias.forEach((d) => {
+      const tipo =
+        d.divergencia === "Outros" ? d.outroDesc || "Outros" : d.divergencia;
+      out.push({
+        origem: "Inspeção de Estoque",
+        eixo: "ESTOQUE",
+        tipo,
+        categoria: categoriaIshikawa(tipo),
+        data: insp.data,
+      });
+    });
+  });
+  checklist5s.forEach((c) => {
+    c.itens
+      .filter((i) => i.resp === "NAO_CONFORME")
+      .forEach((i) => {
+        out.push({
+          origem: "Check List 5S",
+          eixo: c.setor || "(sem setor)",
+          tipo: SENSO_LABEL_QUALIDADE[i.senso] || i.senso,
+          categoria: MAPA_ISHIKAWA_5S[i.senso] || "Método",
+          data: c.data,
+        });
+      });
+  });
+  inspecoesRecebimento.forEach((i) => {
+    const fornecedor =
+      i.fornecedor === "OUTROS" ? i.fornecedorOutro || "OUTROS" : i.fornecedor;
+    if (
+      i.resultadoFornecedor &&
+      i.resultadoFornecedor !== "conforme" &&
+      i.divergenciaFornecedor
+    ) {
+      const motivos = (i.divergenciaFornecedor.motivos || []).map((m) =>
+        m === "OUTROS" ? i.divergenciaFornecedor.outroMotivo || "OUTROS" : m,
+      );
+      (motivos.length ? motivos : ["(sem motivo informado)"]).forEach(
+        (tipo) => {
+          out.push({
+            origem: "Inspeção de Recebimento",
+            eixo: fornecedor || "(sem fornecedor)",
+            tipo,
+            categoria: categoriaIshikawa(tipo),
+            data: (i.dataInspecao || "").slice(0, 10),
+          });
+        },
+      );
+    }
+    if (
+      i.resultadoOperacional &&
+      i.resultadoOperacional !== "conforme" &&
+      i.divergenciaOperacional
+    ) {
+      (i.divergenciaOperacional.tipos && i.divergenciaOperacional.tipos.length
+        ? i.divergenciaOperacional.tipos
+        : ["(sem tipo informado)"]
+      ).forEach((tipo) => {
+        out.push({
+          origem: "Inspeção de Recebimento",
+          eixo: fornecedor || "(sem fornecedor)",
+          tipo,
+          categoria: categoriaIshikawa(tipo),
+          data: (i.dataInspecao || "").slice(0, 10),
+        });
+      });
+    }
+  });
+  return out.filter((o) => {
+    if (qualidadeFiltros.dataIni && o.data < qualidadeFiltros.dataIni)
+      return false;
+    if (qualidadeFiltros.dataFim && o.data > qualidadeFiltros.dataFim)
+      return false;
+    if (qualidadeFiltros.origem && o.origem !== qualidadeFiltros.origem)
+      return false;
+    return true;
+  });
+}
+function aplicarFiltroQualidade() {
+  qualidadeFiltros = {
+    dataIni: document.getElementById("ql-data-ini").value,
+    dataFim: document.getElementById("ql-data-fim").value,
+    origem: document.getElementById("ql-origem").value,
+  };
+  renderQualidade();
+}
+function limparFiltroQualidade() {
+  qualidadeFiltros = { dataIni: "", dataFim: "", origem: "" };
+  renderQualidade();
+}
+function heatColor(v, max) {
+  if (!v) return "#f7f7f5";
+  const t = Math.min(1, v / (max || 1));
+  // escala de amarelo claro (baixo) até vermelho intenso (alto)
+  const r = Math.round(242 + (193 - 242) * t);
+  const g = Math.round(230 + (91 - 230) * t);
+  const b = Math.round(180 + (74 - 180) * t);
+  return `rgb(${r},${g},${b})`;
+}
+function ishikawaBoneHtml(categoria, itens, lado) {
+  const total = itens.reduce((a, i) => a + i[1], 0);
+  const top = itens.slice(0, 4);
+  const causas = top.length
+    ? `<ul style="margin:6px 0 0;padding-left:16px;font-size:12px;color:var(--ink-soft);">${top.map(([label, n]) => `<li style="margin-bottom:2px;">${label} <strong>(${n})</strong></li>`).join("")}</ul>`
+    : `<p style="margin:6px 0 0;font-size:12px;color:var(--ink-faint);">Sem ocorrências no período.</p>`;
+  return `<div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px 16px;${lado === "top" ? "border-top:3px solid #a8813a;" : "border-bottom:3px solid #a8813a;"}">
+    <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;">
+      <strong style="font-size:13px;">${categoria}</strong>
+      <span class="badge" style="background:var(--warning-soft);color:#8a6a1e;">${total}</span>
+    </div>
+    ${causas}
+  </div>`;
+}
+function renderQualidade() {
+  const el = document.getElementById("page-content");
+  const ocorrencias = ocorrenciasQualidade();
+  const origensOpts = [
+    "Inspeção de Produtos",
+    "Inspeção de Estoque",
+    "Check List 5S",
+    "Inspeção de Recebimento",
+  ]
+    .map(
+      (o) =>
+        `<option value="${o}" ${qualidadeFiltros.origem === o ? "selected" : ""}>${o}</option>`,
+    )
+    .join("");
+
+  /* ---- Ishikawa: agrupar por categoria, e dentro de cada categoria por tipo ---- */
+  const porCategoria = {};
+  CATEGORIAS_ISHIKAWA.forEach((c) => (porCategoria[c] = {}));
+  ocorrencias.forEach((o) => {
+    porCategoria[o.categoria][o.tipo] =
+      (porCategoria[o.categoria][o.tipo] || 0) + 1;
+  });
+  const categoriasOrdenadas = CATEGORIAS_ISHIKAWA.map((c) => ({
+    nome: c,
+    itens: Object.entries(porCategoria[c]).sort((a, b) => b[1] - a[1]),
+    total: Object.values(porCategoria[c]).reduce((a, v) => a + v, 0),
+  }));
+  const topoCategorias = categoriasOrdenadas.slice(0, 3);
+  const baixoCategorias = categoriasOrdenadas.slice(3, 6);
+
+  /* ---- Pareto: por tipo de divergência (todas as origens), com % acumulado ---- */
+  const porTipo = {};
+  ocorrencias.forEach((o) => {
+    porTipo[o.tipo] = (porTipo[o.tipo] || 0) + 1;
+  });
+  const paretoOrdenado = Object.entries(porTipo)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 12);
+  const totalOcorrencias = ocorrencias.length;
+  let acumulado = 0;
+  const paretoPct = paretoOrdenado.map(([label, val]) => {
+    acumulado += val;
+    return {
+      label,
+      val,
+      pct: totalOcorrencias
+        ? Math.round((acumulado / totalOcorrencias) * 1000) / 10
+        : 0,
+    };
+  });
+
+  /* ---- Heatmap: Setor/Fornecedor (eixo) × Tipo de Divergência ---- */
+  const eixos = [...new Set(ocorrencias.map((o) => o.eixo))].sort();
+  const tiposHeat = paretoOrdenado.map(([label]) => label).slice(0, 10);
+  const heatMatrix = {};
+  eixos.forEach((e) => {
+    heatMatrix[e] = {};
+    tiposHeat.forEach((t) => (heatMatrix[e][t] = 0));
+  });
+  ocorrencias.forEach((o) => {
+    if (heatMatrix[o.eixo] && tiposHeat.includes(o.tipo))
+      heatMatrix[o.eixo][o.tipo]++;
+  });
+  let maxCel = 0;
+  eixos.forEach((e) =>
+    tiposHeat.forEach((t) => {
+      maxCel = Math.max(maxCel, heatMatrix[e][t]);
+    }),
+  );
+  const eixosOrdenados = eixos
+    .map((e) => ({
+      e,
+      total: tiposHeat.reduce((a, t) => a + heatMatrix[e][t], 0),
+    }))
+    .sort((a, b) => b.total - a.total)
+    .slice(0, 12)
+    .map((x) => x.e);
+
+  el.innerHTML = `
+    <div class="card" style="padding:18px 24px;margin-bottom:24px;display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end;">
+      <label style="font-size:13px;">Data inicial<br><input type="date" id="ql-data-ini" value="${qualidadeFiltros.dataIni}"></label>
+      <label style="font-size:13px;">Data final<br><input type="date" id="ql-data-fim" value="${qualidadeFiltros.dataFim}"></label>
+      <label style="font-size:13px;">Origem<br><select id="ql-origem"><option value="">Todas</option>${origensOpts}</select></label>
+      <button class="btn btn-brass" onclick="aplicarFiltroQualidade()">Filtrar</button>
+      <button class="btn btn-ghost" onclick="limparFiltroQualidade()">Limpar filtros</button>
+      <span style="margin-left:auto;font-size:13px;color:var(--ink-faint);">${totalOcorrencias} ocorrência(s) no período filtrado, considerando todos os módulos.</span>
+    </div>
+
+    <div class="card" style="padding:24px;margin-bottom:24px;">
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
+        <h3 class="font-display" style="margin:0;font-size:17px;">🐟 Diagrama de Ishikawa (Espinha de Peixe)</h3>
+        <span class="kpi-tip" title="Gerado automaticamente a partir das divergências e não conformidades registradas em todos os módulos, categorizadas nas 6 causas clássicas (6M).">ⓘ</span>
+      </div>
+      <p style="margin:0 0 18px;font-size:13px;color:var(--ink-faint);">Efeito analisado: <strong>Divergências de Qualidade no CD</strong> — causas agrupadas automaticamente a partir dos registros do período.</p>
+      <div class="grid grid-3" style="margin-bottom:14px;">
+        ${topoCategorias.map((c) => ishikawaBoneHtml(c.nome, c.itens, "top")).join("")}
+      </div>
+      <div style="text-align:center;border-top:2px solid var(--border);border-bottom:2px solid var(--border);padding:10px 0;margin-bottom:14px;background:var(--surface-alt);border-radius:8px;">
+        <strong style="font-size:14px;">➡️ EFEITO: Divergências de Qualidade (${totalOcorrencias} ocorrência(s))</strong>
+      </div>
+      <div class="grid grid-3">
+        ${baixoCategorias.map((c) => ishikawaBoneHtml(c.nome, c.itens, "bottom")).join("")}
+      </div>
+    </div>
+
+    <div class="card" style="padding:24px;margin-bottom:24px;">
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:16px;">
+        <h3 class="font-display" style="margin:0;font-size:17px;">📈 Diagrama de Pareto — Tipos de Divergência</h3>
+        <span class="kpi-tip" title="Frequência de cada tipo de divergência (barras) e percentual acumulado (linha), somando todos os módulos.">ⓘ</span>
+      </div>
+      ${paretoPct.length ? `<div style="position:relative;height:340px;"><canvas id="ql-pareto"></canvas></div>` : `<p style="color:var(--ink-faint);font-size:13px;">Sem dados suficientes no período.</p>`}
+    </div>
+
+    <div class="card" style="padding:24px;">
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
+        <h3 class="font-display" style="margin:0;font-size:17px;">🔥 Heatmap — Setor/Fornecedor × Tipo de Divergência</h3>
+        <span class="kpi-tip" title="Cruzamento entre o setor ou fornecedor de origem e o tipo de divergência; quanto mais escura a célula, maior a quantidade de ocorrências.">ⓘ</span>
+      </div>
+      <p style="margin:0 0 16px;font-size:13px;color:var(--ink-faint);">Top ${eixosOrdenados.length} setor(es)/fornecedor(es) × top ${tiposHeat.length} tipo(s) de divergência no período.</p>
+      ${
+        eixosOrdenados.length && tiposHeat.length
+          ? `
+      <div style="overflow-x:auto;">
+        <table style="border-collapse:collapse;width:100%;font-size:12px;">
+          <thead><tr>
+            <th style="text-align:left;padding:6px 8px;border-bottom:1px solid var(--border);white-space:nowrap;">Setor / Fornecedor</th>
+            ${tiposHeat.map((t) => `<th style="text-align:center;padding:6px 6px;border-bottom:1px solid var(--border);font-weight:600;min-width:70px;">${t}</th>`).join("")}
+          </tr></thead>
+          <tbody>
+            ${eixosOrdenados
+              .map(
+                (e) => `<tr>
+              <td style="padding:6px 8px;border-bottom:1px solid var(--border-soft);white-space:nowrap;font-weight:600;">${e}</td>
+              ${tiposHeat
+                .map((t) => {
+                  const v = heatMatrix[e][t];
+                  return `<td title="${e} × ${t}: ${v}" style="text-align:center;padding:6px;border-bottom:1px solid var(--border-soft);background:${heatColor(v, maxCel)};color:${v / (maxCel || 1) > 0.6 ? "#fff" : "var(--ink)"};font-weight:${v ? 600 : 400};">${v || ""}</td>`;
+                })
+                .join("")}
+            </tr>`,
+              )
+              .join("")}
+          </tbody>
+        </table>
+      </div>`
+          : `<p style="color:var(--ink-faint);font-size:13px;">Sem dados suficientes no período.</p>`
+      }
+    </div>`;
+
+  if (paretoPct.length) {
+    new Chart(document.getElementById("ql-pareto"), {
+      data: {
+        labels: paretoPct.map((p) => p.label),
+        datasets: [
+          {
+            type: "bar",
+            label: "Ocorrências",
+            data: paretoPct.map((p) => p.val),
+            backgroundColor: "#a8813a",
+            borderRadius: 6,
+            order: 2,
+            yAxisID: "y",
+          },
+          {
+            type: "line",
+            label: "% Acumulado",
+            data: paretoPct.map((p) => p.pct),
+            borderColor: "#c15b4a",
+            backgroundColor: "#c15b4a",
+            tension: 0.25,
+            yAxisID: "y1",
+            order: 1,
+            pointRadius: 3,
+          },
+        ],
+      },
+      options: {
+        maintainAspectRatio: false,
+        interaction: { mode: "index", intersect: false },
+        plugins: { legend: { display: true, position: "bottom" } },
+        scales: {
+          x: {
+            ticks: { autoSkip: false, maxRotation: 60, minRotation: 30 },
+            grid: { display: false },
+          },
+          y: {
+            beginAtZero: true,
+            position: "left",
+            grid: { color: "#eceef0" },
+          },
+          y1: {
+            beginAtZero: true,
+            max: 100,
+            position: "right",
+            grid: { display: false },
+            ticks: { callback: (v) => v + "%" },
+          },
+        },
+      },
+    });
+  }
+}
+
+/* ==================== USUÁRIOS ==================== */
+const LOG_ACESSO = [
+  {
+    nome: "Administrador Geral",
+    login: "gestao",
+    dataHora: "13/08/2026 14:43",
+    sucesso: true,
+  },
+  {
+    nome: "Operador Recebimento",
+    login: "operador",
+    dataHora: "13/08/2026 14:01",
+    sucesso: true,
+  },
+  {
+    nome: "Admin CD",
+    login: "admin",
+    dataHora: "12/08/2026 09:12",
+    sucesso: false,
+  },
+  {
+    nome: "Admin CD",
+    login: "admin",
+    dataHora: "12/08/2026 09:13",
+    sucesso: true,
+  },
+];
+function renderUsuarios() {
+  const el = document.getElementById("page-content");
+  el.innerHTML = `
+    <div style="display:flex;justify-content:flex-end;gap:8px;margin-bottom:16px;">
+      <button class="btn btn-ghost" onclick="abrirAuditoriaModal()">📜 Histórico de Alterações</button>
+      <button class="btn btn-ghost" onclick="abrirLogAcessos()">🕐 Log de Acessos</button>
+      <button class="btn btn-brass" onclick="abrirUsuarioModal()">+ Novo Usuário</button>
+    </div>
+    <div class="card" style="overflow:hidden;"><div style="overflow-x:auto;"><table>
+      <thead><tr><th>Nome</th><th>Login/E-mail</th><th>Perfil</th><th>Setor</th><th>Último Login</th><th>Status</th><th></th></tr></thead>
+      <tbody id="usuarios-rows"></tbody>
+    </table></div></div>`;
+  renderUsuariosRows();
+}
+function renderUsuariosRows() {
+  const body = document.getElementById("usuarios-rows");
+  if (!body) return;
+  body.innerHTML = USUARIOS.map(
+    (u, i) => `<tr>
+    <td style="font-weight:500;">${u.nome}</td>
+    <td>${u.login} · ${u.email}</td>
+    <td><span class="badge" style="background:rgba(244,207,110,.2);color:var(--brass-900);">${u.perfil.toLowerCase()}</span></td>
+    <td>${u.setor}</td>
+    <td style="color:var(--ink-faint);">${u.ultimo}</td>
+    <td><span class="badge ${u.ativo ? "corrigido" : "pendente"}">${u.ativo ? "Ativo" : "Inativo"}</span></td>
+    <td><button class="icon-btn" title="Editar" onclick="abrirUsuarioModal(${i})">✏️</button><button class="icon-btn" title="${u.ativo ? "Inativar" : "Reativar"}" onclick="alternarAtivoUsuario(${i})">${u.ativo ? "🔒" : "🔓"}</button></td>
+  </tr>`,
+  ).join("");
+}
+function alternarAtivoUsuario(i) {
+  const u = USUARIOS[i];
+  if (u.ativo) {
+    if (!confirm(`Inativar o usuário ${u.nome}?`)) return;
+  }
+  u.ativo = !u.ativo;
+  salvarEstado();
+  renderUsuariosRows();
+}
+function abrirUsuarioModal(i) {
+  const editando = typeof i === "number" ? USUARIOS[i] : null;
+  openModal(`
+    <div class="modal-header"><h3>${editando ? "Editar Usuário" : "Novo Usuário"}</h3><button class="modal-close" onclick="closeModal()">×</button></div>
+    <div class="modal-body">
+      <label class="field"><span>Nome</span><input id="uf-nome" value="${editando ? editando.nome : ""}"></label>
+      <label class="field"><span>E-mail</span><input id="uf-email" type="email" value="${editando ? editando.email : ""}"></label>
+      <label class="field"><span>Login</span><input id="uf-login" value="${editando ? editando.login : ""}" ${editando ? "disabled" : ""}></label>
+      <label class="field"><span>${editando ? "Nova Senha (deixe em branco para manter)" : "Senha"}</span><input id="uf-senha" type="password"></label>
+      <label class="field"><span>Perfil</span><select id="uf-perfil">
+        <option value="GESTAO" ${editando && editando.perfil === "GESTAO" ? "selected" : ""}>Gestão</option>
+        <option value="ADMINISTRADOR" ${editando && editando.perfil === "ADMINISTRADOR" ? "selected" : ""}>Administrador</option>
+        <option value="OPERADOR" ${!editando || editando.perfil === "OPERADOR" ? "selected" : ""}>Operador</option>
+      </select></label>
+      <label class="field"><span>Setor (opcional)</span><input id="uf-setor" value="${editando && editando.setor !== "—" ? editando.setor : ""}"></label>
+      <div id="uf-erro" style="display:none;color:var(--danger);background:var(--danger-soft);border-radius:8px;padding:8px 12px;font-size:13px;"></div>
+      <div style="display:flex;justify-content:flex-end;gap:12px;">
+        <button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>
+        <button class="btn btn-brass" onclick="salvarUsuario(${typeof i === "number" ? i : "null"})">Salvar</button>
+      </div>
+    </div>`);
+}
+function salvarUsuario(i) {
+  const nome = document.getElementById("uf-nome").value.trim();
+  const email = document.getElementById("uf-email").value.trim();
+  const login = document.getElementById("uf-login").value.trim();
+  const senha = document.getElementById("uf-senha").value;
+  const perfil = document.getElementById("uf-perfil").value;
+  const setor = document.getElementById("uf-setor").value.trim();
+  const erroEl = document.getElementById("uf-erro");
+  const mostrarErro = (msg) => {
+    erroEl.textContent = msg;
+    erroEl.style.display = "block";
+  };
+  if (!nome || !email || !login) {
+    mostrarErro("Preencha nome, e-mail e login.");
+    return;
+  }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    mostrarErro("Informe um e-mail válido.");
+    return;
+  }
+  if ((i === null && !senha) || (senha && senha.length < 6)) {
+    mostrarErro("A senha deve ter ao menos 6 caracteres.");
+    return;
+  }
+  if (i === null || i === undefined) {
+    USUARIOS.push({
+      nome,
+      email,
+      login,
+      perfil,
+      setor: setor || "—",
+      ultimo: "Nunca",
+      ativo: true,
+    });
+  } else {
+    Object.assign(USUARIOS[i], {
+      nome,
+      email,
+      perfil,
+      setor: setor || "—",
+    });
+  }
+  salvarEstado();
+  closeModal();
+  renderUsuariosRows();
+}
+function abrirLogAcessos() {
+  const rows = LOG_ACESSO.map(
+    (l) => `
+    <div style="display:flex;align-items:center;justify-content:space-between;font-size:14px;border-bottom:1px solid var(--border-soft);padding:8px 0;">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span>${l.sucesso ? "✅" : "❌"}</span>
+        <span style="font-weight:500;">${l.nome}</span>
+        <span style="color:var(--ink-faint);">(${l.login})</span>
+      </div>
+      <span style="color:var(--ink-faint);">${l.dataHora}</span>
+    </div>`,
+  ).join("");
+  openModal(
+    `
+    <div class="modal-header"><h3>Log de Acessos</h3><button class="modal-close" onclick="closeModal()">×</button></div>
+    <div class="modal-body">
+      <div style="max-height:60vh;overflow-y:auto;">
+        ${rows || '<p style="text-align:center;color:var(--ink-faint);padding:24px 0;">Nenhum acesso registrado ainda.</p>'}
+      </div>
+    </div>`,
+    true,
+  );
+}
