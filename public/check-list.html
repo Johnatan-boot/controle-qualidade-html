@@ -46,47 +46,27 @@
             margin: 0 0 24px;
           "
         >
-          Build 2026-08-15-2 (versão definitiva com salvamento local, gráfico de
-          Produtos/Setores separado)
+          Build 2026-08-20-1 (sistema web com banco de dados MySQL compartilhado)
         </p>
-        <label class="field" style="margin-bottom: 14px">
-          <span>Usuário</span>
-          <input
-            id="login-user"
-            type="text"
-            placeholder="login ou e-mail"
-            value="gestao"
-          />
-        </label>
-        <label class="field" style="margin-bottom: 18px">
-          <span>Senha</span>
-          <input
-            id="login-pass"
-            type="password"
-            placeholder="••••••••"
-            value="gestao@123"
-          />
-        </label>
-        <select
-          id="login-perfil-picker"
-          style="width: 100%; margin-bottom: 14px"
-        >
-          <option value="GESTAO">Entrar como Gestão</option>
-          <option value="ADMINISTRADOR">Entrar como Administrador</option>
-          <option value="OPERADOR">Entrar como Operador</option>
-        </select>
-        <button
-          class="btn btn-primary"
-          style="width: 100%; justify-content: center; padding: 11px"
-          onclick="doLogin()"
-        >
-          Entrar
-        </button>
+        <form onsubmit="event.preventDefault(); doLogin();">
+          <label class="field" style="margin-bottom: 14px">
+            <span>Usuário</span>
+            <input id="login-user" type="text" placeholder="seu login" autocomplete="username">
+          </label>
+          <label class="field" style="margin-bottom: 18px">
+            <span>Senha</span>
+            <div class="campo-senha-wrap">
+              <input id="login-pass" type="password" placeholder="••••••••" autocomplete="current-password">
+              <button type="button" class="btn-ver-senha" onclick="alternarVisibilidadeSenha('login-pass', this)" title="Mostrar/ocultar senha">👁️</button>
+            </div>
+          </label>
+          <div id="login-erro" style="display:none;color:var(--danger);background:var(--danger-soft);border-radius:8px;padding:8px 12px;font-size:13px;margin-bottom:14px;"></div>
+          <button id="login-botao" type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; padding: 11px">
+            Entrar
+          </button>
+        </form>
         <div class="demo-note">
-          💾 Este sistema salva os dados automaticamente
-          <strong>neste navegador</strong> (não há servidor/banco de dados
-          central). Escolha o perfil acima para acessar de acordo com o seu
-          nível de permissão.
+          🔒 Cada pessoa acessa com seu próprio usuário e senha. Os dados ficam em um banco de dados MySQL único, compartilhado por todos os computadores que acessarem este sistema.
         </div>
       </div>
     </div>
@@ -123,15 +103,18 @@
             <h1 id="page-title"></h1>
             <p id="page-sub"></p>
           </div>
-          <button class="btn-sair" onclick="doLogout()">⏻ Sair</button>
+          <div style="display:flex;align-items:center;gap:4px;">
+            <button class="btn-sair" onclick="abrirTrocarSenha()">🔑 Trocar senha</button>
+            <button class="btn-sair" onclick="doLogout()">⏻ Sair</button>
+          </div>
         </div>
         <div class="content" id="page-content"></div>
       </div>
     </div>
 
     <script src="./scripts/check-list-one.js"></script>
-    <script src="./scripts/check-list-two.js"></script>
     <script src="./scripts/check-list-three.js"></script>
+    <script src="./scripts/api-client.js"></script>
     <script src="./scripts/check-list-four.js"></script>
   </body>
 </html>

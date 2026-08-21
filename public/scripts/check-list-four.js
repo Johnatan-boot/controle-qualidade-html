@@ -21,133 +21,13 @@ const CODIGOS_DIVERGENCIA = [
   "OUTROS",
 ];
 
-const PRODUTOS = [
-  {
-    id: 1,
-    codigo: "BUP096X203X36AFDBOXPREMVELCHO",
-    descricao: "BOX SUEDE MARROM 069X188X25 INOV",
-    grupo: "BOX",
-    preco: 401.63,
-    fornecedor: "V-JOY MOVEIS E COLCH",
-    familia: "LINHA PREMIUM",
-  },
-  {
-    id: 2,
-    codigo: "CMP158X198X32ECUXFIRDES",
-    descricao: "BAU AF VELUDO AZUL COM CAVA 079X198X38 VJOY",
-    grupo: "BAÚ",
-    preco: 439.04,
-    fornecedor: "CRIAZZI",
-    familia: "LINHA CASAL",
-  },
-  {
-    id: 3,
-    codigo: "BXP138X188X26VJOYXKORBRCO",
-    descricao: "BOX KORANO BRANCO 138X188X26",
-    grupo: "BOX",
-    preco: 185.85,
-    fornecedor: "V-JOY MOVEIS E COLCH",
-    familia: "LINHA KORANO",
-  },
-  {
-    id: 4,
-    codigo: "ALM033X033X14CNZFOM",
-    descricao: "ALMOFADA DE PESCOCO 33X33X14 CINZA FOM",
-    grupo: "ACESSÓRIO",
-    preco: 20.5,
-    fornecedor: "CASA BASICA COMERCIO",
-    familia: "LINHA CONFORTO",
-  },
-  {
-    id: 5,
-    codigo: "BUE064X188X35AFITASUEDEXSUECIN",
-    descricao: "BAU ESPECIAL 064 X 188 X 35 AF ITABOX SUEDE",
-    grupo: "BAÚ",
-    preco: 647.54,
-    fornecedor: "ITABOX",
-    familia: "LINHA ESPECIAL",
-  },
-];
+// Estes arrays começam vazios e são preenchidos após o login, a partir do banco de
+// dados MySQL (ver carregarTudoDoServidor() em scripts/api-client.js). Os dados de
+// exemplo antigos (fixos no arquivo) saíram daqui — quem precisar deles para testes
+// pode rodar `node db/seed.js` no servidor, que cria os mesmos registros no banco.
+const PRODUTOS = [];
 
-let divergencias = [
-  {
-    id: 1,
-    setor: "MERCADO",
-    sku: "BUP128X188X37AFCRISUEDEXSUEPRE",
-    descricao: "BOX LINHO CINZA 079X198X26 VJOY",
-    fornecedor: "DREAM BOX",
-    valorUnit: 614.47,
-    qtd: 1,
-    codDiv: "EMBALAGEM NÃO CONFORME",
-    outroCodDiv: "",
-    status: "PENDENTE",
-    responsavel: "JOAO",
-    data: "2026-08-07",
-    prazoCorrecao: "2026-08-10",
-  },
-  {
-    id: 2,
-    setor: "MERCADO",
-    sku: "BXP096X203X25DBOXXLINHOXCINZA",
-    descricao: "BOX KORANO BRANCO 128X188X26",
-    fornecedor: "V-JOY MOVEIS E COLCH",
-    valorUnit: 185.85,
-    qtd: 1,
-    codDiv: "TECIDO ESGARÇADO",
-    outroCodDiv: "",
-    status: "PENDENTE",
-    responsavel: "JOAO",
-    data: "2026-08-07",
-    prazoCorrecao: "2026-08-15",
-  },
-  {
-    id: 3,
-    setor: "EXPEDICAO",
-    sku: "BUP096X203X37VJOYXAFPREMIUM",
-    descricao: "BAU AF PREMIUM LINHO 096X203X37",
-    fornecedor: "V-JOY MOVEIS E COLCH",
-    valorUnit: 483.0,
-    qtd: 1,
-    codDiv: "ETIQUETA ADULTERADA",
-    outroCodDiv: "",
-    status: "CORRIGIDO",
-    responsavel: "JOAO",
-    data: "2026-08-06",
-    prazoCorrecao: "2026-08-09",
-    dataConclusao: "2026-08-08",
-  },
-  {
-    id: 4,
-    setor: "RECEBIMENTO",
-    sku: "BUE064X188X35AFITASUEDEXSUECIN",
-    descricao: "BAU ESPECIAL 064 X 188 X 35 AF ITABOX SUEDE",
-    fornecedor: "ITABOX",
-    valorUnit: 647.54,
-    qtd: 1,
-    codDiv: "PESINHO SOLTO",
-    outroCodDiv: "",
-    status: "PENDENTE",
-    responsavel: "CARLOS",
-    data: "2026-08-13",
-    prazoCorrecao: "",
-  },
-  {
-    id: 5,
-    setor: "MERCADO",
-    sku: "BXP079X198X25DBOXXSUEDEXCINZA",
-    descricao: "BOX SUEDE CINZA 138X188X26",
-    fornecedor: "DREAM BOX",
-    valorUnit: 235.76,
-    qtd: 1,
-    codDiv: "EMBALAGEM NÃO CONFORME",
-    outroCodDiv: "",
-    status: "CORRIGIDO",
-    responsavel: "JOAO",
-    data: "2026-08-06",
-    prazoCorrecao: "2026-08-08",
-    dataConclusao: "2026-08-07",
-  },
-];
+let divergencias = [];
 
 /* ==================== INSPEÇÃO DE ESTOQUE — dados de referência ==================== */
 const TIPOS_DIVERGENCIA_ESTOQUE = {
@@ -174,54 +54,9 @@ const TIPO_DIVERGENCIA_ESTOQUE_LABEL = {
   ORGANIZACAO: "Organização",
   IDENTIFICACAO: "Identificação",
 };
-let inspecoesEstoque = [
-  {
-    id: 1,
-    data: "2026-08-13",
-    responsavel: "JOAO",
-    divergencias: [
-      {
-        ordem: 1,
-        tipo: "IDENTIFICACAO",
-        divergencia: "Gaiola sem identificação",
-        outroDesc: "",
-        obs: "Etiqueta rasgada, necessário reimprimir.",
-        status: "PENDENTE",
-        fotos: [],
-      },
-    ],
-  },
-];
-let nextEstoqueId = 2;
-let checklist5s = [
-  {
-    id: 1,
-    setor: "RECEBIMENTO",
-    turno: "MANHA",
-    responsavel: "MARIA",
-    data: "2026-08-13",
-    conformidade: 50,
-    itens: [
-      {
-        ordem: 1,
-        senso: "SEIRI",
-        desc: "Corredores livres",
-        resp: "CONFORME",
-      },
-      {
-        ordem: 2,
-        senso: "SEISO",
-        desc: "Piso limpo",
-        resp: "NAO_CONFORME",
-        obs: "Poeira acumulada",
-        acaoCorretiva: "Escalar equipe de limpeza",
-        criticidade: "ALTA",
-        status: "PENDENTE",
-        prazo: "2026-08-11",
-      },
-    ],
-  },
-];
+let inspecoesEstoque = [];
+let nextEstoqueId = 1;
+let checklist5s = [];
 
 /* ==================== INSPEÇÃO DE RECEBIMENTO — dados de referência ==================== */
 const FORNECEDORES_LIST = [
@@ -279,40 +114,8 @@ const STATUS_INSPECAO_BADGE = {
   conforme_ressalva: "ressalva",
   nao_conforme: "naoconforme",
 };
-let inspecoesRecebimento = [
-  {
-    id: "INS-000001",
-    dataInspecao: "2026-08-12T08:15:00",
-    fornecedor: "ITABOX",
-    fornecedorOutro: "",
-    resultadoFornecedor: "nao_conforme",
-    divergenciaFornecedor: {
-      tipo: "produto",
-      produto: {
-        sku: "BUE064X188X35AFITASUEDEXSUECIN",
-        descricao: "BAU ESPECIAL 064 X 188 X 35 AF ITABOX SUEDE",
-        quantidade: 2,
-        valorTotal: 1295.08,
-        motivos: ["EMBALAGEM NÃO CONFORME"],
-        outroMotivo: "",
-        observacao: "Embalagem rasgada em dois volumes.",
-        fotos: [],
-      },
-      caminhao: { placa: "", observacao: "", fotos: [] },
-    },
-    resultadoOperacional: "conforme",
-    divergenciaOperacional: {
-      tipos: [],
-      quantidade: 0,
-      observacao: "",
-      fotos: [],
-    },
-    statusFinal: "conforme_ressalva",
-    usuarioResponsavel: "Operador Recebimento",
-    dataFinalizacao: "2026-08-12T08:42:00",
-  },
-];
-let nextInspecaoId = 2;
+let inspecoesRecebimento = [];
+let nextInspecaoId = 1;
 
 // Estado temporário do formulário de "Nova Inspeção" (evita perda de dados entre as etapas condicionais).
 let inspEditandoId = null;
@@ -326,27 +129,17 @@ let recebimentoFiltros = {
   status: "",
 };
 
-// Histórico de alterações (auditoria): quem alterou o quê, quando, em qual registro.
+// Histórico de alterações (auditoria): agora é escrito pelo servidor a cada
+// chamada de API que cria/edita/exclui um registro — este array só guarda a
+// cópia local mais recente, recarregada via recarregarHistorico() (api-client.js).
 let historicoAlteracoes = [];
-let nextHistId = 1;
-function registrarHistorico(tabela, registroId, acao, descricao) {
-  historicoAlteracoes.unshift({
-    id: nextHistId++,
-    tabela,
-    registroId,
-    acao,
-    usuarioNome: currentUser ? currentUser.nome : "Sistema",
-    descricao,
-    dataHora: new Date(),
-  });
-  salvarEstado();
-}
 const TABELA_LABEL = {
-  divergencias: "Inspeção de Produtos (Divergências)",
-  estoque_inspecoes: "Inspeção de Estoque",
-  checklist_5s: "Check List 5S",
-  checklist_5s_itens: "Check List 5S (Pendências)",
+  produtos: "Cadastro de Produtos",
+  divergencias_produtos: "Inspeção de Produtos (Divergências)",
+  inspecoes_estoque: "Inspeção de Estoque",
+  checklists_5s: "Check List 5S",
   inspecoes_recebimento: "Inspeção de Recebimento",
+  usuarios: "Usuários",
 };
 const ACAO_ICON = { CRIACAO: "✅", EDICAO: "✏️", EXCLUSAO: "🗑️" };
 // Calcula a data de conclusão de uma divergência/pendência: registra a data quando o status passa a
@@ -364,8 +157,8 @@ function calcularDataConclusao(
   }
   return "";
 }
-// "Hoje" simulado (mesma data usada nos dados de exemplo) para calcular atraso/vencimento sem depender do relógio real.
-const HOJE = "2026-08-13";
+// Data de "hoje" real (usada para calcular atraso/vencimento de prazos).
+const HOJE = new Date().toISOString().slice(0, 10);
 function prazoInfo(prazo, status) {
   if (!prazo) return { emAtraso: false, proximo: false };
   const corrigido = status === "CORRIGIDO";
@@ -390,80 +183,8 @@ function prazoBadgeHtml(prazo, status) {
   }
   return `<span style="${style}">${icon}${fmtDate(prazo)}</span>`;
 }
-// Histórico inicial de exemplo, para a tela não abrir vazia na demonstração.
-historicoAlteracoes = [
-  {
-    id: 3,
-    tabela: "divergencias",
-    registroId: 1,
-    acao: "CRIACAO",
-    usuarioNome: "João (Operador)",
-    descricao:
-      "João registrou a divergência nº 1 (BUP128X188X37AFCRISUEDEXSUEPRE) no setor MERCADO.",
-    dataHora: new Date("2026-08-07T09:12:00"),
-  },
-  {
-    id: 2,
-    tabela: "divergencias",
-    registroId: 3,
-    acao: "EDICAO",
-    usuarioNome: "Administrador Geral",
-    descricao:
-      'Administrador Geral alterou status do registro nº 3 de "Pendente" para "Corrigido".',
-    dataHora: new Date("2026-08-08T11:40:00"),
-  },
-  {
-    id: 1,
-    tabela: "estoque_inspecoes",
-    registroId: 1001,
-    acao: "CRIACAO",
-    usuarioNome: "João (Operador)",
-    descricao:
-      "João registrou a Inspeção de Estoque nº 1 com 1 divergência (Identificação — Gaiola sem identificação).",
-    dataHora: new Date("2026-08-13T08:05:00"),
-  },
-  {
-    id: 4,
-    tabela: "inspecoes_recebimento",
-    registroId: "INS-000001",
-    acao: "CRIACAO",
-    usuarioNome: "Operador Recebimento",
-    descricao:
-      "Operador Recebimento finalizou a inspeção de recebimento INS-000001 (fornecedor ITABOX) — status Não conforme.",
-    dataHora: new Date("2026-08-12T08:15:00"),
-  },
-];
-nextHistId = 5;
 
-const USUARIOS = [
-  {
-    nome: "Administrador Geral",
-    login: "gestao",
-    email: "gestao@kingstarcolchoes.com.br",
-    perfil: "GESTAO",
-    setor: "—",
-    ultimo: "13/08/2026 14:43",
-    ativo: true,
-  },
-  {
-    nome: "Admin CD",
-    login: "admin",
-    email: "admin@kingstarcolchoes.com.br",
-    perfil: "ADMINISTRADOR",
-    setor: "—",
-    ultimo: "Nunca",
-    ativo: true,
-  },
-  {
-    nome: "Operador Recebimento",
-    login: "operador",
-    email: "operador@kingstarcolchoes.com.br",
-    perfil: "OPERADOR",
-    setor: "RECEBIMENTO",
-    ultimo: "13/08/2026 14:01",
-    ativo: true,
-  },
-];
+const USUARIOS = [];
 
 const CHECKLIST_5S_ITENS_PADRAO = [
   {
@@ -516,118 +237,93 @@ const CHECKLIST_5S_ITENS_PADRAO = [
 
 let currentUser = null;
 let currentPage = "dashboard";
-let nextId = 100;
 
-/* ==================== PERSISTÊNCIA LOCAL (versão definitiva) ====================
-   Diferente da versão de demonstração (que reiniciava os dados de exemplo a cada
-   recarregamento da página), esta versão salva automaticamente todas as alterações
-   feitas no sistema (inspeções, divergências, cadastro de produtos, usuários e
-   histórico) no armazenamento local do navegador (localStorage). Da próxima vez que
-   este arquivo for aberto no mesmo navegador/computador, os dados salvos são
-   recarregados automaticamente. Não existe servidor: os dados ficam gravados apenas
-   neste navegador/computador — para compartilhar os dados com outro computador é
-   necessário usar a Exportação (CSV/XLSX) disponível nos módulos. */
-const ESTADO_STORAGE_KEY = "qa_kingstar_estado_v1";
-function coletarEstadoPersistente() {
-  return {
-    versao: 1,
-    PRODUTOS,
-    divergencias,
-    inspecoesEstoque,
-    nextEstoqueId,
-    checklist5s,
-    inspecoesRecebimento,
-    nextInspecaoId,
-    historicoAlteracoes,
-    nextHistId,
-    USUARIOS,
-    nextId,
-  };
-}
-let _salvarEstadoTimeout = null;
-function salvarEstado() {
-  // pequeno atraso (debounce) para evitar gravações repetidas quando várias alterações
-  // acontecem em sequência (ex.: importação em lote de produtos)
-  clearTimeout(_salvarEstadoTimeout);
-  _salvarEstadoTimeout = setTimeout(() => {
-    try {
-      localStorage.setItem(
-        ESTADO_STORAGE_KEY,
-        JSON.stringify(coletarEstadoPersistente()),
-      );
-    } catch (e) {
-      console.warn(
-        "Não foi possível salvar os dados localmente (localStorage indisponível ou cheio).",
-        e,
-      );
-    }
-  }, 150);
-}
-function carregarEstadoSalvo() {
-  let raw;
-  try {
-    raw = localStorage.getItem(ESTADO_STORAGE_KEY);
-  } catch (e) {
-    return false;
+/* ==================== AUTH ====================
+   Login real: usuário e senha são conferidos pelo servidor (bcrypt) contra o MySQL.
+   Depois do login, todo o estado do sistema é carregado do banco (carregarTudoDoServidor,
+   em scripts/api-client.js) — nada fica guardado só no navegador. */
+async function doLogin() {
+  const login = document.getElementById("login-user").value.trim();
+  const senha = document.getElementById("login-pass").value;
+  const erroEl = document.getElementById("login-erro");
+  const botao = document.getElementById("login-botao");
+  if (erroEl) erroEl.style.display = "none";
+  if (!login || !senha) {
+    if (erroEl) { erroEl.textContent = "Informe usuário e senha."; erroEl.style.display = "block"; }
+    return;
   }
-  if (!raw) return false;
-  let dados;
+  if (botao) { botao.disabled = true; botao.textContent = "Entrando..."; }
   try {
-    dados = JSON.parse(raw);
+    const { usuario } = await apiPost("/api/auth/login", { login, senha });
+    currentUser = usuario;
+    document.getElementById("login-screen").classList.add("hidden");
+    document.getElementById("app").classList.remove("hidden");
+    document.getElementById("sidebar-user-name").textContent = currentUser.nome;
+    document.getElementById("sidebar-user-role").textContent = currentUser.perfil.toLowerCase();
+    await carregarTudoDoServidor();
+    renderNav();
+    navigate("dashboard");
+    if (currentUser.precisaTrocarSenha) abrirTrocarSenhaObrigatoria();
   } catch (e) {
-    return false;
+    if (erroEl) { erroEl.textContent = e.message; erroEl.style.display = "block"; }
+  } finally {
+    if (botao) { botao.disabled = false; botao.textContent = "Entrar"; }
   }
-  if (!dados || typeof dados !== "object") return false;
-  const substituirArray = (destino, origem) => {
-    if (Array.isArray(origem)) {
-      destino.length = 0;
-      destino.push(...origem);
-    }
-  };
-  substituirArray(PRODUTOS, dados.PRODUTOS);
-  substituirArray(divergencias, dados.divergencias);
-  substituirArray(inspecoesEstoque, dados.inspecoesEstoque);
-  substituirArray(checklist5s, dados.checklist5s);
-  substituirArray(inspecoesRecebimento, dados.inspecoesRecebimento);
-  substituirArray(historicoAlteracoes, dados.historicoAlteracoes);
-  substituirArray(USUARIOS, dados.USUARIOS);
-  // dataHora do histórico é salva como Date; após JSON.parse ela volta como string — reconvertemos.
-  historicoAlteracoes.forEach((h) => {
-    if (h && typeof h.dataHora === "string") h.dataHora = new Date(h.dataHora);
-  });
-  if (typeof dados.nextEstoqueId === "number")
-    nextEstoqueId = dados.nextEstoqueId;
-  if (typeof dados.nextInspecaoId === "number")
-    nextInspecaoId = dados.nextInspecaoId;
-  if (typeof dados.nextHistId === "number") nextHistId = dados.nextHistId;
-  if (typeof dados.nextId === "number") nextId = dados.nextId;
-  return true;
 }
-// Ao carregar o arquivo, tenta recuperar dados salvos anteriormente neste navegador;
-// se não houver nada salvo (primeiro uso), permanece com os dados de exemplo iniciais.
-const ESTADO_CARREGADO_DO_NAVEGADOR = carregarEstadoSalvo();
-
-/* ==================== AUTH ==================== */
-function doLogin() {
-  const perfil = document.getElementById("login-perfil-picker").value;
-  const nomes = {
-    GESTAO: "Administrador Geral",
-    ADMINISTRADOR: "Admin CD",
-    OPERADOR: "Operador Recebimento",
-  };
-  currentUser = { nome: nomes[perfil], perfil };
-  document.getElementById("login-screen").classList.add("hidden");
-  document.getElementById("app").classList.remove("hidden");
-  document.getElementById("sidebar-user-name").textContent = currentUser.nome;
-  document.getElementById("sidebar-user-role").textContent =
-    currentUser.perfil.toLowerCase();
-  renderNav();
-  navigate("dashboard");
-}
-function doLogout() {
+async function doLogout() {
+  try { await apiPost("/api/auth/logout", {}); } catch (e) { /* ignora falha de rede ao sair */ }
   currentUser = null;
   document.getElementById("app").classList.add("hidden");
   document.getElementById("login-screen").classList.remove("hidden");
+  const userEl = document.getElementById("login-user");
+  const passEl = document.getElementById("login-pass");
+  if (userEl) userEl.value = "";
+  if (passEl) passEl.value = "";
+}
+function abrirTrocarSenhaObrigatoria() {
+  openModal(`
+    <div class="modal-header"><h3>Troque sua senha</h3></div>
+    <div class="modal-body">
+      <p style="font-size:13px;color:var(--ink-soft);margin:0 0 14px;">Esta é sua senha provisória. Por segurança, defina uma senha nova antes de continuar.</p>
+      <label class="field" style="margin-bottom:12px;"><span>Senha atual</span><input id="ts-atual" type="password"></label>
+      <label class="field" style="margin-bottom:12px;"><span>Nova senha (mínimo 8 caracteres)</span><input id="ts-nova" type="password"></label>
+      <label class="field" style="margin-bottom:12px;"><span>Confirmar nova senha</span><input id="ts-confirma" type="password"></label>
+      <div id="ts-erro" style="display:none;color:var(--danger);background:var(--danger-soft);border-radius:8px;padding:8px 12px;font-size:13px;margin-bottom:12px;"></div>
+      <div style="display:flex;justify-content:flex-end;">
+        <button class="btn btn-brass" onclick="confirmarTrocaSenhaObrigatoria()">Salvar nova senha</button>
+      </div>
+    </div>`, true);
+}
+async function confirmarTrocaSenhaObrigatoria() {
+  const senhaAtual = document.getElementById("ts-atual").value;
+  const novaSenha = document.getElementById("ts-nova").value;
+  const confirma = document.getElementById("ts-confirma").value;
+  const erroEl = document.getElementById("ts-erro");
+  const mostrarErro = (msg) => { erroEl.textContent = msg; erroEl.style.display = "block"; };
+  if (!senhaAtual || !novaSenha) return mostrarErro("Preencha todos os campos.");
+  if (novaSenha.length < 8) return mostrarErro("A nova senha deve ter ao menos 8 caracteres.");
+  if (novaSenha !== confirma) return mostrarErro("As senhas não coincidem.");
+  try {
+    await apiPost("/api/auth/trocar-senha", { senhaAtual, novaSenha });
+    currentUser.precisaTrocarSenha = false;
+    closeModal();
+  } catch (e) {
+    mostrarErro(e.message);
+  }
+}
+function abrirTrocarSenha() {
+  openModal(`
+    <div class="modal-header"><h3>Trocar senha</h3><button class="modal-close" onclick="closeModal()">×</button></div>
+    <div class="modal-body">
+      <label class="field" style="margin-bottom:12px;"><span>Senha atual</span><input id="ts-atual" type="password"></label>
+      <label class="field" style="margin-bottom:12px;"><span>Nova senha (mínimo 8 caracteres)</span><input id="ts-nova" type="password"></label>
+      <label class="field" style="margin-bottom:12px;"><span>Confirmar nova senha</span><input id="ts-confirma" type="password"></label>
+      <div id="ts-erro" style="display:none;color:var(--danger);background:var(--danger-soft);border-radius:8px;padding:8px 12px;font-size:13px;margin-bottom:12px;"></div>
+      <div style="display:flex;justify-content:flex-end;gap:12px;">
+        <button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>
+        <button class="btn btn-brass" onclick="confirmarTrocaSenhaObrigatoria()">Salvar nova senha</button>
+      </div>
+    </div>`);
 }
 function podeEditar() {
   return (
@@ -640,6 +336,9 @@ function podeVerIndicadores() {
   );
 }
 function podeGerenciarPermissoes() {
+  return currentUser.perfil === "GESTAO";
+}
+function podeExcluirInspecoes() {
   return currentUser.perfil === "GESTAO";
 }
 
@@ -1246,7 +945,7 @@ function validarNovaInspecaoProdutos() {
   }
   return null;
 }
-function salvarNovaInspecaoProdutos() {
+async function salvarNovaInspecaoProdutos() {
   const msgEl = document.getElementById("np-msg");
   const erro = validarNovaInspecaoProdutos();
   if (erro) {
@@ -1254,35 +953,21 @@ function salvarNovaInspecaoProdutos() {
     return;
   }
   const dataHoje = new Date().toISOString().slice(0, 10);
-  produtosDivergenciasState.forEach((d) => {
-    const novo = {
-      id: nextId++,
-      data: dataHoje,
-      setor: d.setor,
-      sku: d.sku,
-      descricao: d.descricao,
-      fornecedor: d.fornecedor,
-      valorUnit: d.valorUnit,
-      qtd: d.qtd,
-      codDiv: d.codDiv,
-      outroCodDiv: d.outroCodDiv,
-      obs: d.obs,
-      prazoCorrecao: d.prazoCorrecao,
-      status: d.status,
-      responsavel: d.responsavel,
-      fotos: [...d.fotos],
-      dataConclusao: calcularDataConclusao("", d.status, ""),
-    };
-    divergencias.unshift(novo);
-    registrarHistorico(
-      "divergencias",
-      novo.id,
-      "CRIACAO",
-      `${currentUser.nome} registrou a divergência nº ${novo.id} (${d.sku}) no setor ${d.setor} via Nova Inspeção.`,
-    );
-  });
-  msgEl.innerHTML = `<div class="toast">✅ Inspeção registrada com sucesso! ${produtosDivergenciasState.length} divergência(s) salva(s).</div>`;
-  setTimeout(() => renderNovoProdutos(), 1400);
+  try {
+    for (const d of produtosDivergenciasState) {
+      await apiPost("/api/divergencias-produtos", {
+        data: dataHoje, setor: d.setor, sku: d.sku, descricao: d.descricao, fornecedor: d.fornecedor,
+        valorUnit: d.valorUnit, qtd: d.qtd, codDiv: d.codDiv, outroCodDiv: d.outroCodDiv, obs: d.obs,
+        prazoCorrecao: d.prazoCorrecao, status: d.status, responsavel: d.responsavel, fotos: [...d.fotos],
+        dataConclusao: calcularDataConclusao("", d.status, ""),
+      });
+    }
+    await Promise.all([recarregarDivergenciasProdutos(), recarregarHistorico()]);
+    msgEl.innerHTML = `<div class="toast">✅ Inspeção registrada com sucesso! ${produtosDivergenciasState.length} divergência(s) salva(s).</div>`;
+    setTimeout(() => renderNovoProdutos(), 1400);
+  } catch (e) {
+    msgEl.innerHTML = `<div class="toast" style="background:var(--danger-soft);color:var(--danger);">${e.message}</div>`;
+  }
 }
 function renderPendenciasProdutos() {
   const body = document.getElementById("produtos-body");
@@ -1301,7 +986,7 @@ function renderPendenciasProdutos() {
       <td style="white-space:nowrap;">${prazoBadgeHtml(d.prazoCorrecao, d.status)}</td>
       <td style="text-align:right;white-space:nowrap;">
         <button class="icon-btn" title="Ver detalhes" onclick="abrirDetalheDivergencia(${d.id})">👁️</button>
-        <button class="icon-btn" title="Histórico de alterações" onclick="abrirHistoricoRegistro('divergencias',${d.id},'Histórico — Divergência nº ${d.id}')">🕐</button>
+        <button class="icon-btn" title="Histórico de alterações" onclick="abrirHistoricoRegistro('divergencias_produtos',${d.id},'Histórico — Divergência nº ${d.id}')">🕐</button>
         <button class="icon-btn" title="Tratar/Editar" onclick="openDivergenciaModal(${d.id})">✏️</button>
       </td>
     </tr>`;
@@ -1374,7 +1059,7 @@ function renderHistoricoProdutos() {
       <td style="text-align:right;white-space:nowrap;">
         <button class="icon-btn" title="Ver detalhes" onclick="abrirDetalheDivergencia(${d.id})">👁️</button>
         <button class="icon-btn" title="Fotos" onclick="verFotosDivergencia(${d.id})">📎${d.fotos?.length ? ` ${d.fotos.length}` : ""}</button>
-        <button class="icon-btn" title="Histórico de alterações" onclick="abrirHistoricoRegistro('divergencias',${d.id},'Histórico — Divergência nº ${d.id}')">🕐</button>
+        <button class="icon-btn" title="Histórico de alterações" onclick="abrirHistoricoRegistro('divergencias_produtos',${d.id},'Histórico — Divergência nº ${d.id}')">🕐</button>
         <button class="icon-btn" title="Editar" onclick="openDivergenciaModal(${d.id})">✏️</button>
         <button class="icon-btn danger" title="Excluir" onclick="delDivergencia(${d.id})">🗑️</button>
       </td>
@@ -1521,22 +1206,19 @@ function imprimirDivergencias() {
     } catch (e) {}
   }, 300);
 }
-function delDivergencia(id) {
+async function delDivergencia(id) {
   if (!confirm("Excluir esta divergência?")) return;
-  const d = divergencias.find((x) => x.id === id);
-  divergencias = divergencias.filter((d) => d.id !== id);
-  if (d)
-    registrarHistorico(
-      "divergencias",
-      id,
-      "EXCLUSAO",
-      `${currentUser.nome} excluiu a divergência nº ${id} (${d.sku}, setor ${d.setor}).`,
-    );
-  renderProdutosTabBody();
+  try {
+    await apiDelete(`/api/divergencias-produtos/${id}`);
+    await Promise.all([recarregarDivergenciasProdutos(), recarregarHistorico()]);
+    renderProdutosTabBody();
+  } catch (e) {
+    alert(e.message);
+  }
 }
 function abrirHistoricoRegistro(tabela, registroId, titulo) {
   const itens = historicoAlteracoes.filter(
-    (h) => h.tabela === tabela && h.registroId === registroId,
+    (h) => h.tabela === tabela && String(h.registroId) === String(registroId),
   );
   const rows = itens
     .map(
@@ -1672,11 +1354,15 @@ function renderCadastroProdutosRows() {
         : "";
   }
 }
-function delProduto(i) {
+async function delProduto(i) {
   if (!confirm(`Excluir o produto "${PRODUTOS[i].descricao}"?`)) return;
-  PRODUTOS.splice(i, 1);
-  salvarEstado();
-  renderCadastroProdutosRows();
+  try {
+    await apiDelete(`/api/produtos/${PRODUTOS[i].id}`);
+    await Promise.all([recarregarProdutos(), recarregarHistorico()]);
+    renderCadastroProdutosRows();
+  } catch (e) {
+    alert(e.message);
+  }
 }
 function abrirProdutoModal(i) {
   const editando = typeof i === "number" ? PRODUTOS[i] : null;
@@ -1700,7 +1386,7 @@ function abrirProdutoModal(i) {
       </div>
     </div>`);
 }
-function salvarProduto(i) {
+async function salvarProduto(i) {
   const codigo = document.getElementById("pf-codigo").value.trim();
   const descricao = document.getElementById("pf-descricao").value.trim();
   const grupo = document.getElementById("pf-grupo").value.trim();
@@ -1713,29 +1399,19 @@ function salvarProduto(i) {
     erroEl.style.display = "block";
     return;
   }
-  if (i === null || i === undefined) {
-    const novoId = PRODUTOS.reduce((m, p) => Math.max(m, p.id), 0) + 1;
-    PRODUTOS.push({
-      id: novoId,
-      codigo,
-      descricao,
-      grupo,
-      preco,
-      fornecedor,
-      familia,
-    });
-  } else {
-    Object.assign(PRODUTOS[i], {
-      descricao,
-      grupo,
-      preco,
-      fornecedor,
-      familia,
-    });
+  try {
+    if (i === null || i === undefined) {
+      await apiPost("/api/produtos", { codigo, descricao, grupo, preco, fornecedor, familia });
+    } else {
+      await apiPut(`/api/produtos/${PRODUTOS[i].id}`, { descricao, grupo, preco, fornecedor, familia });
+    }
+    await Promise.all([recarregarProdutos(), recarregarHistorico()]);
+    closeModal();
+    renderCadastroProdutosRows();
+  } catch (e) {
+    erroEl.textContent = e.message;
+    erroEl.style.display = "block";
   }
-  salvarEstado();
-  closeModal();
-  renderCadastroProdutosRows();
 }
 function exportarCadastroProdutos() {
   const data = PRODUTOS.map((p) => ({
@@ -1782,7 +1458,7 @@ function importarCadastroProdutos(input) {
   const msgEl = document.getElementById("cp-import-msg");
   const isCsv = /\.csv$/i.test(file.name);
   const reader = new FileReader();
-  reader.onload = (e) => {
+  reader.onload = async (e) => {
     try {
       const wb = isCsv
         ? XLSX.read(decodificarTextoPlanilha(e.target.result), {
@@ -1798,13 +1474,10 @@ function importarCadastroProdutos(input) {
         defval: "",
         raw: !isCsv,
       });
-      let criados = 0,
-        atualizados = 0,
-        ignorados = 0,
+      let ignorados = 0,
         comPrecoZerado = 0,
         totalValidos = 0;
-      let nextNovoId = PRODUTOS.reduce((m, p) => Math.max(m, p.id), 0) + 1;
-      const produtosPorCodigo = new Map(PRODUTOS.map((p) => [p.codigo, p]));
+      const linhasNormalizadas = [];
       rows.forEach((r) => {
         const get = (...keys) => {
           const alvo = keys.map(normalizarChaveCabecalho);
@@ -1835,37 +1508,16 @@ function importarCadastroProdutos(input) {
         const preco = parseNumeroPlanilha(precoStr);
         totalValidos++;
         if (preco === 0) comPrecoZerado++;
-        const existente = produtosPorCodigo.get(codigo);
-        if (existente) {
-          Object.assign(existente, {
-            descricao,
-            grupo,
-            preco,
-            fornecedor,
-            familia,
-          });
-          atualizados++;
-        } else {
-          const novo = {
-            id: nextNovoId++,
-            codigo,
-            descricao,
-            grupo,
-            preco,
-            fornecedor,
-            familia,
-          };
-          PRODUTOS.push(novo);
-          produtosPorCodigo.set(codigo, novo);
-          criados++;
-        }
+        linhasNormalizadas.push({ codigo, descricao, grupo, preco, fornecedor, familia });
       });
+      const { criados, atualizados, ignorados: ignoradosServidor } = await apiPost("/api/produtos/importar", linhasNormalizadas);
+      const totalIgnorados = ignorados + ignoradosServidor;
       const avisoPreco =
         totalValidos > 0 && comPrecoZerado / totalValidos > 0.3
           ? ` ⚠️ ${comPrecoZerado} de ${totalValidos} produto(s) importado(s) ficaram com valor R$ 0,00 — confira se a coluna "Valor" da sua planilha está preenchida e com o nome esperado.`
           : "";
-      msgEl.innerHTML = `<div class="toast">✅ Importação concluída: ${criados} produto(s) novo(s), ${atualizados} atualizado(s)${ignorados ? `, ${ignorados} linha(s) ignorada(s) por falta de SKU/Descrição` : ""}.${avisoPreco}</div>`;
-      salvarEstado();
+      msgEl.innerHTML = `<div class="toast">✅ Importação concluída: ${criados} produto(s) novo(s), ${atualizados} atualizado(s)${totalIgnorados ? `, ${totalIgnorados} linha(s) ignorada(s) por falta de SKU/Descrição` : ""}.${avisoPreco}</div>`;
+      await Promise.all([recarregarProdutos(), recarregarHistorico()]);
       renderCadastroProdutosRows();
     } catch (err) {
       msgEl.innerHTML = `<div class="toast" style="background:var(--danger-soft);color:var(--danger);">Não foi possível ler o arquivo. Verifique se é uma planilha .xlsx ou .csv válida, com colunas SKU, Descrição, Grupo, Valor, Fornecedor e Família.</div>`;
@@ -2099,7 +1751,7 @@ function updateTotal() {
   const q = parseInt(document.getElementById("f-qtd").value) || 0;
   document.getElementById("f-total").textContent = money(v * q);
 }
-function salvarDivergencia(id) {
+async function salvarDivergencia(id) {
   const erroEl = document.getElementById("f-erro");
   const mostrarErro = (msg) => {
     erroEl.textContent = msg;
@@ -2168,53 +1820,18 @@ function salvarDivergencia(id) {
     dataConclusao,
   };
 
-  if (typeof id === "number") {
-    const atual = divergencias.find((d) => d.id === id);
-    const LABELS = {
-      status: "status",
-      responsavel: "responsável",
-      prazoCorrecao: "prazo de correção",
-      setor: "setor",
-      fornecedor: "fornecedor",
-      qtd: "quantidade",
-      valorUnit: "valor unitário",
-    };
-    const STATUS_LABEL = {
-      PENDENTE: "Pendente",
-      EM_ESPERA: "Em Espera",
-      CORRIGIDO: "Corrigido",
-    };
-    Object.keys(dados).forEach((campo) => {
-      const antes = atual[campo];
-      const depois = dados[campo];
-      if (String(antes ?? "") !== String(depois ?? "") && LABELS[campo]) {
-        const fmt = (v) =>
-          campo === "status" ? STATUS_LABEL[v] || v : v || "(vazio)";
-        registrarHistorico(
-          "divergencias",
-          id,
-          "EDICAO",
-          `${currentUser.nome} alterou ${LABELS[campo]} do registro nº ${id} de "${fmt(antes)}" para "${fmt(depois)}".`,
-        );
-      }
-    });
-    Object.assign(atual, dados);
-  } else {
-    const novo = {
-      id: nextId++,
-      data: new Date().toISOString().slice(0, 10),
-      ...dados,
-    };
-    divergencias.unshift(novo);
-    registrarHistorico(
-      "divergencias",
-      novo.id,
-      "CRIACAO",
-      `${currentUser.nome} registrou a divergência nº ${novo.id} (${sku}) no setor ${setor}.`,
-    );
+  try {
+    if (typeof id === "number") {
+      await apiPut(`/api/divergencias-produtos/${id}`, dados);
+    } else {
+      await apiPost("/api/divergencias-produtos", { data: new Date().toISOString().slice(0, 10), ...dados });
+    }
+    await Promise.all([recarregarDivergenciasProdutos(), recarregarHistorico()]);
+    closeModal();
+    renderProdutosTabBody();
+  } catch (e) {
+    mostrarErro(e.message);
   }
-  closeModal();
-  renderProdutosTabBody();
 }
 
 /* ==================== INSPEÇÃO DE ESTOQUE ==================== */
@@ -2395,41 +2012,24 @@ function validarEstoque() {
   }
   return null;
 }
-function salvarGaiolas() {
+async function salvarGaiolas() {
   const msg = document.getElementById("gaiolas-msg");
   const erro = validarEstoque();
   if (erro) {
     msg.innerHTML = `<div class="toast" style="background:var(--danger-soft);color:var(--danger);">${erro}</div>`;
     return;
   }
-  const novo = {
-    id: nextEstoqueId++,
-    data: HOJE,
-    responsavel: currentUser.nome,
-    divergencias: estoqueDivergenciasState.map((d, i) => ({
-      ordem: i + 1,
-      tipo: d.tipo,
-      divergencia: d.divergencia,
-      outroDesc: d.outroDesc,
-      obs: d.obs,
-      status: d.status,
-      fotos: [...d.fotos],
-    })),
-  };
-  inspecoesEstoque.unshift(novo);
-  const resumoTipos = [
-    ...new Set(
-      novo.divergencias.map((d) => TIPO_DIVERGENCIA_ESTOQUE_LABEL[d.tipo]),
-    ),
-  ].join(", ");
-  registrarHistorico(
-    "estoque_inspecoes",
-    novo.id,
-    "CRIACAO",
-    `${currentUser.nome} registrou a Inspeção de Estoque nº ${novo.id} com ${novo.divergencias.length} divergência(s) (${resumoTipos}).`,
-  );
-  msg.innerHTML = `<div class="toast">✅ Inspeção registrada com sucesso! ${novo.divergencias.length} divergência(s) salva(s).</div>`;
-  setTimeout(() => renderNovoGaiolas(), 1400);
+  const divergenciasPayload = estoqueDivergenciasState.map((d) => ({
+    tipo: d.tipo, divergencia: d.divergencia, outroDesc: d.outroDesc, obs: d.obs, status: d.status, fotos: [...d.fotos],
+  }));
+  try {
+    await apiPost("/api/inspecoes-estoque", { data: HOJE, responsavel: currentUser.nome, divergencias: divergenciasPayload });
+    await Promise.all([recarregarInspecoesEstoque(), recarregarHistorico()]);
+    msg.innerHTML = `<div class="toast">✅ Inspeção registrada com sucesso! ${divergenciasPayload.length} divergência(s) salva(s).</div>`;
+    setTimeout(() => renderNovoGaiolas(), 1400);
+  } catch (e) {
+    msg.innerHTML = `<div class="toast" style="background:var(--danger-soft);color:var(--danger);">${e.message}</div>`;
+  }
 }
 function estoqueDivergenciasFlat() {
   const list = [];
@@ -2459,7 +2059,7 @@ function renderPendenciasGaiolas() {
     <td>${p.responsavel}</td>
     <td>${statusBadge(p.status)}</td>
     <td style="text-align:right;white-space:nowrap;">
-      <button class="icon-btn" title="Histórico de alterações" onclick="abrirHistoricoRegistro('estoque_inspecoes',${p.inspecaoId}*1000+${p.ordem},'Histórico — Divergência de Estoque')">🕐</button>
+      <button class="icon-btn" title="Histórico de alterações" onclick="abrirHistoricoRegistro('inspecoes_estoque',${p.inspecaoId},'Histórico — Inspeção de Estoque nº ${p.inspecaoId}')">🕐</button>
       <button class="icon-btn" title="Tratar pendência" onclick="editarPendenciaGaiolas(${p.inspecaoId},${p.ordem})">✏️</button>
     </td></tr>`,
     )
@@ -2489,33 +2089,20 @@ function editarPendenciaGaiolas(inspecaoId, ordem) {
       </div>
     </div>`);
 }
-function salvarPendenciaGaiolas(inspecaoId, ordem) {
+async function salvarPendenciaGaiolas(inspecaoId, ordem) {
   const inspecao = inspecoesEstoque.find((i) => i.id === inspecaoId);
   const d = inspecao.divergencias.find((x) => x.ordem === ordem);
-  const antes = { ...d };
-  d.obs = document.getElementById("pg-obs").value;
-  d.status = document.getElementById("pg-status").value;
-  d.dataConclusao = calcularDataConclusao(
-    antes.status,
-    d.status,
-    antes.dataConclusao,
-  );
-  const STATUS_LABEL = {
-    PENDENTE: "Pendente",
-    EM_ESPERA: "Em Espera",
-    CORRIGIDO: "Corrigido",
-  };
-  const registroId = inspecaoId * 1000 + ordem;
-  if (antes.status !== d.status) {
-    registrarHistorico(
-      "estoque_inspecoes",
-      registroId,
-      "EDICAO",
-      `${currentUser.nome} alterou status da divergência nº ${registroId} de "${STATUS_LABEL[antes.status] || antes.status}" para "${STATUS_LABEL[d.status]}".`,
-    );
+  const novoObs = document.getElementById("pg-obs").value;
+  const novoStatus = document.getElementById("pg-status").value;
+  const dataConclusao = calcularDataConclusao(d.status, novoStatus, d.dataConclusao);
+  try {
+    await apiPut(`/api/inspecoes-estoque/itens/${d.id}`, { status: novoStatus, obs: novoObs, dataConclusao });
+    await Promise.all([recarregarInspecoesEstoque(), recarregarHistorico()]);
+    closeModal();
+    renderPendenciasGaiolas();
+  } catch (e) {
+    alert(e.message);
   }
-  closeModal();
-  renderPendenciasGaiolas();
 }
 function abrirDetalheInspecaoEstoque(id) {
   const insp = inspecoesEstoque.find((x) => x.id === id);
@@ -2598,6 +2185,19 @@ function limparFiltroGaiolasHist() {
   gaiolasHistFiltros = { dataIni: "", dataFim: "", tipo: "", status: "" };
   renderHistoricoGaiolas();
 }
+async function excluirInspecaoEstoque(id) {
+  if (!podeExcluirInspecoes()) return;
+  const insp = inspecoesEstoque.find((i) => i.id === id);
+  if (!insp) return;
+  if (!confirm(`Excluir a inspeção de estoque nº ${id} (${fmtDate(insp.data)})? Esta ação não pode ser desfeita.`)) return;
+  try {
+    await apiDelete(`/api/inspecoes-estoque/${id}`);
+    await Promise.all([recarregarInspecoesEstoque(), recarregarHistorico()]);
+    renderHistoricoGaiolas();
+  } catch (e) {
+    alert(e.message);
+  }
+}
 function renderHistoricoGaiolas() {
   const body = document.getElementById("gaiolas-body");
   const lista = gaiolasHistFiltrados();
@@ -2642,6 +2242,7 @@ function renderHistoricoGaiolas() {
     <td style="text-align:right;white-space:nowrap;">
       <button class="icon-btn" title="Ver detalhes" onclick="abrirDetalheInspecaoEstoque(${insp.id})">👁️</button>
       <button class="icon-btn" title="Ver fotos" onclick="abrirDetalheInspecaoEstoque(${insp.id})">📎 ${totalFotos}</button>
+      ${podeExcluirInspecoes() ? `<button class="icon-btn danger" title="Excluir inspeção" onclick="excluirInspecaoEstoque(${insp.id})">🗑️</button>` : ""}
     </td>
   </tr>`;
     })
@@ -2898,7 +2499,7 @@ function paint5SForm() {
       <button class="btn btn-brass" onclick="salvar5S()">Salvar Checklist</button>
     </div>`;
 }
-function salvar5S() {
+async function salvar5S() {
   const resp = document.getElementById("s-resp").value;
   const msg = document.getElementById("5s-msg");
   if (!resp) {
@@ -2927,36 +2528,21 @@ function salvar5S() {
   ).length;
   const pct = Math.round((conformes / (conformes + naoConf || 1)) * 100);
   const setor = document.getElementById("s-setor").value;
-  const novo = {
-    id: nextId++,
-    setor,
-    turno: document.getElementById("s-turno").value,
-    responsavel: resp,
-    data: document.getElementById("s-data").value,
-    conformidade: pct,
-    itens: checklist5sItensState.map((i) => ({
-      ordem: i.ordem,
-      senso: i.senso,
-      desc: i.desc,
-      resp: i.resp,
-      obs: i.obs,
-      acaoCorretiva: i.acaoCorretiva,
-      respNc: i.respNc,
-      prazo: i.prazo,
-      criticidade: i.criticidade,
-      status: i.resp === "NAO_CONFORME" ? "PENDENTE" : null,
-    })),
-    anexos: [...checklist5sAnexos],
-  };
-  checklist5s.unshift(novo);
-  registrarHistorico(
-    "checklist_5s",
-    novo.id,
-    "CRIACAO",
-    `${currentUser.nome} registrou o checklist 5S nº ${novo.id} (setor ${setor}, turno ${novo.turno}) com ${pct}% de conformidade${novo.anexos.length ? ` e ${novo.anexos.length} imagem(ns) anexada(s)` : ""}.`,
-  );
-  msg.innerHTML = `<div class="toast">✅ Checklist 5S registrado com sucesso! Conformidade: ${pct}%</div>`;
-  setTimeout(() => renderNovo5S(), 1400);
+  const turno = document.getElementById("s-turno").value;
+  const data = document.getElementById("s-data").value;
+  const itensPayload = checklist5sItensState.map((i) => ({
+    senso: i.senso, desc: i.desc, resp: i.resp, obs: i.obs, acaoCorretiva: i.acaoCorretiva,
+    respNc: i.respNc, prazo: i.prazo, criticidade: i.criticidade,
+    status: i.resp === "NAO_CONFORME" ? "PENDENTE" : null,
+  }));
+  try {
+    await apiPost("/api/checklists-5s", { setor, turno, responsavel: resp, data, conformidade: pct, anexos: [...checklist5sAnexos], itens: itensPayload });
+    await Promise.all([recarregarChecklists5s(), recarregarHistorico()]);
+    msg.innerHTML = `<div class="toast">✅ Checklist 5S registrado com sucesso! Conformidade: ${pct}%</div>`;
+    setTimeout(() => renderNovo5S(), 1400);
+  } catch (e) {
+    msg.innerHTML = `<div class="toast" style="background:var(--danger-soft);color:var(--danger);">${e.message}</div>`;
+  }
 }
 function renderPendencias5S() {
   const body = document.getElementById("5s-body");
@@ -2980,7 +2566,7 @@ function renderPendencias5S() {
     <td>${p.senso}</td><td>${p.desc}</td><td>${critBadge(p.criticidade)}</td><td>${statusBadge(p.status || "PENDENTE")}</td>
     <td>${prazoBadgeHtml(p.prazo, p.status)}</td>
     <td style="text-align:right;white-space:nowrap;">
-      <button class="icon-btn" title="Histórico de alterações" onclick="abrirHistoricoRegistro('checklist_5s_itens',${p.checklistId}*1000+${p.ordem},'Histórico — Item de 5S')">🕐</button>
+      <button class="icon-btn" title="Histórico de alterações" onclick="abrirHistoricoRegistro('checklists_5s',${p.checklistId},'Histórico — Checklist 5S nº ${p.checklistId}')">🕐</button>
       <button class="icon-btn" title="Tratar pendência" onclick="editarPendencia5S(${p.checklistId},${p.ordem})">✏️</button>
     </td></tr>`,
     )
@@ -3022,45 +2608,28 @@ function editarPendencia5S(checklistId, ordem) {
       </div>
     </div>`);
 }
-function salvarPendencia5S(checklistId, ordem) {
+async function salvarPendencia5S(checklistId, ordem) {
   const checklist = checklist5s.find((c) => c.id === checklistId);
   const item = checklist.itens.find((i) => i.ordem === ordem);
-  const antes = { ...item };
-  item.obs = document.getElementById("p5-obs").value;
-  item.acaoCorretiva = document.getElementById("p5-acao").value;
-  item.respNc = document.getElementById("p5-resp").value;
-  item.prazo = document.getElementById("p5-prazo").value;
-  item.criticidade = document.getElementById("p5-crit").value;
-  item.status = document.getElementById("p5-status").value;
-  item.dataConclusao = calcularDataConclusao(
-    antes.status,
-    item.status,
-    antes.dataConclusao,
-  );
-  const STATUS_LABEL = {
-    PENDENTE: "Pendente",
-    EM_ESPERA: "Em Espera",
-    CORRIGIDO: "Corrigido",
+  const novoStatus = document.getElementById("p5-status").value;
+  const dataConclusao = calcularDataConclusao(item.status, novoStatus, item.dataConclusao);
+  const payload = {
+    obs: document.getElementById("p5-obs").value,
+    acaoCorretiva: document.getElementById("p5-acao").value,
+    respNc: document.getElementById("p5-resp").value,
+    prazo: document.getElementById("p5-prazo").value,
+    criticidade: document.getElementById("p5-crit").value,
+    status: novoStatus,
+    dataConclusao,
   };
-  const registroId = checklistId * 1000 + ordem;
-  if (antes.status !== item.status) {
-    registrarHistorico(
-      "checklist_5s_itens",
-      registroId,
-      "EDICAO",
-      `${currentUser.nome} alterou status do item nº ${registroId} de "${STATUS_LABEL[antes.status] || antes.status}" para "${STATUS_LABEL[item.status]}".`,
-    );
+  try {
+    await apiPut(`/api/checklists-5s/itens/${item.id}`, payload);
+    await Promise.all([recarregarChecklists5s(), recarregarHistorico()]);
+    closeModal();
+    renderPendencias5S();
+  } catch (e) {
+    alert(e.message);
   }
-  if (antes.prazo !== item.prazo) {
-    registrarHistorico(
-      "checklist_5s_itens",
-      registroId,
-      "EDICAO",
-      `${currentUser.nome} alterou prazo do item nº ${registroId} de "${antes.prazo || "(vazio)"}" para "${item.prazo || "(vazio)"}".`,
-    );
-  }
-  closeModal();
-  renderPendencias5S();
 }
 let s5HistFiltros = { dataIni: "", dataFim: "", setor: "", status: "" };
 function s5HistFiltrados() {
@@ -3090,6 +2659,19 @@ function aplicarFiltroS5Hist() {
 function limparFiltroS5Hist() {
   s5HistFiltros = { dataIni: "", dataFim: "", setor: "", status: "" };
   renderHistorico5S();
+}
+async function excluirChecklist5S(id) {
+  if (!podeExcluirInspecoes()) return;
+  const c = checklist5s.find((x) => x.id === id);
+  if (!c) return;
+  if (!confirm(`Excluir o checklist 5S nº ${id} (${c.setor}, ${fmtDate(c.data)})? Esta ação não pode ser desfeita.`)) return;
+  try {
+    await apiDelete(`/api/checklists-5s/${id}`);
+    await Promise.all([recarregarChecklists5s(), recarregarHistorico()]);
+    renderHistorico5S();
+  } catch (e) {
+    alert(e.message);
+  }
 }
 function renderHistorico5S() {
   const body = document.getElementById("5s-body");
@@ -3126,6 +2708,7 @@ function renderHistorico5S() {
     <td style="text-align:right;white-space:nowrap;">
       <button class="icon-btn" title="Ver detalhes" onclick="abrirDetalheChecklist('5s',${c.id})">👁️</button>
       <button class="icon-btn" title="Ver anexos" onclick="verAnexosChecklist5S(${c.id})">📎 ${c.anexos?.length || 0}</button>
+      ${podeExcluirInspecoes() ? `<button class="icon-btn danger" title="Excluir checklist" onclick="excluirChecklist5S(${c.id})">🗑️</button>` : ""}
     </td>
   </tr>`;
     })
@@ -3219,6 +2802,20 @@ function renderRecebimentoTabBody() {
   } else if (recebimentoTab === "pendencias") renderPendenciasRecebimento();
   else renderHistoricoRecebimento();
 }
+async function excluirInspecaoRecebimento(id) {
+  if (!podeExcluirInspecoes()) return;
+  const i = inspecoesRecebimento.find((x) => x.id === id);
+  if (!i) return;
+  const fornecedorNome = i.fornecedor === "OUTROS" ? i.fornecedorOutro : i.fornecedor;
+  if (!confirm(`Excluir a inspeção de recebimento ${id} (fornecedor ${fornecedorNome})? Esta ação não pode ser desfeita.`)) return;
+  try {
+    await apiDelete(`/api/inspecoes-recebimento/${id}`);
+    await Promise.all([recarregarInspecoesRecebimento(), recarregarHistorico()]);
+    renderPendenciasRecebimento();
+  } catch (e) {
+    alert(e.message);
+  }
+}
 function renderPendenciasRecebimento() {
   const el = document.getElementById("recebimento-body");
   const lista = inspecoesRecebimento.filter((i) => {
@@ -3265,6 +2862,7 @@ function renderPendenciasRecebimento() {
       <button class="icon-btn" title="Editar" onclick="abrirNovaInspecao('${i.id}')">✏️</button>
       <button class="icon-btn" title="Imprimir" onclick="imprimirInspecao('${i.id}')">🖨️</button>
       <button class="icon-btn" title="Exportar" onclick="exportarInspecaoCSV('${i.id}')">⬇️</button>
+      ${podeExcluirInspecoes() ? `<button class="icon-btn danger" title="Excluir inspeção" onclick="excluirInspecaoRecebimento('${i.id}')">🗑️</button>` : ""}
     </td>
   </tr>`,
     )
@@ -3824,7 +3422,7 @@ function atualizarBotaoFinalizar() {
   if (step4) step4.classList.toggle("done", erros.length === 0);
 }
 
-function finalizarInspecao() {
+async function finalizarInspecao() {
   const erros = validarInspecao();
   const msgEl = document.getElementById("insp-erro");
   if (erros.length) {
@@ -3922,52 +3520,21 @@ function finalizarInspecao() {
     const manualVal = document.getElementById("insp-data-manual").value;
     if (manualVal) dataInspecaoIso = manualVal + ":00";
   }
-  const agora = toLocalISO(new Date());
-
-  if (inspEditandoId) {
-    const idx = inspecoesRecebimento.findIndex((i) => i.id === inspEditandoId);
-    const registro = {
-      ...inspecoesRecebimento[idx],
-      dataInspecao: dataInspecaoIso,
-      fornecedor,
-      fornecedorOutro,
-      resultadoFornecedor,
-      divergenciaFornecedor,
-      resultadoOperacional,
-      divergenciaOperacional,
-      statusFinal,
-      dataFinalizacao: agora,
-    };
-    inspecoesRecebimento[idx] = registro;
-    registrarHistorico(
-      "inspecoes_recebimento",
-      registro.id,
-      "EDICAO",
-      `${currentUser.nome} editou a inspeção de recebimento ${registro.id} (fornecedor ${fornecedor === "OUTROS" ? fornecedorOutro : fornecedor}) — status ${STATUS_INSPECAO_LABEL[statusFinal]}.`,
-    );
+  const payload = {
+    dataInspecao: dataInspecaoIso, fornecedor, fornecedorOutro, resultadoFornecedor,
+    divergenciaFornecedor, resultadoOperacional, divergenciaOperacional, statusFinal,
+  };
+  try {
+    let registro;
+    if (inspEditandoId) {
+      registro = await apiPut(`/api/inspecoes-recebimento/${inspEditandoId}`, payload);
+    } else {
+      registro = await apiPost("/api/inspecoes-recebimento", payload);
+    }
+    await Promise.all([recarregarInspecoesRecebimento(), recarregarHistorico()]);
     mostrarResumoInspecao(registro);
-  } else {
-    const registro = {
-      id: "INS-" + String(nextInspecaoId++).padStart(6, "0"),
-      dataInspecao: dataInspecaoIso,
-      fornecedor,
-      fornecedorOutro,
-      resultadoFornecedor,
-      divergenciaFornecedor,
-      resultadoOperacional,
-      divergenciaOperacional,
-      statusFinal,
-      usuarioResponsavel: currentUser.nome,
-      dataFinalizacao: agora,
-    };
-    inspecoesRecebimento.unshift(registro);
-    registrarHistorico(
-      "inspecoes_recebimento",
-      registro.id,
-      "CRIACAO",
-      `${currentUser.nome} finalizou a inspeção de recebimento ${registro.id} (fornecedor ${fornecedor === "OUTROS" ? fornecedorOutro : fornecedor}) — status ${STATUS_INSPECAO_LABEL[statusFinal]}.`,
-    );
-    mostrarResumoInspecao(registro);
+  } catch (e) {
+    msgEl.innerHTML = `<div class="toast" style="background:var(--danger-soft);color:var(--danger);">${e.message}</div>`;
   }
 }
 function mostrarResumoInspecao(registro) {
@@ -5643,32 +5210,7 @@ function renderQualidade() {
 }
 
 /* ==================== USUÁRIOS ==================== */
-const LOG_ACESSO = [
-  {
-    nome: "Administrador Geral",
-    login: "gestao",
-    dataHora: "13/08/2026 14:43",
-    sucesso: true,
-  },
-  {
-    nome: "Operador Recebimento",
-    login: "operador",
-    dataHora: "13/08/2026 14:01",
-    sucesso: true,
-  },
-  {
-    nome: "Admin CD",
-    login: "admin",
-    dataHora: "12/08/2026 09:12",
-    sucesso: false,
-  },
-  {
-    nome: "Admin CD",
-    login: "admin",
-    dataHora: "12/08/2026 09:13",
-    sucesso: true,
-  },
-];
+const LOG_ACESSO = [];
 function renderUsuarios() {
   const el = document.getElementById("page-content");
   el.innerHTML = `
@@ -5691,21 +5233,25 @@ function renderUsuariosRows() {
     <td style="font-weight:500;">${u.nome}</td>
     <td>${u.login} · ${u.email}</td>
     <td><span class="badge" style="background:rgba(244,207,110,.2);color:var(--brass-900);">${u.perfil.toLowerCase()}</span></td>
-    <td>${u.setor}</td>
+    <td>${u.setor || "—"}</td>
     <td style="color:var(--ink-faint);">${u.ultimo}</td>
     <td><span class="badge ${u.ativo ? "corrigido" : "pendente"}">${u.ativo ? "Ativo" : "Inativo"}</span></td>
     <td><button class="icon-btn" title="Editar" onclick="abrirUsuarioModal(${i})">✏️</button><button class="icon-btn" title="${u.ativo ? "Inativar" : "Reativar"}" onclick="alternarAtivoUsuario(${i})">${u.ativo ? "🔒" : "🔓"}</button></td>
   </tr>`,
   ).join("");
 }
-function alternarAtivoUsuario(i) {
+async function alternarAtivoUsuario(i) {
   const u = USUARIOS[i];
   if (u.ativo) {
     if (!confirm(`Inativar o usuário ${u.nome}?`)) return;
   }
-  u.ativo = !u.ativo;
-  salvarEstado();
-  renderUsuariosRows();
+  try {
+    await apiPut(`/api/usuarios/${u.id}/ativo`, {});
+    await Promise.all([recarregarUsuarios(), recarregarHistorico()]);
+    renderUsuariosRows();
+  } catch (e) {
+    alert(e.message);
+  }
 }
 function abrirUsuarioModal(i) {
   const editando = typeof i === "number" ? USUARIOS[i] : null;
@@ -5715,13 +5261,18 @@ function abrirUsuarioModal(i) {
       <label class="field"><span>Nome</span><input id="uf-nome" value="${editando ? editando.nome : ""}"></label>
       <label class="field"><span>E-mail</span><input id="uf-email" type="email" value="${editando ? editando.email : ""}"></label>
       <label class="field"><span>Login</span><input id="uf-login" value="${editando ? editando.login : ""}" ${editando ? "disabled" : ""}></label>
-      <label class="field"><span>${editando ? "Nova Senha (deixe em branco para manter)" : "Senha"}</span><input id="uf-senha" type="password"></label>
+      <label class="field"><span>${editando ? "Nova Senha (deixe em branco para manter)" : "Senha"}</span>
+        <div class="campo-senha-wrap">
+          <input id="uf-senha" type="password">
+          <button type="button" class="btn-ver-senha" onclick="alternarVisibilidadeSenha('uf-senha', this)" title="Mostrar/ocultar senha">👁️</button>
+        </div>
+      </label>
       <label class="field"><span>Perfil</span><select id="uf-perfil">
         <option value="GESTAO" ${editando && editando.perfil === "GESTAO" ? "selected" : ""}>Gestão</option>
         <option value="ADMINISTRADOR" ${editando && editando.perfil === "ADMINISTRADOR" ? "selected" : ""}>Administrador</option>
         <option value="OPERADOR" ${!editando || editando.perfil === "OPERADOR" ? "selected" : ""}>Operador</option>
       </select></label>
-      <label class="field"><span>Setor (opcional)</span><input id="uf-setor" value="${editando && editando.setor !== "—" ? editando.setor : ""}"></label>
+      <label class="field"><span>Setor (opcional)</span><input id="uf-setor" value="${editando && editando.setor ? editando.setor : ""}"></label>
       <div id="uf-erro" style="display:none;color:var(--danger);background:var(--danger-soft);border-radius:8px;padding:8px 12px;font-size:13px;"></div>
       <div style="display:flex;justify-content:flex-end;gap:12px;">
         <button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>
@@ -5729,7 +5280,7 @@ function abrirUsuarioModal(i) {
       </div>
     </div>`);
 }
-function salvarUsuario(i) {
+async function salvarUsuario(i) {
   const nome = document.getElementById("uf-nome").value.trim();
   const email = document.getElementById("uf-email").value.trim();
   const login = document.getElementById("uf-login").value.trim();
@@ -5749,31 +5300,22 @@ function salvarUsuario(i) {
     mostrarErro("Informe um e-mail válido.");
     return;
   }
-  if ((i === null && !senha) || (senha && senha.length < 6)) {
-    mostrarErro("A senha deve ter ao menos 6 caracteres.");
+  if ((i === null && !senha) || (senha && senha.length < 8)) {
+    mostrarErro("A senha deve ter ao menos 8 caracteres.");
     return;
   }
-  if (i === null || i === undefined) {
-    USUARIOS.push({
-      nome,
-      email,
-      login,
-      perfil,
-      setor: setor || "—",
-      ultimo: "Nunca",
-      ativo: true,
-    });
-  } else {
-    Object.assign(USUARIOS[i], {
-      nome,
-      email,
-      perfil,
-      setor: setor || "—",
-    });
+  try {
+    if (i === null || i === undefined) {
+      await apiPost("/api/usuarios", { nome, email, login, senha, perfil, setor: setor || null });
+    } else {
+      await apiPut(`/api/usuarios/${USUARIOS[i].id}`, { nome, email, perfil, setor: setor || null, novaSenha: senha || undefined });
+    }
+    await Promise.all([recarregarUsuarios(), recarregarHistorico()]);
+    closeModal();
+    renderUsuariosRows();
+  } catch (e) {
+    mostrarErro(e.message);
   }
-  salvarEstado();
-  closeModal();
-  renderUsuariosRows();
 }
 function abrirLogAcessos() {
   const rows = LOG_ACESSO.map(
@@ -5798,3 +5340,30 @@ function abrirLogAcessos() {
     true,
   );
 }
+
+/* ==================== RETOMAR SESSÃO AO ABRIR/RECARREGAR A PÁGINA ====================
+   Sem isso, mesmo com um cookie de sessão válido (dura 8h), toda vez que a
+   página era recarregada (F5) o usuário caía de volta na tela de login — o
+   front-end nunca perguntava ao servidor "ainda estou logado?". Ao carregar a
+   página, tenta restaurar a sessão via GET /api/auth/me; se o cookie ainda for
+   válido, o servidor responde com os dados do usuário e a aplicação é
+   carregada normalmente, sem exigir login de novo. Se não houver sessão válida
+   (sem cookie, cookie expirado, ou usuário desativado), a API responde 401 e a
+   tela de login permanece visível (comportamento padrão do HTML). */
+async function tentarRetomarSessao() {
+  try {
+    const { usuario } = await apiGet("/api/auth/me");
+    currentUser = usuario;
+    document.getElementById("login-screen").classList.add("hidden");
+    document.getElementById("app").classList.remove("hidden");
+    document.getElementById("sidebar-user-name").textContent = currentUser.nome;
+    document.getElementById("sidebar-user-role").textContent = currentUser.perfil.toLowerCase();
+    await carregarTudoDoServidor();
+    renderNav();
+    navigate("dashboard");
+    if (currentUser.precisaTrocarSenha) abrirTrocarSenhaObrigatoria();
+  } catch (e) {
+    // Sem sessão válida — mantém a tela de login (estado inicial do HTML).
+  }
+}
+document.addEventListener("DOMContentLoaded", tentarRetomarSessao);

@@ -1,0 +1,9 @@
+node_modules/
+.env
+*.log
+npm-debug.log*
+.DS_Store
+
+# nunca versionar credenciais soltas em arquivos de texto
+*.txt
+!README.txt
