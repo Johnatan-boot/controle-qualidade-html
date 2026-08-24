@@ -1,24 +1,23 @@
 const mysql = require('mysql2/promise');
 
-// Aceita tanto as variáveis padrão da Clever Cloud (MYSQL_ADDON_*, injetadas
-// automaticamente quando o add-on está conectado ao serviço no Render) quanto
-// variáveis genéricas DB_* (caso você prefira configurar manualmente).
-const HOST = process.env.MYSQL_ADDON_HOST || process.env.DB_HOST || 'localhost';
-const USER = process.env.MYSQL_ADDON_USER || process.env.DB_USER || 'root';
-const PASSWORD = process.env.MYSQL_ADDON_PASSWORD || process.env.DB_PASSWORD || '';
-const DATABASE = process.env.MYSQL_ADDON_DB || process.env.DB_NAME || 'qa_kingstar';
-const PORT = Number(process.env.MYSQL_ADDON_PORT || process.env.DB_PORT || 3306);
+function buildConfig() {
+  // Clever Cloud pode fornecer MYSQL_ADDON_URI; variáveis individuais têm prioridade.
+  const uri = process.env.MYSQL_ADDON_URI || process.env.MYSQL_ADDON_URL;
+  const base = uri ? { uri } : {
+    host: process.env.MYSQL_ADDON_HOST || process.env.DB_HOST || 'localhost',
+    user: process.env.MYSQL_ADDON_USER || process.env.DB_USER || 'root',
+    password: process.env.MYSQL_ADDON_PASSWORD || process.env.DB_PASSWORD || '',
+    database: process.env.MYSQL_ADDON_DB || process.env.DB_NAME || 'qa_kingstar',
+    port: Number(process.env.MYSQL_ADDON_PORT || process.env.DB_PORT || 3306),
+  };
+  return {
+    ...base,
+    waitForConnections: true,
+    connectionLimit: Number(process.env.DB_CONNECTION_LIMIT || 10),
+    queueLimit: 0,
+    dateStrings: true,
+  };
+}
 
-const pool = mysql.createPool({
-  host: HOST,
-  user: USER,
-  password: PASSWORD,
-  database: DATABASE,
-  port: PORT,
-  waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0,
-  dateStrings: true, // devolve DATE/DATETIME como string "YYYY-MM-DD[ HH:MM:SS]" em vez de objeto Date
-});
-
+const pool = mysql.createPool(buildConfig());
 module.exports = pool;

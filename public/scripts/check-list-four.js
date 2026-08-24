@@ -242,6 +242,70 @@ let currentPage = "dashboard";
    Login real: usuário e senha são conferidos pelo servidor (bcrypt) contra o MySQL.
    Depois do login, todo o estado do sistema é carregado do banco (carregarTudoDoServidor,
    em scripts/api-client.js) — nada fica guardado só no navegador. */
+
+function abrirCadastro() {
+  openModal(`
+    <div class="modal-header">
+      <h3>Criar conta</h3>
+      <button class="modal-close" onclick="closeModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:13px;color:var(--ink-soft);margin:0 0 14px;">
+        O cadastro cria uma conta de <strong>OPERADOR</strong>. Perfis de Gestão e Administrador só podem ser concedidos por um usuário autorizado.
+      </p>
+      <label class="field" style="margin-bottom:12px;"><span>Nome completo</span><input id="cad-nome" type="text" autocomplete="name" maxlength="150"></label>
+      <label class="field" style="margin-bottom:12px;"><span>E-mail</span><input id="cad-email" type="email" autocomplete="email" maxlength="150"></label>
+      <label class="field" style="margin-bottom:12px;"><span>Usuário</span><input id="cad-login" type="text" autocomplete="username" maxlength="60" placeholder="ex.: joao.silva"></label>
+      <label class="field" style="margin-bottom:12px;"><span>Setor (opcional)</span><input id="cad-setor" type="text" maxlength="100" placeholder="ex.: RECEBIMENTO"></label>
+      <label class="field" style="margin-bottom:12px;"><span>Senha (mínimo 8 caracteres)</span><input id="cad-senha" type="password" autocomplete="new-password"></label>
+      <label class="field" style="margin-bottom:12px;"><span>Confirmar senha</span><input id="cad-confirma" type="password" autocomplete="new-password"></label>
+      <div id="cad-erro" style="display:none;color:var(--danger);background:var(--danger-soft);border-radius:8px;padding:8px 12px;font-size:13px;margin-bottom:12px;"></div>
+      <div style="display:flex;justify-content:flex-end;gap:12px;">
+        <button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>
+        <button id="cad-submit" class="btn btn-primary" onclick="cadastrarUsuario()">Criar conta</button>
+      </div>
+    </div>`);
+  setTimeout(() => document.getElementById('cad-nome')?.focus(), 50);
+}
+
+async function cadastrarUsuario() {
+  const nome = document.getElementById('cad-nome').value.trim();
+  const email = document.getElementById('cad-email').value.trim();
+  const login = document.getElementById('cad-login').value.trim();
+  const setor = document.getElementById('cad-setor').value.trim();
+  const senha = document.getElementById('cad-senha').value;
+  const confirma = document.getElementById('cad-confirma').value;
+  const erro = document.getElementById('cad-erro');
+  const botao = document.getElementById('cad-submit');
+  const mostrarErro = msg => { erro.textContent = msg; erro.style.display = 'block'; };
+
+  erro.style.display = 'none';
+  if (!nome || !email || !login || !senha) return mostrarErro('Preencha os campos obrigatórios.');
+  if (senha !== confirma) return mostrarErro('As senhas não coincidem.');
+  if (senha.length < 8) return mostrarErro('A senha deve ter ao menos 8 caracteres.');
+
+  botao.disabled = true;
+  botao.textContent = 'Cadastrando...';
+  try {
+    await apiPost('/api/auth/registrar', { nome, email, login, setor, senha });
+    closeModal();
+    const loginEl = document.getElementById('login-user');
+    const erroLogin = document.getElementById('login-erro');
+    if (loginEl) loginEl.value = login;
+    if (erroLogin) {
+      erroLogin.textContent = 'Cadastro realizado! Agora informe sua senha para entrar.';
+      erroLogin.style.display = 'block';
+      erroLogin.style.color = 'var(--success, #2e7d32)';
+      erroLogin.style.background = 'var(--success-soft, #e8f5e9)';
+    }
+  } catch (e) {
+    mostrarErro(e.message);
+  } finally {
+    botao.disabled = false;
+    botao.textContent = 'Criar conta';
+  }
+}
+
 async function doLogin() {
   const login = document.getElementById("login-user").value.trim();
   const senha = document.getElementById("login-pass").value;

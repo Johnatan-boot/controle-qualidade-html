@@ -4,7 +4,16 @@
    deste arquivo é usada pelo check-list-four.js no lugar da antiga persistência local. */
 async function apiFetch(caminho, opcoes){
   const resposta = await fetch(caminho, { credentials:'same-origin', headers:{'Content-Type':'application/json'}, ...opcoes });
-  if(resposta.status === 401){ await doLogout(); throw new Error('Sua sessão expirou. Faça login novamente.'); }
+  if(resposta.status === 401){
+    let dados401 = null;
+    try { dados401 = await resposta.clone().json(); } catch(e) {}
+    // Login/cadastro são rotas públicas: um 401 ali significa credencial inválida,
+    // não uma sessão expirada. Só desloga quando uma rota protegida devolve 401.
+    if(caminho !== '/api/auth/login' && caminho !== '/api/auth/registrar'){
+      await doLogout();
+    }
+    throw new Error((dados401 && dados401.erro) || 'Sua sessão expirou. Faça login novamente.');
+  }
   let dados = null;
   try{ dados = await resposta.json(); }catch(e){ /* corpo vazio, ok */ }
   if(!resposta.ok){ throw new Error((dados && dados.erro) || 'Não foi possível concluir a operação no servidor.'); }

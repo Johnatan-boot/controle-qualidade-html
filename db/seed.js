@@ -11,12 +11,11 @@ const SENHA_PADRAO = {
   operador: process.env.SEED_SENHA_OPERADOR || 'KingStar@2026',
 };
 
-async function main() {
+async function garantirSeed() {
   const [rows] = await pool.query('SELECT COUNT(*) AS total FROM usuarios');
   if (rows[0].total > 0) {
     console.log('Banco já contém usuários — seed ignorado (nada foi alterado).');
-    await pool.end();
-    return;
+    return false;
   }
 
   const usuarios = [
@@ -53,12 +52,25 @@ async function main() {
     ['RECEBIMENTO', 'BUE064X188X35AFITASUEDEXSUECIN', 'BAU ESPECIAL 064 X 188 X 35 AF ITABOX SUEDE', 'ITABOX', 647.54, 1, 'PESINHO SOLTO', 'PENDENTE', 'Administrador Geral']
   );
 
-  console.log('Seed concluído com sucesso.');
+  console.log('Seed inicial concluído com sucesso.');
   console.log(`Usuários criados: gestao / admin / operador — senha provisória: ${SENHA_PADRAO.gestao} (todos devem trocar no primeiro acesso).`);
-  await pool.end();
+  return true;
 }
 
-main().catch(err => {
-  console.error('Falha no seed:', err.message);
-  process.exit(1);
-});
+async function main() {
+  try {
+    await garantirSeed();
+  } catch (err) {
+    console.error('Falha no seed:', err.message);
+    process.exitCode = 1;
+  } finally {
+    await pool.end();
+  }
+}
+
+if (require.main === module) {
+  main();
+}
+
+
+module.exports = { garantirSeed };

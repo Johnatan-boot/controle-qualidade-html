@@ -7,3 +7,7 @@ npm-debug.log*
 # nunca versionar credenciais soltas em arquivos de texto
 *.txt
 !README.txt
+
+# arquivos de ambiente com credenciais
+.env.*
+!.env.example

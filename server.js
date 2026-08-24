@@ -4,6 +4,7 @@ const express = require('express');
 const cookieParser = require('cookie-parser');
 
 const { aplicarSchema } = require('./db/setup');
+const { garantirSeed } = require('./db/seed');
 const authRoutes = require('./routes/auth');
 const apiRoutes = require('./routes/api');
 
@@ -49,8 +50,10 @@ app.use((err, req, res, next) => {
 // recriado do zero. Como todo comando do schema.sql usa "CREATE TABLE IF NOT
 // EXISTS", rodar isso a cada boot é seguro e nunca apaga dados existentes.
 aplicarSchema()
-  .then(() => {
+  .then(async () => {
     console.log('Schema do banco verificado/aplicado com sucesso.');
+    await garantirSeed();
+    console.log('Seed inicial verificado com sucesso.');
     app.listen(PORT, '0.0.0.0', () => {
       console.log(`Servidor rodando na porta ${PORT}`);
     });

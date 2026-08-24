@@ -28,6 +28,52 @@ async function registrarLogAcesso(usuarioNome, login, sucesso) {
 
 // IMPORTANTE: esta é a ÚNICA rota de autenticação que fica fora da guarda de
 // login — todas as demais rotas de /api/* exigem token válido (ver server.js).
+
+router.post('/registrar', asyncHandler(async (req, res) => {
+  const { nome, email, login, senha, setor } = req.body || {};
+  const nomeN = String(nome || '').trim();
+  const emailN = String(email || '').trim().toLowerCase();
+  const loginN = String(login || '').trim().toLowerCase();
+  const setorN = String(setor || '').trim() || null;
+
+  if (!nomeN || !emailN || !loginN || !senha) {
+    return res.status(400).json({ erro: 'Preencha nome, e-mail, usuário e senha.' });
+  }
+  if (nomeN.length < 3) return res.status(400).json({ erro: 'Informe um nome válido.' });
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailN)) {
+    return res.status(400).json({ erro: 'Informe um e-mail válido.' });
+  }
+  if (!/^[a-z0-9._-]{3,60}$/.test(loginN)) {
+    return res.status(400).json({ erro: 'O usuário deve ter 3 a 60 caracteres e usar apenas letras, números, ponto, hífen ou sublinhado.' });
+  }
+  if (String(senha).length < 8) {
+    return res.status(400).json({ erro: 'A senha deve ter ao menos 8 caracteres.' });
+  }
+
+  const [existentes] = await pool.query(
+    'SELECT id, login, email FROM usuarios WHERE login = ? OR LOWER(email) = ? LIMIT 1',
+    [loginN, emailN]
+  );
+  if (existentes[0]) {
+    const campo = existentes[0].login === loginN ? 'usuário' : 'e-mail';
+    return res.status(409).json({ erro: `Este ${campo} já está cadastrado.` });
+  }
+
+  const senhaHash = await bcrypt.hash(String(senha), 10);
+  const [result] = await pool.query(
+    `INSERT INTO usuarios
+      (nome, email, login, senha_hash, perfil, setor, ativo, precisa_trocar_senha)
+     VALUES (?, ?, ?, ?, 'OPERADOR', ?, 1, 0)`,
+    [nomeN, emailN, loginN, senhaHash, setorN]
+  );
+
+  res.status(201).json({
+    ok: true,
+    mensagem: 'Cadastro realizado. Agora você já pode entrar no sistema.',
+    usuario: { id: result.insertId, nome: nomeN, email: emailN, login: loginN, perfil: 'OPERADOR', setor: setorN }
+  });
+}));
+
 router.post('/login', asyncHandler(async (req, res) => {
   const { login, senha } = req.body || {};
   if (!login || !senha) return res.status(400).json({ erro: 'Informe usuário e senha.' });
