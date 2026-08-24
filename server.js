@@ -7,6 +7,7 @@ const { aplicarSchema } = require('./db/setup');
 const { garantirSeed } = require('./db/seed');
 const authRoutes = require('./routes/auth');
 const apiRoutes = require('./routes/api');
+const pool = require('./db/pool');
 
 // Rede de segurança de último recurso: se algum erro escapar de tudo (ex.: um
 // bug num código que roda fora de uma rota Express), registra no log em vez
@@ -21,6 +22,14 @@ process.on('uncaughtException', (err) => {
   console.error('Erro não tratado (uncaughtException):', err);
 });
 
+async function shutdown(signal) {
+  console.log(`Recebido ${signal}; encerrando pool MySQL...`);
+  try { await pool.end(); } catch (err) { console.error('Erro ao encerrar pool:', err.message); }
+  process.exit(0);
+}
+process.once('SIGTERM', () => shutdown('SIGTERM'));
+process.once('SIGINT', () => shutdown('SIGINT'));
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -28,6 +37,18 @@ app.use(express.json({ limit: '25mb' })); // fotos em base64 podem deixar o payl
 app.use(cookieParser());
 
 app.get('/favicon.ico', (req, res) => res.status(204).end());
+
+// Health check não exige autenticação e ajuda o Render a distinguir aplicação
+// no ar de aplicação conectada corretamente ao banco.
+app.get('/health', async (req, res) => {
+  try {
+    await pool.query('SELECT 1 AS ok');
+    res.json({ ok: true, database: 'connected' });
+  } catch (err) {
+    console.error('Health check do banco falhou:', err.message);
+    res.status(503).json({ ok: false, database: 'unavailable' });
+  }
+});
 
 app.use(express.static(path.join(__dirname, 'public')));
 

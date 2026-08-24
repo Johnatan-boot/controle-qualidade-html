@@ -159,3 +159,11 @@ Depois do primeiro deploy real, apareceram dois problemas — ambos corrigidos a
    mesmo com o cookie de sessão válido por 8h, um F5 sempre te devolvia pra
    tela de login. Agora a página chama `/api/auth/me` automaticamente ao
    carregar e retoma a sessão se o cookie ainda for válido.
+
+## Banco de produção — limite de conexões
+
+A Clever Cloud utilizada neste projeto limita o usuário MySQL a 5 conexões simultâneas.
+O pool do backend foi ajustado para usar no máximo 2 conexões por padrão (configurável por
+`DB_CONNECTION_LIMIT`, limitado pelo código a 4), evitando `ER_USER_LIMIT_REACHED`.
+
+Também foi adicionado `GET /health` para validar a conexão com o banco sem autenticação.
