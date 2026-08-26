@@ -191,17 +191,88 @@ router.post('/divergencias-produtos', asyncHandler(async (req, res) => {
 
 router.put('/divergencias-produtos/:id', asyncHandler(async (req, res) => {
   const d = req.body || {};
-  const categoria = await resolverCategoriaDivergencia(d);
-  await pool.query(
-    `UPDATE divergencias_produtos SET setor=?, sku=?, descricao=?, categoria=?, fornecedor=?, valor_unit=?, qtd=?, cod_divergencia=?,
-      outro_cod_div=?, status=?, responsavel=?, data=?, prazo_correcao=?, data_conclusao=?, observacao=?, fotos_json=CAST(? AS JSON) WHERE id=?`,
-    [d.setor, d.sku, d.descricao || null, categoria, d.fornecedor || null, d.valorUnit || 0, d.qtd || 1, d.codDiv, d.outroCodDiv || null,
-     d.status || 'PENDENTE', d.responsavel || null, d.data, d.prazoCorrecao || null, d.dataConclusao || null, d.obs || null,
-     JSON.stringify(d.fotos || []), req.params.id]
+
+  // Busca a divergência atual para preservar campos obrigatórios,
+  // principalmente a data original.
+  const [existentes] = await pool.query(
+    'SELECT * FROM divergencias_produtos WHERE id = ?',
+    [req.params.id]
   );
-  await registrarHistorico('divergencias_produtos', req.params.id, 'EDICAO', req.usuario.nome, `${req.usuario.nome} editou a divergência nº ${req.params.id}.`);
-  const [rows] = await pool.query('SELECT * FROM divergencias_produtos WHERE id = ?', [req.params.id]);
-  if (!rows[0]) return res.status(404).json({ erro: 'Divergência não encontrada.' });
+
+  if (!existentes[0]) {
+    return res.status(404).json({
+      erro: 'Divergência não encontrada.'
+    });
+  }
+
+  const atual = existentes[0];
+
+  const categoria = await resolverCategoriaDivergencia(d);
+
+  await pool.query(
+    `UPDATE divergencias_produtos SET
+      setor=?,
+      sku=?,
+      descricao=?,
+      categoria=?,
+      fornecedor=?,
+      valor_unit=?,
+      qtd=?,
+      cod_divergencia=?,
+      outro_cod_div=?,
+      status=?,
+      responsavel=?,
+      data=?,
+      prazo_correcao=?,
+      data_conclusao=?,
+      observacao=?,
+      fotos_json=CAST(? AS JSON)
+    WHERE id=?`,
+    [
+      d.setor ?? atual.setor,
+      d.sku ?? atual.sku,
+      d.descricao ?? atual.descricao,
+      categoria ?? atual.categoria,
+      d.fornecedor ?? atual.fornecedor,
+      d.valorUnit ?? atual.valor_unit,
+      d.qtd ?? atual.qtd,
+      d.codDiv ?? atual.cod_divergencia,
+      d.outroCodDiv ?? atual.outro_cod_div,
+      d.status ?? atual.status,
+      d.responsavel ?? atual.responsavel,
+
+      // IMPORTANTE:
+      // se o frontend não mandar data, mantém a data existente
+      d.data ?? atual.data,
+
+      d.prazoCorrecao ?? atual.prazo_correcao,
+      d.dataConclusao ?? atual.data_conclusao,
+      d.obs ?? atual.observacao,
+
+      // Mantém as fotos existentes se o frontend não enviar fotos
+      JSON.stringify(
+        d.fotos !== undefined
+          ? d.fotos
+          : parseJsonColumn(atual.fotos_json, [])
+      ),
+
+      req.params.id
+    ]
+  );
+
+  await registrarHistorico(
+    'divergencias_produtos',
+    req.params.id,
+    'EDICAO',
+    req.usuario.nome,
+    `${req.usuario.nome} editou a divergência nº ${req.params.id}.`
+  );
+
+  const [rows] = await pool.query(
+    'SELECT * FROM divergencias_produtos WHERE id = ?',
+    [req.params.id]
+  );
+
   res.json(mapDivergenciaProduto(rows[0]));
 }));
 
