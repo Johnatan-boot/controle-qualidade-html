@@ -16,6 +16,19 @@ function parseJsonColumn(v, fallback) {
   try { return JSON.parse(v); } catch (e) { return fallback; }
 }
 
+// Converte strings vazias ou com espaços em null para evitar erros de data/coluna no MySQL
+function cleanDate(v) {
+  if (v === undefined || v === null) return null;
+  const str = String(v).trim();
+  return str === '' ? null : str;
+}
+
+function cleanText(v) {
+  if (v === undefined || v === null) return null;
+  const str = String(v).trim();
+  return str === '' ? null : str;
+}
+
 async function registrarHistorico(tabela, registroId, acao, usuarioNome, descricao) {
   await pool.query(
     'INSERT INTO historico_alteracoes (tabela, registro_id, acao, usuario_nome, descricao) VALUES (?,?,?,?,?)',
@@ -25,14 +38,9 @@ async function registrarHistorico(tabela, registroId, acao, usuarioNome, descric
 
 // Deriva a categoria de um produto a partir do prefixo alfabético do código
 // (SKU) — ex.: "CMP158X198X32ECUXFIRDES" -> "CMP", "BUP096X203X36..." -> "BUP".
-// Usado como fallback sempre que a categoria não vem explícita (nem digitada
-// no cadastro manual, nem numa coluna "Categoria" da planilha importada).
 function derivarCategoria(codigo) {
   if (!codigo) return null;
   const m = String(codigo).trim().match(/^[A-Za-zÀ-ÿ]+/);
-  // Os prefixos observados nos SKUs reais têm sempre 3 letras (CMP, BUP, BXP,
-  // ALM, BUE, CEP...) antes do primeiro número — usa isso como tamanho padrão
-  // da categoria derivada, mesmo que o código tenha mais letras seguidas.
   return m ? m[0].slice(0, 3).toUpperCase() : null;
 }
 
@@ -90,7 +98,7 @@ router.post('/produtos', asyncHandler(async (req, res) => {
   try {
     const [result] = await pool.query(
       'INSERT INTO produtos (codigo, descricao, grupo, categoria, preco, fornecedor, familia) VALUES (?,?,?,?,?,?,?)',
-      [codigo, descricao, grupo || null, categoriaFinal, preco || 0, fornecedor || null, familia || null]
+      [codigo, descricao, cleanText(grupo), categoriaFinal, preco || 0, cleanText(fornecedor), cleanText(familia)]
     );
     await registrarHistorico('produtos', result.insertId, 'CRIACAO', req.usuario.nome, `${req.usuario.nome} cadastrou o produto ${codigo} (${descricao}).`);
     const [rows] = await pool.query('SELECT * FROM produtos WHERE id = ?', [result.insertId]);
@@ -105,14 +113,12 @@ router.put('/produtos/:id', asyncHandler(async (req, res) => {
   const { descricao, grupo, categoria, preco, fornecedor, familia } = req.body || {};
   const [existentes] = await pool.query('SELECT codigo, categoria FROM produtos WHERE id = ?', [req.params.id]);
   if (!existentes[0]) return res.status(404).json({ erro: 'Produto não encontrado.' });
-  // Se ninguém informou categoria explicitamente, preserva a já cadastrada; se
-  // também nunca teve uma, deriva do código (SKU) do próprio produto.
   const categoriaFinal = (categoria && String(categoria).trim())
     || existentes[0].categoria
     || derivarCategoria(existentes[0].codigo);
   await pool.query(
     'UPDATE produtos SET descricao=?, grupo=?, categoria=?, preco=?, fornecedor=?, familia=? WHERE id=?',
-    [descricao, grupo || null, categoriaFinal, preco || 0, fornecedor || null, familia || null, req.params.id]
+    [descricao, cleanText(grupo), categoriaFinal, preco || 0, cleanText(fornecedor), cleanText(familia), req.params.id]
   );
   await registrarHistorico('produtos', req.params.id, 'EDICAO', req.usuario.nome, `${req.usuario.nome} editou o produto (${descricao}).`);
   const [rows] = await pool.query('SELECT * FROM produtos WHERE id = ?', [req.params.id]);
@@ -132,21 +138,18 @@ router.post('/produtos/importar', asyncHandler(async (req, res) => {
   let criados = 0, atualizados = 0, ignorados = 0;
   for (const l of linhas) {
     if (!l || !l.codigo || !l.descricao) { ignorados++; continue; }
-    // Categoria: usa a coluna "Categoria" da planilha quando ela vem preenchida;
-    // se a planilha não tiver essa coluna (ou a linha vier em branco), deriva
-    // automaticamente do prefixo do código (SKU) — mesma regra do cadastro manual.
     const categoriaFinal = (l.categoria && String(l.categoria).trim()) || derivarCategoria(l.codigo);
     const [existentes] = await pool.query('SELECT id FROM produtos WHERE codigo = ?', [l.codigo]);
     if (existentes[0]) {
       await pool.query(
         'UPDATE produtos SET descricao=?, grupo=?, categoria=?, preco=?, fornecedor=?, familia=? WHERE id=?',
-        [l.descricao, l.grupo || null, categoriaFinal, l.preco || 0, l.fornecedor || null, l.familia || null, existentes[0].id]
+        [l.descricao, cleanText(l.grupo), categoriaFinal, l.preco || 0, cleanText(l.fornecedor), cleanText(l.familia), existentes[0].id]
       );
       atualizados++;
     } else {
       await pool.query(
         'INSERT INTO produtos (codigo, descricao, grupo, categoria, preco, fornecedor, familia) VALUES (?,?,?,?,?,?,?)',
-        [l.codigo, l.descricao, l.grupo || null, categoriaFinal, l.preco || 0, l.fornecedor || null, l.familia || null]
+        [l.codigo, l.descricao, cleanText(l.grupo), categoriaFinal, l.preco || 0, cleanText(l.fornecedor), cleanText(l.familia)]
       );
       criados++;
     }
@@ -163,8 +166,6 @@ router.get('/divergencias-produtos', asyncHandler(async (req, res) => {
   res.json(rows.map(mapDivergenciaProduto));
 }));
 
-// Resolve a categoria de uma divergência: usa a informada explicitamente; senão
-// busca a categoria já cadastrada do produto pelo SKU; senão deriva do prefixo do SKU.
 async function resolverCategoriaDivergencia(d) {
   if (d.categoria && String(d.categoria).trim()) return String(d.categoria).trim();
   if (d.sku) {
@@ -181,8 +182,23 @@ router.post('/divergencias-produtos', asyncHandler(async (req, res) => {
     `INSERT INTO divergencias_produtos
       (setor, sku, descricao, categoria, fornecedor, valor_unit, qtd, cod_divergencia, outro_cod_div, status, responsavel, data, prazo_correcao, observacao, fotos_json)
      VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,CAST(? AS JSON))`,
-    [d.setor, d.sku, d.descricao || null, categoria, d.fornecedor || null, d.valorUnit || 0, d.qtd || 1, d.codDiv, d.outroCodDiv || null,
-     d.status || 'PENDENTE', d.responsavel || null, d.data, d.prazoCorrecao || null, d.obs || null, JSON.stringify(d.fotos || [])]
+    [
+      cleanText(d.setor),
+      cleanText(d.sku),
+      cleanText(d.descricao),
+      categoria,
+      cleanText(d.fornecedor),
+      d.valorUnit || 0,
+      d.qtd || 1,
+      cleanText(d.codDiv),
+      cleanText(d.outroCodDiv),
+      d.status || 'PENDENTE',
+      cleanText(d.responsavel),
+      cleanDate(d.data),
+      cleanDate(d.prazoCorrecao),
+      cleanText(d.obs),
+      JSON.stringify(d.fotos || [])
+    ]
   );
   await registrarHistorico('divergencias_produtos', result.insertId, 'CRIACAO', req.usuario.nome, `${req.usuario.nome} registrou a divergência nº ${result.insertId} (${d.sku}, setor ${d.setor}).`);
   const [rows] = await pool.query('SELECT * FROM divergencias_produtos WHERE id = ?', [result.insertId]);
@@ -192,8 +208,6 @@ router.post('/divergencias-produtos', asyncHandler(async (req, res) => {
 router.put('/divergencias-produtos/:id', asyncHandler(async (req, res) => {
   const d = req.body || {};
 
-  // Busca a divergência atual para preservar campos obrigatórios,
-  // principalmente a data original.
   const [existentes] = await pool.query(
     'SELECT * FROM divergencias_produtos WHERE id = ?',
     [req.params.id]
@@ -206,7 +220,6 @@ router.put('/divergencias-produtos/:id', asyncHandler(async (req, res) => {
   }
 
   const atual = existentes[0];
-
   const categoria = await resolverCategoriaDivergencia(d);
 
   await pool.query(
@@ -229,33 +242,26 @@ router.put('/divergencias-produtos/:id', asyncHandler(async (req, res) => {
       fotos_json=CAST(? AS JSON)
     WHERE id=?`,
     [
-      d.setor ?? atual.setor,
-      d.sku ?? atual.sku,
-      d.descricao ?? atual.descricao,
+      d.setor !== undefined ? cleanText(d.setor) : atual.setor,
+      d.sku !== undefined ? cleanText(d.sku) : atual.sku,
+      d.descricao !== undefined ? cleanText(d.descricao) : atual.descricao,
       categoria ?? atual.categoria,
-      d.fornecedor ?? atual.fornecedor,
-      d.valorUnit ?? atual.valor_unit,
-      d.qtd ?? atual.qtd,
-      d.codDiv ?? atual.cod_divergencia,
-      d.outroCodDiv ?? atual.outro_cod_div,
-      d.status ?? atual.status,
-      d.responsavel ?? atual.responsavel,
-
-      // IMPORTANTE:
-      // se o frontend não mandar data, mantém a data existente
-      d.data ?? atual.data,
-
-      d.prazoCorrecao ?? atual.prazo_correcao,
-      d.dataConclusao ?? atual.data_conclusao,
-      d.obs ?? atual.observacao,
-
-      // Mantém as fotos existentes se o frontend não enviar fotos
+      d.fornecedor !== undefined ? cleanText(d.fornecedor) : atual.fornecedor,
+      d.valorUnit !== undefined ? d.valorUnit : atual.valor_unit,
+      d.qtd !== undefined ? d.qtd : atual.qtd,
+      d.codDiv !== undefined ? cleanText(d.codDiv) : atual.cod_divergencia,
+      d.outroCodDiv !== undefined ? cleanText(d.outroCodDiv) : atual.outro_cod_div,
+      d.status !== undefined ? d.status : atual.status,
+      d.responsavel !== undefined ? cleanText(d.responsavel) : atual.responsavel,
+      d.data !== undefined ? cleanDate(d.data) : atual.data,
+      d.prazoCorrecao !== undefined ? cleanDate(d.prazoCorrecao) : atual.prazo_correcao,
+      d.dataConclusao !== undefined ? cleanDate(d.dataConclusao) : atual.data_conclusao,
+      d.obs !== undefined ? cleanText(d.obs) : atual.observacao,
       JSON.stringify(
         d.fotos !== undefined
           ? d.fotos
           : parseJsonColumn(atual.fotos_json, [])
       ),
-
       req.params.id
     ]
   );
@@ -300,14 +306,14 @@ router.post('/inspecoes-estoque', asyncHandler(async (req, res) => {
   const conn = await pool.getConnection();
   try {
     await conn.beginTransaction();
-    const [result] = await conn.query('INSERT INTO inspecoes_estoque (data, responsavel) VALUES (?,?)', [data, responsavel || null]);
+    const [result] = await conn.query('INSERT INTO inspecoes_estoque (data, responsavel) VALUES (?,?)', [cleanDate(data), cleanText(responsavel)]);
     const inspecaoId = result.insertId;
     let ordem = 1;
     for (const d of (divergencias || [])) {
       await conn.query(
         `INSERT INTO inspecoes_estoque_itens (inspecao_id, ordem, tipo, divergencia, outro_desc, observacao, status, fotos_json)
          VALUES (?,?,?,?,?,?,?,CAST(? AS JSON))`,
-        [inspecaoId, ordem++, d.tipo, d.divergencia, d.outroDesc || null, d.obs || null, d.status || 'PENDENTE', JSON.stringify(d.fotos || [])]
+        [inspecaoId, ordem++, cleanText(d.tipo), cleanText(d.divergencia), cleanText(d.outroDesc), cleanText(d.obs), d.status || 'PENDENTE', JSON.stringify(d.fotos || [])]
       );
     }
     await conn.commit();
@@ -327,7 +333,7 @@ router.put('/inspecoes-estoque/itens/:itemId', asyncHandler(async (req, res) => 
   if (!existentes[0]) return res.status(404).json({ erro: 'Item de inspeção não encontrado.' });
   await pool.query(
     'UPDATE inspecoes_estoque_itens SET status=?, observacao=?, data_conclusao=? WHERE id=?',
-    [status, obs || null, dataConclusao || null, req.params.itemId]
+    [status || null, cleanText(obs), cleanDate(dataConclusao), req.params.itemId]
   );
   await registrarHistorico('inspecoes_estoque', existentes[0].inspecao_id, 'EDICAO', req.usuario.nome, `${req.usuario.nome} atualizou uma pendência da inspeção de estoque nº ${existentes[0].inspecao_id}.`);
   const [rows] = await pool.query('SELECT * FROM inspecoes_estoque_itens WHERE id = ?', [req.params.itemId]);
@@ -337,7 +343,7 @@ router.put('/inspecoes-estoque/itens/:itemId', asyncHandler(async (req, res) => 
 router.delete('/inspecoes-estoque/:id', requireRole('GESTAO'), asyncHandler(async (req, res) => {
   const [rows] = await pool.query('SELECT * FROM inspecoes_estoque WHERE id = ?', [req.params.id]);
   if (!rows[0]) return res.status(404).json({ erro: 'Inspeção não encontrada.' });
-  await pool.query('DELETE FROM inspecoes_estoque WHERE id = ?', [req.params.id]); // itens somem via ON DELETE CASCADE
+  await pool.query('DELETE FROM inspecoes_estoque WHERE id = ?', [req.params.id]);
   await registrarHistorico('inspecoes_estoque', req.params.id, 'EXCLUSAO', req.usuario.nome, `${req.usuario.nome} excluiu a inspeção de estoque nº ${req.params.id}.`);
   res.json({ ok: true });
 }));
@@ -363,7 +369,7 @@ router.post('/checklists-5s', asyncHandler(async (req, res) => {
     await conn.beginTransaction();
     const [result] = await conn.query(
       'INSERT INTO checklists_5s (setor, turno, responsavel, data, conformidade, anexos_json) VALUES (?,?,?,?,?,CAST(? AS JSON))',
-      [setor, turno || null, responsavel || null, data, conformidade || 0, JSON.stringify(anexos || [])]
+      [cleanText(setor), cleanText(turno), cleanText(responsavel), cleanDate(data), conformidade || 0, JSON.stringify(anexos || [])]
     );
     const checklistId = result.insertId;
     let ordem = 1;
@@ -371,7 +377,19 @@ router.post('/checklists-5s', asyncHandler(async (req, res) => {
       await conn.query(
         `INSERT INTO checklists_5s_itens (checklist_id, ordem, senso, descricao, resp, observacao, acao_corretiva, responsavel_nc, criticidade, status, prazo)
          VALUES (?,?,?,?,?,?,?,?,?,?,?)`,
-        [checklistId, ordem++, it.senso, it.desc, it.resp, it.obs || null, it.acaoCorretiva || null, it.respNc || null, it.criticidade || null, it.status || null, it.prazo || null]
+        [
+          checklistId,
+          ordem++,
+          cleanText(it.senso),
+          cleanText(it.desc),
+          cleanText(it.resp),
+          cleanText(it.obs),
+          cleanText(it.acaoCorretiva),
+          cleanText(it.respNc),
+          cleanText(it.criticidade),
+          cleanText(it.status),
+          cleanDate(it.prazo)
+        ]
       );
     }
     await conn.commit();
@@ -391,7 +409,16 @@ router.put('/checklists-5s/itens/:itemId', asyncHandler(async (req, res) => {
   if (!existentes[0]) return res.status(404).json({ erro: 'Item do checklist não encontrado.' });
   await pool.query(
     'UPDATE checklists_5s_itens SET status=?, observacao=?, acao_corretiva=?, responsavel_nc=?, criticidade=?, prazo=?, data_conclusao=? WHERE id=?',
-    [status || null, obs || null, acaoCorretiva || null, respNc || null, criticidade || null, prazo || null, dataConclusao || null, req.params.itemId]
+    [
+      cleanText(status),
+      cleanText(obs),
+      cleanText(acaoCorretiva),
+      cleanText(respNc),
+      cleanText(criticidade),
+      cleanDate(prazo),
+      cleanDate(dataConclusao),
+      req.params.itemId
+    ]
   );
   await registrarHistorico('checklists_5s', existentes[0].checklist_id, 'EDICAO', req.usuario.nome, `${req.usuario.nome} atualizou uma pendência do checklist 5S nº ${existentes[0].checklist_id}.`);
   const [rows] = await pool.query('SELECT * FROM checklists_5s_itens WHERE id = ?', [req.params.itemId]);
@@ -430,9 +457,19 @@ router.post('/inspecoes-recebimento', asyncHandler(async (req, res) => {
       `INSERT INTO inspecoes_recebimento
         (id, data_inspecao, fornecedor, fornecedor_outro, resultado_fornecedor, divergencia_fornecedor_json,
          resultado_operacional, divergencia_operacional_json, status_final, usuario_responsavel, data_finalizacao)
-       VALUES (?,?,?,?,?,CAST(? AS JSON),?,CAST(? AS JSON),?,?,NOW())`,
-      [id, d.dataInspecao, d.fornecedor, d.fornecedorOutro || null, d.resultadoFornecedor, JSON.stringify(d.divergenciaFornecedor || {}),
-       d.resultadoOperacional, JSON.stringify(d.divergenciaOperacional || {}), d.statusFinal, req.usuario.nome]
+        VALUES (?,?,?,?,?,CAST(? AS JSON),?,CAST(? AS JSON),?,?,NOW())`,
+      [
+        id,
+        cleanDate(d.dataInspecao),
+        cleanText(d.fornecedor),
+        cleanText(d.fornecedorOutro),
+        cleanText(d.resultadoFornecedor),
+        JSON.stringify(d.divergenciaFornecedor || {}),
+        cleanText(d.resultadoOperacional),
+        JSON.stringify(d.divergenciaOperacional || {}),
+        cleanText(d.statusFinal),
+        req.usuario.nome
+      ]
     );
     await conn.commit();
     await registrarHistorico('inspecoes_recebimento', id, 'CRIACAO', req.usuario.nome, `${req.usuario.nome} finalizou a inspeção de recebimento ${id} (fornecedor ${d.fornecedor}) — status ${d.statusFinal}.`);
@@ -452,8 +489,18 @@ router.put('/inspecoes-recebimento/:id', asyncHandler(async (req, res) => {
     `UPDATE inspecoes_recebimento SET data_inspecao=?, fornecedor=?, fornecedor_outro=?, resultado_fornecedor=?,
       divergencia_fornecedor_json=CAST(? AS JSON), resultado_operacional=?, divergencia_operacional_json=CAST(? AS JSON),
       status_final=?, usuario_responsavel=? WHERE id=?`,
-    [d.dataInspecao, d.fornecedor, d.fornecedorOutro || null, d.resultadoFornecedor, JSON.stringify(d.divergenciaFornecedor || {}),
-     d.resultadoOperacional, JSON.stringify(d.divergenciaOperacional || {}), d.statusFinal, req.usuario.nome, req.params.id]
+    [
+      cleanDate(d.dataInspecao),
+      cleanText(d.fornecedor),
+      cleanText(d.fornecedorOutro),
+      cleanText(d.resultadoFornecedor),
+      JSON.stringify(d.divergenciaFornecedor || {}),
+      cleanText(d.resultadoOperacional),
+      JSON.stringify(d.divergenciaOperacional || {}),
+      cleanText(d.statusFinal),
+      req.usuario.nome,
+      req.params.id
+    ]
   );
   await registrarHistorico('inspecoes_recebimento', req.params.id, 'EDICAO', req.usuario.nome, `${req.usuario.nome} editou a inspeção de recebimento ${req.params.id}.`);
   const [rows] = await pool.query('SELECT * FROM inspecoes_recebimento WHERE id = ?', [req.params.id]);
@@ -513,7 +560,7 @@ router.post('/usuarios', requireRole('GESTAO'), asyncHandler(async (req, res) =>
     const hash = await bcrypt.hash(senha, 10);
     const [result] = await pool.query(
       'INSERT INTO usuarios (nome, email, login, senha_hash, perfil, setor, ativo, precisa_trocar_senha) VALUES (?,?,?,?,?,?,1,1)',
-      [nome, email, String(login).trim().toLowerCase(), hash, perfil, setor || null]
+      [cleanText(nome), cleanText(email), String(login).trim().toLowerCase(), hash, cleanText(perfil), cleanText(setor)]
     );
     await registrarHistorico('usuarios', result.insertId, 'CRIACAO', req.usuario.nome, `${req.usuario.nome} criou o usuário ${nome} (${login}).`);
     const [rows] = await pool.query('SELECT * FROM usuarios WHERE id = ?', [result.insertId]);
@@ -530,10 +577,10 @@ router.put('/usuarios/:id', requireRole('GESTAO'), asyncHandler(async (req, res)
   if (novaSenha) {
     const hash = await bcrypt.hash(novaSenha, 10);
     await pool.query('UPDATE usuarios SET nome=?, email=?, perfil=?, setor=?, senha_hash=?, precisa_trocar_senha=1 WHERE id=?',
-      [nome, email, perfil, setor || null, hash, req.params.id]);
+      [cleanText(nome), cleanText(email), cleanText(perfil), cleanText(setor), hash, req.params.id]);
   } else {
     await pool.query('UPDATE usuarios SET nome=?, email=?, perfil=?, setor=? WHERE id=?',
-      [nome, email, perfil, setor || null, req.params.id]);
+      [cleanText(nome), cleanText(email), cleanText(perfil), cleanText(setor), req.params.id]);
   }
   await registrarHistorico('usuarios', req.params.id, 'EDICAO', req.usuario.nome, `${req.usuario.nome} editou o usuário ${nome}.`);
   const [rows] = await pool.query('SELECT * FROM usuarios WHERE id = ?', [req.params.id]);
