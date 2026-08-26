@@ -770,7 +770,6 @@ function renderProdutos() {
     <div class="tabs tabs-com-logo">
       <div class="tabs-lista">${tabs.map(([k, l]) => `<button class="tab-btn ${produtosTab === k ? "active" : ""}" onclick="produtosTab='${k}';renderProdutos();">${l}</button>`).join("")}</div>
       <div class="tabs-logos">
-        <img class="tabs-logo" src="${LOGO_KING_STAR_DATA_URI}" alt="King Star" title="Q.A. King Star">
         <img class="tabs-logo tabs-logo-grande" src="./assets/logo-king-star-oval.jpg" alt="King Star" title="King Star">
       </div>
     </div>
