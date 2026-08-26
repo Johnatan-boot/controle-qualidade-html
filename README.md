@@ -195,3 +195,43 @@ Também foi adicionado `GET /health` para validar a conexão com o banco sem aut
   SweetAlert2 (biblioteca embutida localmente em
   `public/scripts/sweetalert2.min.js`, sem depender de CDN externo),
   seguindo as cores do sistema.
+
+## Busca do Cadastro de Produtos refeita (leitura completa da Descrição)
+
+A busca anterior comparava a Descrição (e os demais campos) como um texto
+único e exigia que os termos digitados aparecessem exatamente na mesma
+ordem e "colados" (sem espaços) dentro desse texto — por isso buscar
+"EVEREST MOLA" não encontrava o produto "BI MOLA EVEREST ...", mesmo sendo
+o mesmo produto com as palavras em outra ordem.
+
+A busca foi reescrita do zero:
+
+- O texto digitado é dividido em termos (palavras e, separadamente, valores
+  decimais como "185,85", reconhecidos mesmo com vírgula).
+- Cada termo pode aparecer em qualquer lugar entre os campos Descrição,
+  Código (SKU), Categoria, Fornecedor, Grupo e Família — em qualquer ordem
+  — e **todos** os termos digitados precisam ser encontrados (busca "E",
+  não "OU"), então buscas com várias palavras ficam mais precisas.
+- Um termo numérico decimal (ex.: "185,85" ou "560,56") é comparado contra
+  o valor unitário do produto, permitindo buscar por preço junto com
+  palavras da descrição (ex.: "VELUDO 560,56").
+- Os resultados são ordenados por relevância: produtos cujo termo aparece
+  na **Descrição** aparecem primeiro, seguidos por Código, depois
+  Categoria/Fornecedor e por fim Grupo/Família.
+
+Testado com a planilha real de produtos enviada (11.605 itens): a
+importação foi conferida campo a campo (SKU, Descrição, Grupo, Valor,
+Fornecedor, Família), o produto de exemplo `BUP096X203X36AFDBOXPREMVELCHO`
+foi localizado corretamente com termos fora de ordem
+("EVEREST MOLA" → "BI MOLA EVEREST..."), buscas combinando fornecedor +
+palavra da descrição, e buscas por preço (isolado e combinado com
+palavra) — todas retornando os resultados esperados.
+
+**Observação:** 344 códigos (SKU) da planilha real começam com número em
+vez de letra (ex.: "31M088X188X34..."). Como a categoria automática é
+derivada das letras iniciais do código, esses itens ficam sem categoria
+derivada quando a planilha não traz uma coluna "Categoria" preenchida
+para eles. Isso não impede a busca (o produto continua sendo encontrado
+normalmente pela Descrição, Código etc.), mas fica registrado aqui caso
+queira que a regra de derivação de categoria seja ajustada para esses
+casos também.

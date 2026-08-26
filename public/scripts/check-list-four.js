@@ -899,16 +899,13 @@ function filtrarProdutoSkuCard(idx, q) {
   produtosDivergenciasState[idx].skuBusca = q;
   const dropdown = document.getElementById(`np-sku-dropdown-${idx}`);
   if (!dropdown) return;
-  const termo = normalizarChaveCabecalho(q || "");
-  if (!termo) {
+  if (!q || !q.trim()) {
     dropdown.style.display = "none";
     dropdown.innerHTML = "";
     produtosSkuMatches[idx] = [];
     return;
   }
-  const matches = PRODUTOS.filter((p) =>
-    produtoCorrespondeBusca(p, termo, q),
-  ).slice(0, 30);
+  const matches = produtosOrdenadosPorBusca(PRODUTOS, q).slice(0, 30);
   produtosSkuMatches[idx] = matches;
   if (!matches.length) {
     dropdown.innerHTML = `<div style="padding:10px 12px;color:var(--ink-faint);font-size:13px;">Nenhum produto encontrado.</div>`;
@@ -1432,20 +1429,12 @@ function renderCadastroProdutos() {
 const CADASTRO_POR_PAGINA = 10;
 let cpPaginaAtual = 1;
 function cadastroProdutosFiltrados() {
-  const busca = (
-    document.getElementById("cp-busca")?.value || ""
-  ).toLowerCase().trim();
-  if (!busca) return PRODUTOS;
-  // Busca também por categoria e fornecedor (além de SKU/descrição/grupo/família),
-  // e por valor — permite digitar um preço (ex.: "185,85" ou "185.85") e encontrar
-  // o produto com aquele valor unitário.
-  const buscaNum = parseNumeroPlanilha(busca.replace(".", ","));
-  return PRODUTOS.filter((p) => {
-    const camposTexto = [p.descricao, p.codigo, p.categoria, p.grupo, p.familia, p.fornecedor];
-    if (camposTexto.some((v) => (v || "").toLowerCase().includes(busca))) return true;
-    if (buscaNum && Number(p.preco).toFixed(2) === buscaNum.toFixed(2)) return true;
-    return false;
-  });
+  const busca = document.getElementById("cp-busca")?.value || "";
+  if (!busca.trim()) return PRODUTOS;
+  // Lê a descrição completa do produto (todas as palavras, em qualquer ordem)
+  // e também código, categoria, fornecedor, grupo, família e valor — resultados
+  // que batem na Descrição aparecem primeiro (ver avaliarBuscaProduto).
+  return produtosOrdenadosPorBusca(PRODUTOS, busca);
 }
 function renderCadastroProdutosRows() {
   const rowsEl = document.getElementById("cp-rows");
@@ -1592,17 +1581,81 @@ function normalizarChaveCabecalho(s) {
     .replace(/[̀-ͯ]/g, "")
     .replace(/[^a-z0-9]/g, "");
 }
-// Usado nos autocompletes de SKU (Inspeção de Produtos / Nova Inspeção): busca
-// por código, descrição, categoria e fornecedor (texto, via termoNormalizado),
-// além de bater por valor unitário quando o termo digitado (queryOriginal, sem
-// a normalização que removeria a vírgula/ponto decimal) for um número — ex.:
-// digitar "185,85" encontra o produto que custa exatamente R$ 185,85.
-function produtoCorrespondeBusca(p, termoNormalizado, queryOriginal) {
-  if (!termoNormalizado) return false;
-  const campos = [p.codigo, p.descricao, p.categoria, p.fornecedor, p.grupo, p.familia];
-  if (campos.some((v) => normalizarChaveCabecalho(v).includes(termoNormalizado))) return true;
-  const termoNum = parseNumeroPlanilha(String(queryOriginal || "").trim());
-  return !!(termoNum && Number(p.preco).toFixed(2) === termoNum.toFixed(2));
+// Como normalizarChaveCabecalho() remove os espaços (útil para nomes de coluna
+// de planilha), ela não serve para separar uma busca em palavras. Esta versão
+// mantém os espaços — usada para quebrar o texto digitado em palavras e para
+// comparar cada palavra dentro da descrição/código/etc. do produto.
+function normalizarParaBusca(s) {
+  return String(s || "")
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+}
+// Extrai os tokens da busca ANTES de normalizarParaBusca() apagar a vírgula/
+// ponto decimal — assim um valor digitado como "185,85" vira um único token
+// numérico (em vez de virar duas palavras soltas "185" e "85" e nunca mais
+// bater com o preço do produto). O restante do texto é quebrado em palavras
+// normalmente.
+function tokensDaBusca(q) {
+  const tokens = [];
+  const semNumeros = String(q || "").replace(/\d+[.,]\d+/g, (m) => {
+    tokens.push({ tipo: "valor", valor: parseNumeroPlanilha(m) });
+    return " ";
+  });
+  const palavras = normalizarParaBusca(semNumeros).split(" ").filter(Boolean);
+  palavras.forEach((p) => tokens.push({ tipo: "texto", valor: p }));
+  return tokens;
+}
+// Motor de busca de produtos usado em todos os pontos do sistema onde se
+// procura um produto (autocomplete de SKU nas inspeções, Cadastro de
+// Produtos): a descrição do produto costuma ser o campo mais completo (traz
+// medidas, cor, linha, acabamento etc.), então a busca lê a descrição por
+// inteiro, palavra por palavra — cada palavra digitada precisa aparecer em
+// algum lugar (não precisa estar na mesma ordem nem serem contíguas), e
+// resultados que batem na Descrição pontuam mais alto que os que batem só em
+// código/categoria/fornecedor/grupo/família. Também aceita digitar um valor
+// (ex.: "185,85") como parte da busca.
+function avaliarBuscaProduto(p, query) {
+  const tokens = tokensDaBusca(query);
+  if (!tokens.length) return { match: false, score: 0 };
+  const corpo = {
+    descricao: normalizarParaBusca(p.descricao),
+    codigo: normalizarParaBusca(p.codigo),
+    categoria: normalizarParaBusca(p.categoria),
+    fornecedor: normalizarParaBusca(p.fornecedor),
+    grupo: normalizarParaBusca(p.grupo),
+    familia: normalizarParaBusca(p.familia),
+  };
+  const PESO = { descricao: 5, codigo: 3, categoria: 2, fornecedor: 2, grupo: 1, familia: 1 };
+  let score = 0;
+  for (const tk of tokens) {
+    let achou = false;
+    if (tk.tipo === "valor") {
+      if (tk.valor && Number(p.preco).toFixed(2) === tk.valor.toFixed(2)) {
+        score += 4;
+        achou = true;
+      }
+    } else {
+      for (const campo of Object.keys(corpo)) {
+        if (corpo[campo] && corpo[campo].includes(tk.valor)) {
+          score += PESO[campo];
+          achou = true;
+        }
+      }
+    }
+    if (!achou) return { match: false, score: 0 }; // toda palavra digitada precisa bater em algo (busca "E")
+  }
+  return { match: true, score };
+}
+function produtosOrdenadosPorBusca(lista, query) {
+  return lista
+    .map((p) => ({ p, r: avaliarBuscaProduto(p, query) }))
+    .filter((x) => x.r.match)
+    .sort((a, b) => b.r.score - a.r.score)
+    .map((x) => x.p);
 }
 function parseNumeroPlanilha(v) {
   if (v === "" || v == null) return 0;
@@ -1860,16 +1913,13 @@ let fSkuMatches = [];
 function filtrarProdutoSku(q) {
   const dropdown = document.getElementById("f-sku-dropdown");
   if (!dropdown) return;
-  const termo = normalizarChaveCabecalho(q || "");
-  if (!termo) {
+  if (!q || !q.trim()) {
     dropdown.style.display = "none";
     dropdown.innerHTML = "";
     fSkuMatches = [];
     return;
   }
-  const todasCorrespondencias = PRODUTOS.filter((p) =>
-    produtoCorrespondeBusca(p, termo, q),
-  );
+  const todasCorrespondencias = produtosOrdenadosPorBusca(PRODUTOS, q);
   fSkuMatches = todasCorrespondencias.slice(0, 30);
   if (!fSkuMatches.length) {
     dropdown.innerHTML = `<div style="padding:10px 12px;color:var(--ink-faint);font-size:13px;">Nenhum produto encontrado.</div>`;
