@@ -725,6 +725,22 @@ textarea:focus {
   margin-bottom: -40px;
   overflow: hidden;
 }
+.resumo-logo {
+  position: absolute;
+  top: 24px;
+  right: 28px;
+  height: 48px;
+  width: auto;
+  object-fit: contain;
+  z-index: 3;
+}
+@media (max-width: 640px) {
+  .resumo-logo {
+    height: 36px;
+    top: 18px;
+    right: 18px;
+  }
+}
 .resumo-eyebrow {
   font-size: 11px;
   letter-spacing: 0.08em;

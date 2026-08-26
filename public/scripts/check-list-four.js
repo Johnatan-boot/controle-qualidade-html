@@ -732,6 +732,7 @@ function renderResumoModulo(tipo) {
   const tip = TIPS[tipo];
   return `
     <div class="resumo-hero">
+      <img class="resumo-logo" src="./assets/logo-king-star-oval.jpg" alt="King Star" title="King Star">
       <div class="resumo-eyebrow">Gestão de Qualidade · Armazém</div>
       <h2 class="resumo-titulo">${titulo}</h2>
       <p class="resumo-sub">${subtitulo}</p>
@@ -767,12 +768,7 @@ function renderProdutos() {
   if (!tabs.some(([k]) => k === produtosTab)) produtosTab = "novo";
   el.innerHTML = `
     ${podeVerIndicadores() ? renderResumoModulo("produtos") : ""}
-    <div class="tabs tabs-com-logo">
-      <div class="tabs-lista">${tabs.map(([k, l]) => `<button class="tab-btn ${produtosTab === k ? "active" : ""}" onclick="produtosTab='${k}';renderProdutos();">${l}</button>`).join("")}</div>
-      <div class="tabs-logos">
-        <img class="tabs-logo tabs-logo-grande" src="./assets/logo-king-star-oval.jpg" alt="King Star" title="King Star">
-      </div>
-    </div>
+    <div class="tabs">${tabs.map(([k, l]) => `<button class="tab-btn ${produtosTab === k ? "active" : ""}" onclick="produtosTab='${k}';renderProdutos();">${l}</button>`).join("")}</div>
     <div id="produtos-body"></div>`;
   renderProdutosTabBody();
 }
