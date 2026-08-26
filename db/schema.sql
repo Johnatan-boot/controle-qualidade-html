@@ -26,11 +26,13 @@ CREATE TABLE IF NOT EXISTS produtos (
   codigo        VARCHAR(120) NOT NULL UNIQUE,
   descricao     VARCHAR(255) NOT NULL,
   grupo         VARCHAR(100) NULL,
+  categoria     VARCHAR(60) NULL,
   preco         DECIMAL(10,2) NOT NULL DEFAULT 0,
   fornecedor    VARCHAR(150) NULL,
   familia       VARCHAR(150) NULL,
   criado_em     DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  atualizado_em DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+  atualizado_em DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  INDEX idx_produtos_categoria (categoria)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS divergencias_produtos (
@@ -38,6 +40,7 @@ CREATE TABLE IF NOT EXISTS divergencias_produtos (
   setor            VARCHAR(60) NOT NULL,
   sku              VARCHAR(120) NOT NULL,
   descricao        VARCHAR(255) NULL,
+  categoria        VARCHAR(60) NULL,
   fornecedor       VARCHAR(150) NULL,
   valor_unit       DECIMAL(10,2) NOT NULL DEFAULT 0,
   qtd              INT NOT NULL DEFAULT 1,
@@ -53,7 +56,8 @@ CREATE TABLE IF NOT EXISTS divergencias_produtos (
   criado_em        DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   atualizado_em    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   INDEX idx_divergencias_produtos_status (status),
-  INDEX idx_divergencias_produtos_data (data)
+  INDEX idx_divergencias_produtos_data (data),
+  INDEX idx_divergencias_produtos_categoria (categoria)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS inspecoes_estoque (

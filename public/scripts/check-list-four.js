@@ -240,6 +240,54 @@ const CHECKLIST_5S_ITENS_PADRAO = [
 let currentUser = null;
 let currentPage = "dashboard";
 
+/* ==================== ALERTAS (SweetAlert2) ====================
+   Substitui os alert()/confirm() nativos do navegador em todas as operações
+   do sistema (exclusões, erros de salvar, avisos) por modais consistentes com
+   a identidade visual do sistema (dourado/King Star). */
+const SWAL_CORES = { confirmar: "#a8813a", cancelar: "#8a8f98" };
+function notificarErro(mensagem, titulo) {
+  return Swal.fire({
+    icon: "error",
+    title: titulo || "Não foi possível concluir",
+    text: mensagem,
+    confirmButtonColor: SWAL_CORES.confirmar,
+  });
+}
+function notificarInfo(mensagem, titulo) {
+  return Swal.fire({
+    icon: "info",
+    title: titulo || "Aviso",
+    text: mensagem,
+    confirmButtonColor: SWAL_CORES.confirmar,
+  });
+}
+function notificarSucesso(mensagem) {
+  return Swal.fire({
+    icon: "success",
+    title: mensagem,
+    toast: true,
+    position: "top-end",
+    timer: 2200,
+    timerProgressBar: true,
+    showConfirmButton: false,
+  });
+}
+async function confirmarAcao(mensagem, opts) {
+  const r = await Swal.fire({
+    icon: "warning",
+    title: (opts && opts.titulo) || "Confirmar ação",
+    text: mensagem,
+    showCancelButton: true,
+    confirmButtonText: (opts && opts.textoConfirmar) || "Sim, confirmar",
+    cancelButtonText: "Cancelar",
+    confirmButtonColor: SWAL_CORES.confirmar,
+    cancelButtonColor: SWAL_CORES.cancelar,
+    reverseButtons: true,
+    focusCancel: true,
+  });
+  return !!r.isConfirmed;
+}
+
 /* ==================== AUTH ====================
    Login real: usuário e senha são conferidos pelo servidor (bcrypt) contra o MySQL.
    Depois do login, todo o estado do sistema é carregado do banco (carregarTudoDoServidor,
@@ -858,10 +906,8 @@ function filtrarProdutoSkuCard(idx, q) {
     produtosSkuMatches[idx] = [];
     return;
   }
-  const matches = PRODUTOS.filter(
-    (p) =>
-      normalizarChaveCabecalho(p.codigo).includes(termo) ||
-      normalizarChaveCabecalho(p.descricao).includes(termo),
+  const matches = PRODUTOS.filter((p) =>
+    produtoCorrespondeBusca(p, termo, q),
   ).slice(0, 30);
   produtosSkuMatches[idx] = matches;
   if (!matches.length) {
@@ -870,7 +916,7 @@ function filtrarProdutoSkuCard(idx, q) {
     dropdown.innerHTML = matches
       .map(
         (p, i) =>
-          `<div style="padding:8px 12px;cursor:pointer;font-size:13px;border-bottom:1px solid var(--border,#eee);" onmouseover="this.style.background='var(--surface-alt,#f5f5f5)'" onmouseout="this.style.background=''" onmousedown="selecionarProdutoSkuCard(${idx},${i})"><strong>${p.codigo}</strong> — ${p.descricao}</div>`,
+          `<div style="padding:8px 12px;cursor:pointer;font-size:13px;border-bottom:1px solid var(--border,#eee);" onmouseover="this.style.background='var(--surface-alt,#f5f5f5)'" onmouseout="this.style.background=''" onmousedown="selecionarProdutoSkuCard(${idx},${i})"><strong>${p.codigo}</strong> — ${p.descricao}${p.categoria ? ` <span style="color:var(--ink-faint);">· ${p.categoria}</span>` : ""}</div>`,
       )
       .join("");
   }
@@ -1249,7 +1295,7 @@ function imprimirDivergencias() {
   const lista = divergenciasFiltradas();
   const w = window.open("", "_blank");
   if (!w) {
-    alert("Permita pop-ups para imprimir o relatório.");
+    notificarInfo("Permita pop-ups para imprimir o relatório.");
     return;
   }
   const linhas = lista
@@ -1274,13 +1320,13 @@ function imprimirDivergencias() {
   }, 300);
 }
 async function delDivergencia(id) {
-  if (!confirm("Excluir esta divergência?")) return;
+  if (!(await confirmarAcao("Excluir esta divergência?", { textoConfirmar: "Sim, excluir" }))) return;
   try {
     await apiDelete(`/api/divergencias-produtos/${id}`);
     await Promise.all([recarregarDivergenciasProdutos(), recarregarHistorico()]);
     renderProdutosTabBody();
   } catch (e) {
-    alert(e.message);
+    notificarErro(e.message);
   }
 }
 function abrirHistoricoRegistro(tabela, registroId, titulo) {
@@ -1347,8 +1393,8 @@ function paintAuditoriaModal(filtroTabela) {
           </select>
         </label>
         <div style="display:flex;gap:8px;">
-          <button class="btn btn-ghost" onclick="alert('Exportação disponível na versão completa do sistema.')">⬇ Excel</button>
-          <button class="btn btn-ghost" onclick="alert('Exportação disponível na versão completa do sistema.')">⬇ PDF</button>
+          <button class="btn btn-ghost" onclick="notificarInfo('Exportação disponível na versão completa do sistema.')">⬇ Excel</button>
+          <button class="btn btn-ghost" onclick="notificarInfo('Exportação disponível na versão completa do sistema.')">⬇ PDF</button>
         </div>
       </div>
       <div style="max-height:50vh;overflow-y:auto;">
@@ -1362,7 +1408,7 @@ function renderCadastroProdutos() {
   const body = document.getElementById("produtos-body");
   body.innerHTML = `
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
-      <input id="cp-busca" placeholder="Buscar por SKU, descrição, grupo ou família..." style="max-width:320px;" oninput="renderCadastroProdutosRows()">
+      <input id="cp-busca" placeholder="Buscar por SKU, descrição, categoria, grupo, valor ou fornecedor..." style="max-width:360px;" oninput="cpPaginaAtual=1;renderCadastroProdutosRows()">
       <div style="display:flex;gap:8px;flex-wrap:wrap;">
         <button class="btn btn-ghost" onclick="exportarCadastroProdutos()">⬇ Exportar Planilha (.xlsx)</button>
         ${
@@ -1375,35 +1421,48 @@ function renderCadastroProdutos() {
       </div>
     </div>
     <div id="cp-import-msg"></div>
-    <div style="font-size:14px;color:var(--ink-muted);margin-bottom:4px;">${PRODUTOS.length} produto(s) cadastrado(s)</div>
-    <div id="cp-limite-aviso" style="font-size:12px;color:var(--ink-faint);margin-bottom:12px;"></div>
+    <div style="font-size:14px;color:var(--ink-muted);margin-bottom:12px;">${PRODUTOS.length} produto(s) cadastrado(s)</div>
     <div class="card" style="overflow:hidden;"><div style="overflow-x:auto;"><table>
-      <thead><tr><th>SKU</th><th>Descrição</th><th>Grupo</th><th style="text-align:right;">Valor</th><th>Fornecedor</th><th>Família</th><th></th></tr></thead>
+      <thead><tr><th>SKU</th><th>Descrição</th><th>Categoria</th><th>Grupo</th><th style="text-align:right;">Valor</th><th>Fornecedor</th><th>Família</th><th></th></tr></thead>
       <tbody id="cp-rows"></tbody>
-    </table></div></div>`;
+    </table></div></div>
+    <div id="cp-paginacao" style="display:flex;align-items:center;justify-content:center;gap:6px;margin-top:16px;flex-wrap:wrap;"></div>`;
   renderCadastroProdutosRows();
 }
-const CADASTRO_LIMITE_LINHAS = 200;
+const CADASTRO_POR_PAGINA = 10;
+let cpPaginaAtual = 1;
+function cadastroProdutosFiltrados() {
+  const busca = (
+    document.getElementById("cp-busca")?.value || ""
+  ).toLowerCase().trim();
+  if (!busca) return PRODUTOS;
+  // Busca também por categoria e fornecedor (além de SKU/descrição/grupo/família),
+  // e por valor — permite digitar um preço (ex.: "185,85" ou "185.85") e encontrar
+  // o produto com aquele valor unitário.
+  const buscaNum = parseNumeroPlanilha(busca.replace(".", ","));
+  return PRODUTOS.filter((p) => {
+    const camposTexto = [p.descricao, p.codigo, p.categoria, p.grupo, p.familia, p.fornecedor];
+    if (camposTexto.some((v) => (v || "").toLowerCase().includes(busca))) return true;
+    if (buscaNum && Number(p.preco).toFixed(2) === buscaNum.toFixed(2)) return true;
+    return false;
+  });
+}
 function renderCadastroProdutosRows() {
   const rowsEl = document.getElementById("cp-rows");
   if (!rowsEl) return;
-  const busca = (
-    document.getElementById("cp-busca")?.value || ""
-  ).toLowerCase();
-  const filtrada = PRODUTOS.filter(
-    (p) =>
-      !busca ||
-      [p.descricao, p.codigo, p.grupo, p.familia].some((v) =>
-        (v || "").toLowerCase().includes(busca),
-      ),
-  );
-  const lista = filtrada.slice(0, CADASTRO_LIMITE_LINHAS);
+  const filtrada = cadastroProdutosFiltrados();
+  const totalPaginas = Math.max(1, Math.ceil(filtrada.length / CADASTRO_POR_PAGINA));
+  if (cpPaginaAtual > totalPaginas) cpPaginaAtual = totalPaginas;
+  if (cpPaginaAtual < 1) cpPaginaAtual = 1;
+  const inicio = (cpPaginaAtual - 1) * CADASTRO_POR_PAGINA;
+  const lista = filtrada.slice(inicio, inicio + CADASTRO_POR_PAGINA);
   rowsEl.innerHTML =
     lista
       .map(
         (p) => `<tr>
     <td style="font-family:monospace;font-size:12px;color:var(--ink-soft);">${p.codigo}</td>
     <td style="font-weight:500;">${p.descricao}</td>
+    <td>${p.categoria || "—"}</td>
     <td>${p.grupo || "—"}</td>
     <td style="text-align:right;">${money(p.preco)}</td>
     <td>${p.fornecedor}</td>
@@ -1412,23 +1471,49 @@ function renderCadastroProdutosRows() {
   </tr>`,
       )
       .join("") ||
-    '<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--ink-faint);">Nenhum produto encontrado.</td></tr>';
-  const avisoEl = document.getElementById("cp-limite-aviso");
-  if (avisoEl) {
-    avisoEl.innerHTML =
-      filtrada.length > CADASTRO_LIMITE_LINHAS
-        ? `Exibindo os primeiros ${CADASTRO_LIMITE_LINHAS} de ${filtrada.length} produto(s) encontrado(s). Refine a busca para encontrar outros itens.`
-        : "";
+    '<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--ink-faint);">Nenhum produto encontrado.</td></tr>';
+  renderCadastroProdutosPaginacao(totalPaginas, filtrada.length);
+}
+function irParaPaginaCadastroProdutos(p) {
+  cpPaginaAtual = p;
+  renderCadastroProdutosRows();
+}
+function renderCadastroProdutosPaginacao(totalPaginas, totalItens) {
+  const el = document.getElementById("cp-paginacao");
+  if (!el) return;
+  if (totalItens === 0) { el.innerHTML = ""; return; }
+  // Mostra no máximo 7 números de página por vez, sempre com a página atual
+  // visível, e "…" quando há páginas escondidas entre o início/fim e o meio.
+  const paginas = [];
+  const janela = 1;
+  for (let p = 1; p <= totalPaginas; p++) {
+    if (p === 1 || p === totalPaginas || Math.abs(p - cpPaginaAtual) <= janela) {
+      paginas.push(p);
+    } else if (paginas[paginas.length - 1] !== "…") {
+      paginas.push("…");
+    }
   }
+  const botoesNum = paginas
+    .map((p) =>
+      p === "…"
+        ? `<span style="padding:0 4px;color:var(--ink-faint);">…</span>`
+        : `<button class="btn btn-ghost" style="min-width:34px;padding:6px 10px;${p === cpPaginaAtual ? "background:var(--brass-700);color:#fff;border-color:var(--brass-700);" : ""}" onclick="irParaPaginaCadastroProdutos(${p})">${p}</button>`,
+    )
+    .join("");
+  el.innerHTML = `
+    <button class="btn btn-ghost" ${cpPaginaAtual <= 1 ? "disabled" : ""} onclick="irParaPaginaCadastroProdutos(${cpPaginaAtual - 1})">← Anterior</button>
+    ${botoesNum}
+    <button class="btn btn-ghost" ${cpPaginaAtual >= totalPaginas ? "disabled" : ""} onclick="irParaPaginaCadastroProdutos(${cpPaginaAtual + 1})">Próxima →</button>
+    <span style="font-size:12px;color:var(--ink-faint);margin-left:8px;">Página ${cpPaginaAtual} de ${totalPaginas} · ${totalItens} produto(s)</span>`;
 }
 async function delProduto(i) {
-  if (!confirm(`Excluir o produto "${PRODUTOS[i].descricao}"?`)) return;
+  if (!(await confirmarAcao(`Excluir o produto "${PRODUTOS[i].descricao}"?`, { textoConfirmar: "Sim, excluir" }))) return;
   try {
     await apiDelete(`/api/produtos/${PRODUTOS[i].id}`);
     await Promise.all([recarregarProdutos(), recarregarHistorico()]);
     renderCadastroProdutosRows();
   } catch (e) {
-    alert(e.message);
+    notificarErro(e.message);
   }
 }
 function abrirProdutoModal(i) {
@@ -1439,11 +1524,14 @@ function abrirProdutoModal(i) {
       <label class="field"><span>Código (SKU)</span><input id="pf-codigo" value="${editando ? editando.codigo : ""}" ${editando ? "disabled" : ""}></label>
       <label class="field"><span>Descrição</span><input id="pf-descricao" value="${editando ? editando.descricao : ""}"></label>
       <div class="grid grid-2">
+        <label class="field"><span>Categoria</span><input id="pf-categoria" placeholder="Ex.: CMP, CEP... (se deixar em branco, é gerada a partir do SKU)" value="${editando ? editando.categoria || "" : ""}"></label>
         <label class="field"><span>Grupo</span><input id="pf-grupo" value="${editando ? editando.grupo || "" : ""}"></label>
-        <label class="field"><span>Valor</span><input id="pf-preco" type="number" step="0.01" value="${editando ? editando.preco : 0}"></label>
       </div>
       <div class="grid grid-2">
+        <label class="field"><span>Valor</span><input id="pf-preco" type="number" step="0.01" value="${editando ? editando.preco : 0}"></label>
         <label class="field"><span>Fornecedor</span><input id="pf-fornecedor" value="${editando ? editando.fornecedor : ""}"></label>
+      </div>
+      <div class="grid grid-2">
         <label class="field"><span>Família</span><input id="pf-familia" value="${editando ? editando.familia || "" : ""}"></label>
       </div>
       <div id="pf-erro" style="display:none;color:var(--danger);background:var(--danger-soft);border-radius:8px;padding:8px 12px;font-size:13px;"></div>
@@ -1456,6 +1544,7 @@ function abrirProdutoModal(i) {
 async function salvarProduto(i) {
   const codigo = document.getElementById("pf-codigo").value.trim();
   const descricao = document.getElementById("pf-descricao").value.trim();
+  const categoria = document.getElementById("pf-categoria").value.trim();
   const grupo = document.getElementById("pf-grupo").value.trim();
   const preco = Number(document.getElementById("pf-preco").value) || 0;
   const fornecedor = document.getElementById("pf-fornecedor").value.trim();
@@ -1468,9 +1557,9 @@ async function salvarProduto(i) {
   }
   try {
     if (i === null || i === undefined) {
-      await apiPost("/api/produtos", { codigo, descricao, grupo, preco, fornecedor, familia });
+      await apiPost("/api/produtos", { codigo, descricao, categoria, grupo, preco, fornecedor, familia });
     } else {
-      await apiPut(`/api/produtos/${PRODUTOS[i].id}`, { descricao, grupo, preco, fornecedor, familia });
+      await apiPut(`/api/produtos/${PRODUTOS[i].id}`, { descricao, categoria, grupo, preco, fornecedor, familia });
     }
     await Promise.all([recarregarProdutos(), recarregarHistorico()]);
     closeModal();
@@ -1484,6 +1573,7 @@ function exportarCadastroProdutos() {
   const data = PRODUTOS.map((p) => ({
     SKU: p.codigo,
     Descrição: p.descricao,
+    Categoria: p.categoria || "",
     Grupo: p.grupo || "",
     Valor: p.preco,
     Fornecedor: p.fornecedor || "",
@@ -1501,6 +1591,18 @@ function normalizarChaveCabecalho(s) {
     .normalize("NFD")
     .replace(/[̀-ͯ]/g, "")
     .replace(/[^a-z0-9]/g, "");
+}
+// Usado nos autocompletes de SKU (Inspeção de Produtos / Nova Inspeção): busca
+// por código, descrição, categoria e fornecedor (texto, via termoNormalizado),
+// além de bater por valor unitário quando o termo digitado (queryOriginal, sem
+// a normalização que removeria a vírgula/ponto decimal) for um número — ex.:
+// digitar "185,85" encontra o produto que custa exatamente R$ 185,85.
+function produtoCorrespondeBusca(p, termoNormalizado, queryOriginal) {
+  if (!termoNormalizado) return false;
+  const campos = [p.codigo, p.descricao, p.categoria, p.fornecedor, p.grupo, p.familia];
+  if (campos.some((v) => normalizarChaveCabecalho(v).includes(termoNormalizado))) return true;
+  const termoNum = parseNumeroPlanilha(String(queryOriginal || "").trim());
+  return !!(termoNum && Number(p.preco).toFixed(2) === termoNum.toFixed(2));
 }
 function parseNumeroPlanilha(v) {
   if (v === "" || v == null) return 0;
@@ -1555,6 +1657,7 @@ function importarCadastroProdutos(input) {
         };
         const codigo = get("SKU", "Código", "Codigo", "Código (SKU)");
         const descricao = get("DESCRIÇÃO", "DESCRICAO", "Descrição");
+        const categoria = get("CATEGORIA", "Categoria");
         const grupo = get("GRUPO");
         const precoStr = get(
           "Valor",
@@ -1575,7 +1678,9 @@ function importarCadastroProdutos(input) {
         const preco = parseNumeroPlanilha(precoStr);
         totalValidos++;
         if (preco === 0) comPrecoZerado++;
-        linhasNormalizadas.push({ codigo, descricao, grupo, preco, fornecedor, familia });
+        // Se a planilha não trouxer coluna "Categoria" (ou vier vazia nessa linha),
+        // o servidor deriva sozinho a categoria a partir do prefixo do SKU.
+        linhasNormalizadas.push({ codigo, descricao, categoria, grupo, preco, fornecedor, familia });
       });
       const { criados, atualizados, ignorados: ignoradosServidor } = await apiPost("/api/produtos/importar", linhasNormalizadas);
       const totalIgnorados = ignorados + ignoradosServidor;
@@ -1587,7 +1692,7 @@ function importarCadastroProdutos(input) {
       await Promise.all([recarregarProdutos(), recarregarHistorico()]);
       renderCadastroProdutosRows();
     } catch (err) {
-      msgEl.innerHTML = `<div class="toast" style="background:var(--danger-soft);color:var(--danger);">Não foi possível ler o arquivo. Verifique se é uma planilha .xlsx ou .csv válida, com colunas SKU, Descrição, Grupo, Valor, Fornecedor e Família.</div>`;
+      msgEl.innerHTML = `<div class="toast" style="background:var(--danger-soft);color:var(--danger);">Não foi possível ler o arquivo. Verifique se é uma planilha .xlsx ou .csv válida, com colunas SKU, Descrição, Categoria, Grupo, Valor, Fornecedor e Família.</div>`;
     }
     input.value = "";
   };
@@ -1762,11 +1867,10 @@ function filtrarProdutoSku(q) {
     fSkuMatches = [];
     return;
   }
-  fSkuMatches = PRODUTOS.filter(
-    (p) =>
-      normalizarChaveCabecalho(p.codigo).includes(termo) ||
-      normalizarChaveCabecalho(p.descricao).includes(termo),
-  ).slice(0, 30);
+  const todasCorrespondencias = PRODUTOS.filter((p) =>
+    produtoCorrespondeBusca(p, termo, q),
+  );
+  fSkuMatches = todasCorrespondencias.slice(0, 30);
   if (!fSkuMatches.length) {
     dropdown.innerHTML = `<div style="padding:10px 12px;color:var(--ink-faint);font-size:13px;">Nenhum produto encontrado.</div>`;
   } else {
@@ -1774,14 +1878,10 @@ function filtrarProdutoSku(q) {
       fSkuMatches
         .map(
           (p, i) =>
-            `<div style="padding:8px 12px;cursor:pointer;font-size:13px;border-bottom:1px solid var(--border,#eee);" onmouseover="this.style.background='var(--surface-alt,#f5f5f5)'" onmouseout="this.style.background=''" onmousedown="selecionarProdutoSkuAt(${i})"><strong>${p.codigo}</strong> — ${p.descricao}</div>`,
+            `<div style="padding:8px 12px;cursor:pointer;font-size:13px;border-bottom:1px solid var(--border,#eee);" onmouseover="this.style.background='var(--surface-alt,#f5f5f5)'" onmouseout="this.style.background=''" onmousedown="selecionarProdutoSkuAt(${i})"><strong>${p.codigo}</strong> — ${p.descricao}${p.categoria ? ` <span style="color:var(--ink-faint);">· ${p.categoria}</span>` : ""}</div>`,
         )
         .join("") +
-      (PRODUTOS.filter(
-        (p) =>
-          normalizarChaveCabecalho(p.codigo).includes(termo) ||
-          normalizarChaveCabecalho(p.descricao).includes(termo),
-      ).length > 30
+      (todasCorrespondencias.length > 30
         ? `<div style="padding:8px 12px;color:var(--ink-faint);font-size:12px;">Mostrando os 30 primeiros resultados. Refine a busca para encontrar outros produtos.</div>`
         : "");
   }
@@ -2168,7 +2268,7 @@ async function salvarPendenciaGaiolas(inspecaoId, ordem) {
     closeModal();
     renderPendenciasGaiolas();
   } catch (e) {
-    alert(e.message);
+    notificarErro(e.message);
   }
 }
 function abrirDetalheInspecaoEstoque(id) {
@@ -2256,13 +2356,13 @@ async function excluirInspecaoEstoque(id) {
   if (!podeExcluirInspecoes()) return;
   const insp = inspecoesEstoque.find((i) => i.id === id);
   if (!insp) return;
-  if (!confirm(`Excluir a inspeção de estoque nº ${id} (${fmtDate(insp.data)})? Esta ação não pode ser desfeita.`)) return;
+  if (!(await confirmarAcao(`Excluir a inspeção de estoque nº ${id} (${fmtDate(insp.data)})? Esta ação não pode ser desfeita.`, { textoConfirmar: "Sim, excluir" }))) return;
   try {
     await apiDelete(`/api/inspecoes-estoque/${id}`);
     await Promise.all([recarregarInspecoesEstoque(), recarregarHistorico()]);
     renderHistoricoGaiolas();
   } catch (e) {
-    alert(e.message);
+    notificarErro(e.message);
   }
 }
 function renderHistoricoGaiolas() {
@@ -2695,7 +2795,7 @@ async function salvarPendencia5S(checklistId, ordem) {
     closeModal();
     renderPendencias5S();
   } catch (e) {
-    alert(e.message);
+    notificarErro(e.message);
   }
 }
 let s5HistFiltros = { dataIni: "", dataFim: "", setor: "", status: "" };
@@ -2731,13 +2831,13 @@ async function excluirChecklist5S(id) {
   if (!podeExcluirInspecoes()) return;
   const c = checklist5s.find((x) => x.id === id);
   if (!c) return;
-  if (!confirm(`Excluir o checklist 5S nº ${id} (${c.setor}, ${fmtDate(c.data)})? Esta ação não pode ser desfeita.`)) return;
+  if (!(await confirmarAcao(`Excluir o checklist 5S nº ${id} (${c.setor}, ${fmtDate(c.data)})? Esta ação não pode ser desfeita.`, { textoConfirmar: "Sim, excluir" }))) return;
   try {
     await apiDelete(`/api/checklists-5s/${id}`);
     await Promise.all([recarregarChecklists5s(), recarregarHistorico()]);
     renderHistorico5S();
   } catch (e) {
-    alert(e.message);
+    notificarErro(e.message);
   }
 }
 function renderHistorico5S() {
@@ -2874,13 +2974,13 @@ async function excluirInspecaoRecebimento(id) {
   const i = inspecoesRecebimento.find((x) => x.id === id);
   if (!i) return;
   const fornecedorNome = i.fornecedor === "OUTROS" ? i.fornecedorOutro : i.fornecedor;
-  if (!confirm(`Excluir a inspeção de recebimento ${id} (fornecedor ${fornecedorNome})? Esta ação não pode ser desfeita.`)) return;
+  if (!(await confirmarAcao(`Excluir a inspeção de recebimento ${id} (fornecedor ${fornecedorNome})? Esta ação não pode ser desfeita.`, { textoConfirmar: "Sim, excluir" }))) return;
   try {
     await apiDelete(`/api/inspecoes-recebimento/${id}`);
     await Promise.all([recarregarInspecoesRecebimento(), recarregarHistorico()]);
     renderPendenciasRecebimento();
   } catch (e) {
-    alert(e.message);
+    notificarErro(e.message);
   }
 }
 function renderPendenciasRecebimento() {
@@ -3634,12 +3734,12 @@ function fecharResumoInspecao() {
     renderRecebimento();
   }
 }
-function cancelarInspecao() {
-  if (
-    confirm(
-      "Deseja realmente cancelar esta inspeção em andamento? Os dados preenchidos serão perdidos.",
-    )
-  ) {
+async function cancelarInspecao() {
+  const ok = await confirmarAcao(
+    "Deseja realmente cancelar esta inspeção em andamento? Os dados preenchidos serão perdidos.",
+    { textoConfirmar: "Sim, cancelar" },
+  );
+  if (ok) {
     inspEditandoId = null;
     if (currentUser.perfil === "OPERADOR") {
       abrirNovaInspecao();
@@ -3712,7 +3812,7 @@ function imprimirInspecao(id) {
   if (!insp) return;
   const w = window.open("", "_blank");
   if (!w) {
-    alert("Permita pop-ups para imprimir a inspeção.");
+    notificarInfo("Permita pop-ups para imprimir a inspeção.");
     return;
   }
   w.document
@@ -3799,6 +3899,8 @@ function registrosUnificados() {
       responsavel: d.responsavel,
       refer: d.descricao,
       setor: d.setor,
+      quantidade: d.qtd || 0,
+      observacao: d.obs || "",
       status: d.status === "CORRIGIDO" ? "aprovado" : "reprovado",
       pendenciaStatus:
         d.status === "CORRIGIDO"
@@ -3825,6 +3927,8 @@ function registrosUnificados() {
       responsavel: insp.responsavel,
       refer: tiposResumo || "—",
       setor: null,
+      quantidade: insp.divergencias.length,
+      observacao: insp.divergencias.map((d) => d.obs).filter(Boolean).join(" | "),
       status: abertas > 0 ? "reprovado" : "aprovado",
       pendenciaStatus:
         abertas > 0 ? "aberta" : insp.divergencias.length ? "resolvida" : "",
@@ -3837,12 +3941,15 @@ function registrosUnificados() {
       (i) => i.resp === "NAO_CONFORME" && i.status !== "CORRIGIDO",
     ).length;
     const temNC = c.itens.some((i) => i.resp === "NAO_CONFORME");
+    const itensNC = c.itens.filter((i) => i.resp === "NAO_CONFORME");
     regs.push({
       tipo: "5s",
       data: c.data,
       responsavel: c.responsavel,
       refer: c.setor,
       setor: c.setor,
+      quantidade: itensNC.length,
+      observacao: itensNC.map((i) => i.obs).filter(Boolean).join(" | "),
       status: c.conformidade >= 70 ? "aprovado" : "reprovado",
       pendenciaStatus: abertas > 0 ? "aberta" : temNC ? "resolvida" : "",
       temDivergencia: temNC,
@@ -3850,12 +3957,23 @@ function registrosUnificados() {
     });
   });
   inspecoesRecebimento.forEach((i) => {
+    const qtdFornecedor = Number(i.divergenciaFornecedor?.produto?.quantidade) || 0;
+    const qtdOperacional = Number(i.divergenciaOperacional?.quantidade) || 0;
+    const obsRecebimento = [
+      i.divergenciaFornecedor?.produto?.observacao,
+      i.divergenciaFornecedor?.caminhao?.observacao,
+      i.divergenciaOperacional?.observacao,
+    ]
+      .filter(Boolean)
+      .join(" | ");
     regs.push({
       tipo: "recebimento",
       data: i.dataInspecao.slice(0, 10),
       responsavel: i.usuarioResponsavel,
       refer: i.fornecedor === "OUTROS" ? i.fornecedorOutro : i.fornecedor,
       setor: null,
+      quantidade: qtdFornecedor + qtdOperacional,
+      observacao: obsRecebimento,
       status: i.statusFinal === "nao_conforme" ? "reprovado" : "aprovado",
       pendenciaStatus: i.statusFinal === "conforme" ? "" : "aberta",
       temDivergencia: i.statusFinal !== "conforme",
@@ -4175,9 +4293,12 @@ function renderRelatorios() {
     <td style="color:var(--ink-faint);">${fmtDate(r.data)}</td>
     <td>${TIPO_REG_LABEL[r.tipo]}</td>
     <td>${r.refer}</td>
+    <td>${r.setor || "—"}</td>
+    <td style="text-align:right;">${r.quantidade || 0}</td>
     <td>${r.responsavel}</td>
     <td><span class="badge ${r.status === "aprovado" ? "conforme" : "naoconforme"}">${r.status === "aprovado" ? "Aprovado" : "Reprovado"}</span></td>
     <td>${r.pendenciaStatus ? `<span class="badge ${r.pendenciaStatus === "resolvida" ? "conforme" : r.pendenciaStatus === "em_andamento" ? "media" : "naoconforme"}">${{ aberta: "Aberta", em_andamento: "Em andamento", resolvida: "Resolvida" }[r.pendenciaStatus]}</span>` : '<span style="color:var(--ink-faint);">—</span>'}</td>
+    <td style="max-width:220px;white-space:normal;font-size:12px;color:var(--ink-soft);">${r.observacao || "—"}</td>
   </tr>`,
     )
     .join("");
@@ -4216,8 +4337,8 @@ function renderRelatorios() {
       <div class="card stat-card"><div><div class="stat-label">Reprovados</div><div class="stat-value">${totalReprov}</div></div><div class="stat-icon">🔴</div></div>
     </div>
     <div class="card" style="overflow:hidden;"><div style="overflow-x:auto;"><table>
-      <thead><tr><th>Data</th><th>Formulário</th><th>Produto/Setor/Fornecedor</th><th>Responsável</th><th>Status</th><th>Pendência</th></tr></thead>
-      <tbody>${rows || '<tr><td colspan=6 style="text-align:center;padding:40px;color:var(--ink-faint);">Nenhum registro encontrado para os filtros aplicados.</td></tr>'}</tbody>
+      <thead><tr><th>Data</th><th>Formulário</th><th>Produto/Setor/Fornecedor</th><th>Setor</th><th style="text-align:right;">Quantidade</th><th>Responsável</th><th>Status</th><th>Pendência</th><th>Observação</th></tr></thead>
+      <tbody>${rows || '<tr><td colspan=9 style="text-align:center;padding:40px;color:var(--ink-faint);">Nenhum registro encontrado para os filtros aplicados.</td></tr>'}</tbody>
     </table></div></div>`;
 }
 function exportarRelatorioCSV() {
@@ -4227,9 +4348,12 @@ function exportarRelatorioCSV() {
       "Data",
       "Formulário",
       "Produto/Setor/Fornecedor",
+      "Setor",
+      "Quantidade",
       "Responsável",
       "Status",
       "Pendência",
+      "Observação",
     ],
   ];
   lista.forEach((r) =>
@@ -4237,6 +4361,8 @@ function exportarRelatorioCSV() {
       fmtDate(r.data),
       TIPO_REG_LABEL[r.tipo],
       r.refer,
+      r.setor || "—",
+      r.quantidade || 0,
       r.responsavel,
       r.status === "aprovado" ? "Aprovado" : "Reprovado",
       {
@@ -4245,6 +4371,7 @@ function exportarRelatorioCSV() {
         resolvida: "Resolvida",
         "": "—",
       }[r.pendenciaStatus],
+      r.observacao || "—",
     ]),
   );
   const csv =
@@ -4265,7 +4392,7 @@ function imprimirRelatorio() {
   const rows = lista
     .map(
       (r) =>
-        `<tr><td>${fmtDate(r.data)}</td><td>${TIPO_REG_LABEL[r.tipo]}</td><td>${r.refer}</td><td>${r.responsavel}</td><td>${r.status === "aprovado" ? "Aprovado" : "Reprovado"}</td></tr>`,
+        `<tr><td>${fmtDate(r.data)}</td><td>${TIPO_REG_LABEL[r.tipo]}</td><td>${r.refer}</td><td>${r.setor || "—"}</td><td>${r.quantidade || 0}</td><td>${r.responsavel}</td><td>${r.status === "aprovado" ? "Aprovado" : "Reprovado"}</td><td>${r.observacao || "—"}</td></tr>`,
     )
     .join("");
   try {
@@ -4275,7 +4402,7 @@ function imprimirRelatorio() {
     </style></head><body>
       <h1>Relatório Consolidado de Qualidade — CD King Star Colchões</h1>
       <p>Gerado em ${fmtDate(HOJE)} · ${lista.length} registro(s)</p>
-      <table><thead><tr><th>Data</th><th>Formulário</th><th>Produto/Setor/Fornecedor</th><th>Responsável</th><th>Status</th></tr></thead><tbody>${rows}</tbody></table>
+      <table><thead><tr><th>Data</th><th>Formulário</th><th>Produto/Setor/Fornecedor</th><th>Setor</th><th>Quantidade</th><th>Responsável</th><th>Status</th><th>Observação</th></tr></thead><tbody>${rows}</tbody></table>
     </body></html>`);
     w.document.close();
     w.focus();
@@ -5357,14 +5484,14 @@ function renderUsuariosRows() {
 async function alternarAtivoUsuario(i) {
   const u = USUARIOS[i];
   if (u.ativo) {
-    if (!confirm(`Inativar o usuário ${u.nome}?`)) return;
+    if (!(await confirmarAcao(`Inativar o usuário ${u.nome}?`, { textoConfirmar: "Sim, inativar" }))) return;
   }
   try {
     await apiPut(`/api/usuarios/${u.id}/ativo`, {});
     await Promise.all([recarregarUsuarios(), recarregarHistorico()]);
     renderUsuariosRows();
   } catch (e) {
-    alert(e.message);
+    notificarErro(e.message);
   }
 }
 function abrirUsuarioModal(i) {

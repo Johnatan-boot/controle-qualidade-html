@@ -23,15 +23,28 @@ async function registrarHistorico(tabela, registroId, acao, usuarioNome, descric
   );
 }
 
+// Deriva a categoria de um produto a partir do prefixo alfabético do código
+// (SKU) — ex.: "CMP158X198X32ECUXFIRDES" -> "CMP", "BUP096X203X36..." -> "BUP".
+// Usado como fallback sempre que a categoria não vem explícita (nem digitada
+// no cadastro manual, nem numa coluna "Categoria" da planilha importada).
+function derivarCategoria(codigo) {
+  if (!codigo) return null;
+  const m = String(codigo).trim().match(/^[A-Za-zÀ-ÿ]+/);
+  // Os prefixos observados nos SKUs reais têm sempre 3 letras (CMP, BUP, BXP,
+  // ALM, BUE, CEP...) antes do primeiro número — usa isso como tamanho padrão
+  // da categoria derivada, mesmo que o código tenha mais letras seguidas.
+  return m ? m[0].slice(0, 3).toUpperCase() : null;
+}
+
 // ---------------------------------------------------------------------------
 // mapeamento snake_case (banco) -> camelCase (front-end)
 // ---------------------------------------------------------------------------
 function mapProduto(p) {
-  return { id: p.id, codigo: p.codigo, descricao: p.descricao, grupo: p.grupo, preco: Number(p.preco), fornecedor: p.fornecedor, familia: p.familia };
+  return { id: p.id, codigo: p.codigo, descricao: p.descricao, grupo: p.grupo, categoria: p.categoria, preco: Number(p.preco), fornecedor: p.fornecedor, familia: p.familia };
 }
 function mapDivergenciaProduto(l) {
   return {
-    id: l.id, setor: l.setor, sku: l.sku, descricao: l.descricao, fornecedor: l.fornecedor,
+    id: l.id, setor: l.setor, sku: l.sku, descricao: l.descricao, categoria: l.categoria, fornecedor: l.fornecedor,
     valorUnit: Number(l.valor_unit), qtd: l.qtd, codDiv: l.cod_divergencia, outroCodDiv: l.outro_cod_div,
     status: l.status, responsavel: l.responsavel, data: l.data, prazoCorrecao: l.prazo_correcao,
     dataConclusao: l.data_conclusao, obs: l.observacao, fotos: parseJsonColumn(l.fotos_json, []),
@@ -71,12 +84,13 @@ router.get('/produtos', asyncHandler(async (req, res) => {
 }));
 
 router.post('/produtos', asyncHandler(async (req, res) => {
-  const { codigo, descricao, grupo, preco, fornecedor, familia } = req.body || {};
+  const { codigo, descricao, grupo, categoria, preco, fornecedor, familia } = req.body || {};
   if (!codigo || !descricao) return res.status(400).json({ erro: 'Informe código (SKU) e descrição.' });
+  const categoriaFinal = (categoria && String(categoria).trim()) || derivarCategoria(codigo);
   try {
     const [result] = await pool.query(
-      'INSERT INTO produtos (codigo, descricao, grupo, preco, fornecedor, familia) VALUES (?,?,?,?,?,?)',
-      [codigo, descricao, grupo || null, preco || 0, fornecedor || null, familia || null]
+      'INSERT INTO produtos (codigo, descricao, grupo, categoria, preco, fornecedor, familia) VALUES (?,?,?,?,?,?,?)',
+      [codigo, descricao, grupo || null, categoriaFinal, preco || 0, fornecedor || null, familia || null]
     );
     await registrarHistorico('produtos', result.insertId, 'CRIACAO', req.usuario.nome, `${req.usuario.nome} cadastrou o produto ${codigo} (${descricao}).`);
     const [rows] = await pool.query('SELECT * FROM produtos WHERE id = ?', [result.insertId]);
@@ -88,14 +102,20 @@ router.post('/produtos', asyncHandler(async (req, res) => {
 }));
 
 router.put('/produtos/:id', asyncHandler(async (req, res) => {
-  const { descricao, grupo, preco, fornecedor, familia } = req.body || {};
+  const { descricao, grupo, categoria, preco, fornecedor, familia } = req.body || {};
+  const [existentes] = await pool.query('SELECT codigo, categoria FROM produtos WHERE id = ?', [req.params.id]);
+  if (!existentes[0]) return res.status(404).json({ erro: 'Produto não encontrado.' });
+  // Se ninguém informou categoria explicitamente, preserva a já cadastrada; se
+  // também nunca teve uma, deriva do código (SKU) do próprio produto.
+  const categoriaFinal = (categoria && String(categoria).trim())
+    || existentes[0].categoria
+    || derivarCategoria(existentes[0].codigo);
   await pool.query(
-    'UPDATE produtos SET descricao=?, grupo=?, preco=?, fornecedor=?, familia=? WHERE id=?',
-    [descricao, grupo || null, preco || 0, fornecedor || null, familia || null, req.params.id]
+    'UPDATE produtos SET descricao=?, grupo=?, categoria=?, preco=?, fornecedor=?, familia=? WHERE id=?',
+    [descricao, grupo || null, categoriaFinal, preco || 0, fornecedor || null, familia || null, req.params.id]
   );
   await registrarHistorico('produtos', req.params.id, 'EDICAO', req.usuario.nome, `${req.usuario.nome} editou o produto (${descricao}).`);
   const [rows] = await pool.query('SELECT * FROM produtos WHERE id = ?', [req.params.id]);
-  if (!rows[0]) return res.status(404).json({ erro: 'Produto não encontrado.' });
   res.json(mapProduto(rows[0]));
 }));
 
@@ -112,17 +132,21 @@ router.post('/produtos/importar', asyncHandler(async (req, res) => {
   let criados = 0, atualizados = 0, ignorados = 0;
   for (const l of linhas) {
     if (!l || !l.codigo || !l.descricao) { ignorados++; continue; }
+    // Categoria: usa a coluna "Categoria" da planilha quando ela vem preenchida;
+    // se a planilha não tiver essa coluna (ou a linha vier em branco), deriva
+    // automaticamente do prefixo do código (SKU) — mesma regra do cadastro manual.
+    const categoriaFinal = (l.categoria && String(l.categoria).trim()) || derivarCategoria(l.codigo);
     const [existentes] = await pool.query('SELECT id FROM produtos WHERE codigo = ?', [l.codigo]);
     if (existentes[0]) {
       await pool.query(
-        'UPDATE produtos SET descricao=?, grupo=?, preco=?, fornecedor=?, familia=? WHERE id=?',
-        [l.descricao, l.grupo || null, l.preco || 0, l.fornecedor || null, l.familia || null, existentes[0].id]
+        'UPDATE produtos SET descricao=?, grupo=?, categoria=?, preco=?, fornecedor=?, familia=? WHERE id=?',
+        [l.descricao, l.grupo || null, categoriaFinal, l.preco || 0, l.fornecedor || null, l.familia || null, existentes[0].id]
       );
       atualizados++;
     } else {
       await pool.query(
-        'INSERT INTO produtos (codigo, descricao, grupo, preco, fornecedor, familia) VALUES (?,?,?,?,?,?)',
-        [l.codigo, l.descricao, l.grupo || null, l.preco || 0, l.fornecedor || null, l.familia || null]
+        'INSERT INTO produtos (codigo, descricao, grupo, categoria, preco, fornecedor, familia) VALUES (?,?,?,?,?,?,?)',
+        [l.codigo, l.descricao, l.grupo || null, categoriaFinal, l.preco || 0, l.fornecedor || null, l.familia || null]
       );
       criados++;
     }
@@ -139,13 +163,25 @@ router.get('/divergencias-produtos', asyncHandler(async (req, res) => {
   res.json(rows.map(mapDivergenciaProduto));
 }));
 
+// Resolve a categoria de uma divergência: usa a informada explicitamente; senão
+// busca a categoria já cadastrada do produto pelo SKU; senão deriva do prefixo do SKU.
+async function resolverCategoriaDivergencia(d) {
+  if (d.categoria && String(d.categoria).trim()) return String(d.categoria).trim();
+  if (d.sku) {
+    const [prod] = await pool.query('SELECT categoria FROM produtos WHERE codigo = ?', [d.sku]);
+    if (prod[0] && prod[0].categoria) return prod[0].categoria;
+  }
+  return derivarCategoria(d.sku);
+}
+
 router.post('/divergencias-produtos', asyncHandler(async (req, res) => {
   const d = req.body || {};
+  const categoria = await resolverCategoriaDivergencia(d);
   const [result] = await pool.query(
     `INSERT INTO divergencias_produtos
-      (setor, sku, descricao, fornecedor, valor_unit, qtd, cod_divergencia, outro_cod_div, status, responsavel, data, prazo_correcao, observacao, fotos_json)
-     VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,CAST(? AS JSON))`,
-    [d.setor, d.sku, d.descricao || null, d.fornecedor || null, d.valorUnit || 0, d.qtd || 1, d.codDiv, d.outroCodDiv || null,
+      (setor, sku, descricao, categoria, fornecedor, valor_unit, qtd, cod_divergencia, outro_cod_div, status, responsavel, data, prazo_correcao, observacao, fotos_json)
+     VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,CAST(? AS JSON))`,
+    [d.setor, d.sku, d.descricao || null, categoria, d.fornecedor || null, d.valorUnit || 0, d.qtd || 1, d.codDiv, d.outroCodDiv || null,
      d.status || 'PENDENTE', d.responsavel || null, d.data, d.prazoCorrecao || null, d.obs || null, JSON.stringify(d.fotos || [])]
   );
   await registrarHistorico('divergencias_produtos', result.insertId, 'CRIACAO', req.usuario.nome, `${req.usuario.nome} registrou a divergência nº ${result.insertId} (${d.sku}, setor ${d.setor}).`);
@@ -155,10 +191,11 @@ router.post('/divergencias-produtos', asyncHandler(async (req, res) => {
 
 router.put('/divergencias-produtos/:id', asyncHandler(async (req, res) => {
   const d = req.body || {};
+  const categoria = await resolverCategoriaDivergencia(d);
   await pool.query(
-    `UPDATE divergencias_produtos SET setor=?, sku=?, descricao=?, fornecedor=?, valor_unit=?, qtd=?, cod_divergencia=?,
+    `UPDATE divergencias_produtos SET setor=?, sku=?, descricao=?, categoria=?, fornecedor=?, valor_unit=?, qtd=?, cod_divergencia=?,
       outro_cod_div=?, status=?, responsavel=?, data=?, prazo_correcao=?, data_conclusao=?, observacao=?, fotos_json=CAST(? AS JSON) WHERE id=?`,
-    [d.setor, d.sku, d.descricao || null, d.fornecedor || null, d.valorUnit || 0, d.qtd || 1, d.codDiv, d.outroCodDiv || null,
+    [d.setor, d.sku, d.descricao || null, categoria, d.fornecedor || null, d.valorUnit || 0, d.qtd || 1, d.codDiv, d.outroCodDiv || null,
      d.status || 'PENDENTE', d.responsavel || null, d.data, d.prazoCorrecao || null, d.dataConclusao || null, d.obs || null,
      JSON.stringify(d.fotos || []), req.params.id]
   );

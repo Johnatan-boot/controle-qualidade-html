@@ -167,3 +167,31 @@ O pool do backend foi ajustado para usar no máximo 2 conexões por padrão (con
 `DB_CONNECTION_LIMIT`, limitado pelo código a 4), evitando `ER_USER_LIMIT_REACHED`.
 
 Também foi adicionado `GET /health` para validar a conexão com o banco sem autenticação.
+
+## Novidades desta revisão (categoria, busca, paginação, relatório e alertas)
+
+- **Campo "Categoria" nos produtos.** Nova coluna `categoria` em `produtos` e
+  `divergencias_produtos` (aplicada automaticamente no boot do servidor, mesmo
+  em banco de produção já existente — não precisa rodar nada manual). Ao
+  cadastrar um produto (manual ou por planilha), a categoria é lida de uma
+  coluna "Categoria" da planilha quando ela existir; se não existir (ou a
+  linha vier em branco), o sistema deriva sozinho a categoria a partir das 3
+  primeiras letras do código do produto (SKU) — ex.: "CMP158X198..." → "CMP",
+  "CEP..." → "CEP". O mesmo vale para o cadastro manual: se o campo Categoria
+  ficar em branco, é preenchido automaticamente a partir do SKU.
+- **Busca ampliada.** Os autocompletes de SKU (na Inspeção de Produtos) e a
+  busca do Cadastro de Produtos agora também encontram produtos por
+  categoria e fornecedor (texto) e por valor unitário (digitando o preço,
+  ex.: "185,85").
+- **Paginação no Cadastro de Produtos.** Antes a lista simplesmente cortava
+  em 200 linhas; agora mostra 10 produtos por página, com botões Anterior/
+  Próxima e números de página clicáveis.
+- **3 colunas novas no Relatório Consolidado de Qualidade** (aba Indicadores
+  → Relatórios): Setor, Quantidade (nº de divergências/itens não conformes
+  do registro — para Inspeção de Produtos usa a quantidade real do item) e
+  Observação. Presentes na tabela, no CSV exportado e na impressão/PDF.
+- **SweetAlert2 em vez de alert()/confirm() nativos.** Toda confirmação de
+  exclusão e toda mensagem de erro do sistema agora usa modais do
+  SweetAlert2 (biblioteca embutida localmente em
+  `public/scripts/sweetalert2.min.js`, sem depender de CDN externo),
+  seguindo as cores do sistema.
