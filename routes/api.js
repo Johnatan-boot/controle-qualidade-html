@@ -295,7 +295,14 @@ router.delete('/divergencias-produtos/:id', asyncHandler(async (req, res) => {
 // ---------------------------------------------------------------------------
 router.get('/inspecoes-estoque', asyncHandler(async (req, res) => {
   const [inspecoes] = await pool.query('SELECT * FROM inspecoes_estoque ORDER BY id DESC');
-  const [itens] = await pool.query('SELECT * FROM inspecoes_estoque_itens ORDER BY inspecao_id, ordem');
+  // Ordenação feita aqui no Node (em vez de "ORDER BY" no SQL) de propósito: o
+  // MySQL do plano usado em produção tem um sort_buffer_size muito pequeno, e
+  // mesmo com o índice em (inspecao_id, ordem), o otimizador nem sempre escolhe
+  // usá-lo para ordenar um SELECT * sem WHERE/LIMIT — preferindo um filesort que
+  // estoura o buffer (ER_OUT_OF_SORTMEMORY) por causa das colunas grandes
+  // (observacao, fotos_json). Ordenar no JS elimina esse risco por completo.
+  const [itens] = await pool.query('SELECT * FROM inspecoes_estoque_itens');
+  itens.sort((a, b) => a.inspecao_id - b.inspecao_id || a.ordem - b.ordem);
   const porInspecao = {};
   itens.forEach(it => { (porInspecao[it.inspecao_id] ||= []).push(mapItemEstoque(it)); });
   res.json(inspecoes.map(i => ({ id: i.id, data: i.data, responsavel: i.responsavel, divergencias: porInspecao[i.id] || [] })));
@@ -353,7 +360,11 @@ router.delete('/inspecoes-estoque/:id', requireRole('GESTAO'), asyncHandler(asyn
 // ---------------------------------------------------------------------------
 router.get('/checklists-5s', asyncHandler(async (req, res) => {
   const [checklists] = await pool.query('SELECT * FROM checklists_5s ORDER BY id DESC');
-  const [itens] = await pool.query('SELECT * FROM checklists_5s_itens ORDER BY checklist_id, ordem');
+  // Mesmo motivo do endpoint /inspecoes-estoque acima: ordenar no Node em vez de
+  // no SQL evita depender do otimizador escolher o índice (inspecao/checklist_id,
+  // ordem) para o ORDER BY, e elimina de vez o risco de ER_OUT_OF_SORTMEMORY.
+  const [itens] = await pool.query('SELECT * FROM checklists_5s_itens');
+  itens.sort((a, b) => a.checklist_id - b.checklist_id || a.ordem - b.ordem);
   const porChecklist = {};
   itens.forEach(it => { (porChecklist[it.checklist_id] ||= []).push(mapItem5s(it)); });
   res.json(checklists.map(c => ({
