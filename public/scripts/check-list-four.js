@@ -1668,10 +1668,16 @@ function parseNumeroPlanilha(v) {
   return isNaN(n) ? 0 : n;
 }
 function decodificarTextoPlanilha(buffer) {
-  // Tenta UTF-8 primeiro; se detectar caracteres de substituição (indicando bytes inválidos em UTF-8),
-  // refaz a decodificação como ISO-8859-1/Windows-1252 (comum em planilhas exportadas do Excel no Windows).
+  // Tenta UTF-8 primeiro; se detectar o caractere de substituição "�" (U+FFFD,
+  // que o TextDecoder insere no lugar de sequências de bytes inválidas em UTF-8),
+  // refaz a decodificação como ISO-8859-1/Windows-1252 (comum em planilhas
+  // exportadas do Excel no Windows, como a "CADASTRO DE PRODUTOS.csv").
+  // Antes, a condição verificava a ausência de espaço (" ") no texto — como
+  // qualquer descrição de produto real tem espaços, a planilha SEMPRE caía no
+  // ramo ISO-8859-1, mesmo quando o arquivo já era UTF-8 válido, corrompendo
+  // a acentuação e quebrando a busca por palavras acentuadas.
   const utf8 = new TextDecoder("utf-8").decode(buffer);
-  if (!utf8.includes(" ")) return utf8;
+  if (!utf8.includes("\uFFFD")) return utf8;
   return new TextDecoder("iso-8859-1").decode(buffer);
 }
 function importarCadastroProdutos(input) {

@@ -80,7 +80,8 @@ CREATE TABLE IF NOT EXISTS inspecoes_estoque_itens (
   fotos_json     JSON NOT NULL,
   atualizado_em  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   CONSTRAINT fk_estoque_itens_inspecao FOREIGN KEY (inspecao_id) REFERENCES inspecoes_estoque(id) ON DELETE CASCADE,
-  INDEX idx_inspecoes_estoque_itens_inspecao (inspecao_id)
+  INDEX idx_inspecoes_estoque_itens_inspecao (inspecao_id),
+  INDEX idx_inspecoes_estoque_itens_inspecao_ordem (inspecao_id, ordem)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS checklists_5s (
@@ -110,7 +111,8 @@ CREATE TABLE IF NOT EXISTS checklists_5s_itens (
   data_conclusao DATE NULL,
   atualizado_em  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   CONSTRAINT fk_5s_itens_checklist FOREIGN KEY (checklist_id) REFERENCES checklists_5s(id) ON DELETE CASCADE,
-  INDEX idx_checklists_5s_itens_checklist (checklist_id)
+  INDEX idx_checklists_5s_itens_checklist (checklist_id),
+  INDEX idx_checklists_5s_itens_checklist_ordem (checklist_id, ordem)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS inspecoes_recebimento (

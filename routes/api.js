@@ -295,7 +295,7 @@ router.delete('/divergencias-produtos/:id', asyncHandler(async (req, res) => {
 // ---------------------------------------------------------------------------
 router.get('/inspecoes-estoque', asyncHandler(async (req, res) => {
   const [inspecoes] = await pool.query('SELECT * FROM inspecoes_estoque ORDER BY id DESC');
-  const [itens] = await pool.query('SELECT * FROM inspecoes_estoque_itens ORDER BY ordem');
+  const [itens] = await pool.query('SELECT * FROM inspecoes_estoque_itens ORDER BY inspecao_id, ordem');
   const porInspecao = {};
   itens.forEach(it => { (porInspecao[it.inspecao_id] ||= []).push(mapItemEstoque(it)); });
   res.json(inspecoes.map(i => ({ id: i.id, data: i.data, responsavel: i.responsavel, divergencias: porInspecao[i.id] || [] })));
@@ -353,7 +353,7 @@ router.delete('/inspecoes-estoque/:id', requireRole('GESTAO'), asyncHandler(asyn
 // ---------------------------------------------------------------------------
 router.get('/checklists-5s', asyncHandler(async (req, res) => {
   const [checklists] = await pool.query('SELECT * FROM checklists_5s ORDER BY id DESC');
-  const [itens] = await pool.query('SELECT * FROM checklists_5s_itens ORDER BY ordem');
+  const [itens] = await pool.query('SELECT * FROM checklists_5s_itens ORDER BY checklist_id, ordem');
   const porChecklist = {};
   itens.forEach(it => { (porChecklist[it.checklist_id] ||= []).push(mapItem5s(it)); });
   res.json(checklists.map(c => ({

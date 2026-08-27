@@ -49,6 +49,36 @@ async function aplicarMigracoesColunas(connection) {
   }
 }
 
+// Mesma lógica de "CREATE TABLE IF NOT EXISTS" não altera índices de tabelas que já
+// existiam num banco de produção antigo. Registre aqui todo índice novo necessário:
+// o servidor confere sozinho (via information_schema) se o índice já existe e só
+// roda o ALTER TABLE se realmente faltar — seguro de rodar quantas vezes quiser.
+const MIGRACOES_INDICES = [
+  {
+    tabela: 'inspecoes_estoque_itens',
+    indice: 'idx_inspecoes_estoque_itens_inspecao_ordem',
+    ddl: 'ALTER TABLE inspecoes_estoque_itens ADD INDEX idx_inspecoes_estoque_itens_inspecao_ordem (inspecao_id, ordem)',
+  },
+  {
+    tabela: 'checklists_5s_itens',
+    indice: 'idx_checklists_5s_itens_checklist_ordem',
+    ddl: 'ALTER TABLE checklists_5s_itens ADD INDEX idx_checklists_5s_itens_checklist_ordem (checklist_id, ordem)',
+  },
+];
+
+async function aplicarMigracoesIndices(connection) {
+  for (const m of MIGRACOES_INDICES) {
+    const [rows] = await connection.query(
+      'SELECT COUNT(*) AS total FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ? AND INDEX_NAME = ?',
+      [DATABASE, m.tabela, m.indice]
+    );
+    if (rows[0].total === 0) {
+      console.log(`Migração: adicionando índice "${m.indice}" em "${m.tabela}" ...`);
+      await connection.query(m.ddl);
+    }
+  }
+}
+
 async function aplicarSchema() {
   const connection = await mysql.createConnection({
     host: HOST, user: USER, password: PASSWORD, database: DATABASE, port: PORT,
@@ -58,6 +88,7 @@ async function aplicarSchema() {
     const sql = fs.readFileSync(path.join(__dirname, 'schema.sql'), 'utf8');
     await connection.query(sql);
     await aplicarMigracoesColunas(connection);
+    await aplicarMigracoesIndices(connection);
   } finally {
     await connection.end();
   }
