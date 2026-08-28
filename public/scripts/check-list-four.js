@@ -1586,13 +1586,39 @@ function normalizarChaveCabecalho(s) {
 // mantém os espaços — usada para quebrar o texto digitado em palavras e para
 // comparar cada palavra dentro da descrição/código/etc. do produto.
 function normalizarParaBusca(s) {
-  return String(s || "")
+  const base = String(s || "")
     .trim()
     .toLowerCase()
     .normalize("NFD")
     .replace(/[̀-ͯ]/g, "")
     .replace(/[^a-z0-9]+/g, " ")
     .trim();
+  if (!base) return base;
+  // Siglas digitadas com pontuação entre cada letra (ex.: "C.A." — Certificado
+  // de Aprovação, comum em descrição de travesseiro/colchão; "C.M.P.", "C.E.P.")
+  // viram, depois da limpeza acima, uma palavra de uma letra só para cada letra
+  // ("c a", "c m p"...). Sem juntar essas letras de volta, buscar "CA", "CMP"
+  // ou "CEP" (digitado sem pontuação) nunca encontra essa substring contígua
+  // no texto original — a busca falha mesmo com o termo presente na descrição.
+  // Aqui juntamos sequências de palavras de uma letra só (não mexe em números
+  // nem em palavras normais com 2+ letras, então medidas como "70 X 50" não
+  // são afetadas).
+  const palavras = base.split(" ");
+  const resultado = [];
+  let siglaAtual = "";
+  for (const palavra of palavras) {
+    if (palavra.length === 1 && /[a-z]/.test(palavra)) {
+      siglaAtual += palavra;
+      continue;
+    }
+    if (siglaAtual) {
+      resultado.push(siglaAtual);
+      siglaAtual = "";
+    }
+    resultado.push(palavra);
+  }
+  if (siglaAtual) resultado.push(siglaAtual);
+  return resultado.join(" ");
 }
 // Extrai os tokens da busca ANTES de normalizarParaBusca() apagar a vírgula/
 // ponto decimal — assim um valor digitado como "185,85" vira um único token
