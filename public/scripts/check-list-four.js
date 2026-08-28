@@ -1415,6 +1415,11 @@ function renderCadastroProdutos() {
         <button class="btn btn-brass" onclick="abrirProdutoModal()">+ Cadastrar Produto</button>`
             : ""
         }
+        ${
+          currentUser.perfil === "GESTAO"
+            ? `<button class="btn btn-ghost" style="color:#b42318;border-color:#b42318;" onclick="resetarCadastroProdutos()">🗑 Excluir todos</button>`
+            : ""
+        }
       </div>
     </div>
     <div id="cp-import-msg"></div>
@@ -1494,6 +1499,42 @@ function renderCadastroProdutosPaginacao(totalPaginas, totalItens) {
     ${botoesNum}
     <button class="btn btn-ghost" ${cpPaginaAtual >= totalPaginas ? "disabled" : ""} onclick="irParaPaginaCadastroProdutos(${cpPaginaAtual + 1})">Próxima →</button>
     <span style="font-size:12px;color:var(--ink-faint);margin-left:8px;">Página ${cpPaginaAtual} de ${totalPaginas} · ${totalItens} produto(s)</span>`;
+}
+async function resetarCadastroProdutos() {
+  const total = PRODUTOS.length;
+  if (!total) {
+    notificarInfo("Não há produtos cadastrados para excluir.");
+    return;
+  }
+  // Exclusão em massa e irreversível: exige digitar a frase exata em vez de só
+  // confirmar Sim/Não, para reduzir o risco de clique acidental apagar a base
+  // inteira de produtos.
+  const { value: digitado } = await Swal.fire({
+    icon: "warning",
+    title: "Excluir todos os produtos?",
+    html: `Isso vai apagar <b>permanentemente</b> os ${total} produto(s) cadastrados. Essa ação não pode ser desfeita.<br><br>Digite <b>EXCLUIR TODOS</b> para confirmar:`,
+    input: "text",
+    inputPlaceholder: "EXCLUIR TODOS",
+    showCancelButton: true,
+    confirmButtonText: "Excluir todos os produtos",
+    cancelButtonText: "Cancelar",
+    confirmButtonColor: "#b42318",
+    cancelButtonColor: SWAL_CORES.cancelar,
+    reverseButtons: true,
+    focusCancel: true,
+    inputValidator: (v) =>
+      v !== "EXCLUIR TODOS" ? 'Digite exatamente "EXCLUIR TODOS" para confirmar.' : undefined,
+  });
+  if (digitado !== "EXCLUIR TODOS") return;
+  try {
+    await apiDelete("/api/produtos");
+    await Promise.all([recarregarProdutos(), recarregarHistorico()]);
+    cpPaginaAtual = 1;
+    renderCadastroProdutosRows();
+    notificarSucesso("Todos os produtos foram excluídos.");
+  } catch (e) {
+    notificarErro(e.message);
+  }
 }
 async function delProduto(i) {
   if (!(await confirmarAcao(`Excluir o produto "${PRODUTOS[i].descricao}"?`, { textoConfirmar: "Sim, excluir" }))) return;

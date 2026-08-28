@@ -133,6 +133,17 @@ router.delete('/produtos/:id', asyncHandler(async (req, res) => {
   res.json({ ok: true });
 }));
 
+// Reset da tabela de Cadastro de Produtos: exclui todos os produtos de uma vez.
+// Restrito a GESTAO (mesmo padrão das outras exclusões em massa/irreversíveis
+// deste arquivo) e sempre registrado no histórico de alterações.
+router.delete('/produtos', requireRole('GESTAO'), asyncHandler(async (req, res) => {
+  const [rows] = await pool.query('SELECT COUNT(*) AS total FROM produtos');
+  const total = rows[0].total;
+  await pool.query('DELETE FROM produtos');
+  await registrarHistorico('produtos', 'todos', 'EXCLUSAO', req.usuario.nome, `${req.usuario.nome} excluiu todos os produtos cadastrados (${total} produto(s)).`);
+  res.json({ ok: true, excluidos: total });
+}));
+
 router.post('/produtos/importar', asyncHandler(async (req, res) => {
   const linhas = Array.isArray(req.body) ? req.body : [];
   let criados = 0, atualizados = 0, ignorados = 0;
