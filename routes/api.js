@@ -459,7 +459,14 @@ router.delete('/checklists-5s/:id', requireRole('GESTAO'), asyncHandler(async (r
 // INSPEÇÃO DE RECEBIMENTO
 // ---------------------------------------------------------------------------
 router.get('/inspecoes-recebimento', asyncHandler(async (req, res) => {
-  const [rows] = await pool.query('SELECT * FROM inspecoes_recebimento ORDER BY criado_em DESC');
+  const [rows] = await pool.query(
+    'SELECT * FROM inspecoes_recebimento'
+  );
+
+  rows.sort((a, b) => {
+    return new Date(b.criado_em).getTime() - new Date(a.criado_em).getTime();
+  });
+
   res.json(rows.map(mapRecebimento));
 }));
 

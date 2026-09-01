@@ -116,20 +116,22 @@ CREATE TABLE IF NOT EXISTS checklists_5s_itens (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS inspecoes_recebimento (
-  id                           VARCHAR(20) PRIMARY KEY,
-  data_inspecao                DATETIME NOT NULL,
-  fornecedor                   VARCHAR(150) NOT NULL,
-  fornecedor_outro             VARCHAR(150) NULL,
-  resultado_fornecedor         ENUM('conforme','conforme_ressalva','nao_conforme') NOT NULL,
-  divergencia_fornecedor_json  JSON NOT NULL,
+  id                          VARCHAR(20) PRIMARY KEY,
+  data_inspecao               DATETIME NOT NULL,
+  fornecedor                  VARCHAR(150) NOT NULL,
+  fornecedor_outro            VARCHAR(150) NULL,
+  resultado_fornecedor        ENUM('conforme','conforme_ressalva','nao_conforme') NOT NULL,
+  divergencia_fornecedor_json JSON NOT NULL,
   resultado_operacional        ENUM('conforme','conforme_ressalva','nao_conforme') NOT NULL,
   divergencia_operacional_json JSON NOT NULL,
-  status_final                 ENUM('conforme','conforme_ressalva','nao_conforme') NOT NULL,
-  usuario_responsavel          VARCHAR(150) NULL,
-  data_finalizacao             DATETIME NULL,
-  criado_em                    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  atualizado_em                DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  INDEX idx_inspecoes_recebimento_data (data_inspecao)
+  status_final                ENUM('conforme','conforme_ressalva','nao_conforme') NOT NULL,
+  usuario_responsavel         VARCHAR(150) NULL,
+  data_finalizacao            DATETIME NULL,
+  criado_em                   DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  atualizado_em               DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+  INDEX idx_inspecoes_recebimento_data (data_inspecao),
+  INDEX idx_inspecoes_recebimento_criado_em (criado_em)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- contador atômico para gerar os ids "INS-000001", "INS-000002", ... com segurança
