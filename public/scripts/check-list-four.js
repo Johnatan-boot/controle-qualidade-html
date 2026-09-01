@@ -4012,6 +4012,51 @@ function renderIndicadores() {
   else if (indicadoresTab === "recebimento") renderIndicadoresRecebimento();
   else renderRelatorios();
 }
+/* ---- Status padronizado da aba Relatórios (seção 3 do escopo) --------------
+   O backend guarda estados de fluxo de correção (PENDENTE/EM_ESPERA/CORRIGIDO,
+   por item) para produtos/gaiolas/5s, e um veredito de conformidade
+   (conforme/conforme_ressalva/nao_conforme) para recebimento. A aba Relatórios
+   precisa apresentar SEMPRE um destes 5 valores: ABERTO, PENDENTE, EM ANALISE,
+   CONCLUIDO, REPROVADO. Mapeamento adotado (documentado para rastreabilidade):
+     - PENDENTE (item ainda não tratado)      -> ABERTO
+     - EM_ESPERA (em tratativa/aguardando)    -> EM ANALISE
+     - CORRIGIDO (tratativa concluída)        -> CONCLUIDO
+     - conforme                                -> CONCLUIDO
+     - conforme_ressalva (aprovado c/ ressalva)-> PENDENTE (segue precisando de acompanhamento)
+     - nao_conforme                            -> REPROVADO
+   Este é um campo NOVO (`statusPadrao`), calculado só para o relatório — o
+   campo `status` original (aprovado/reprovado) usado pelo Painel Gerencial
+   não é alterado, para não impactar aquela tela (fora do escopo desta etapa). */
+const STATUS_PADRAO = {
+  ABERTO: "ABERTO",
+  PENDENTE: "PENDENTE",
+  EM_ANALISE: "EM ANALISE",
+  CONCLUIDO: "CONCLUIDO",
+  REPROVADO: "REPROVADO",
+};
+const STATUS_ITEM_PARA_PADRAO = {
+  PENDENTE: STATUS_PADRAO.ABERTO,
+  EM_ESPERA: STATUS_PADRAO.EM_ANALISE,
+  CORRIGIDO: STATUS_PADRAO.CONCLUIDO,
+};
+const STATUS_RECEBIMENTO_PARA_PADRAO = {
+  conforme: STATUS_PADRAO.CONCLUIDO,
+  conforme_ressalva: STATUS_PADRAO.PENDENTE,
+  nao_conforme: STATUS_PADRAO.REPROVADO,
+};
+/* Agrega o status de uma lista de itens (cada um com .status em
+   PENDENTE/EM_ESPERA/CORRIGIDO) em um único statusPadrao para o registro
+   "pai" (inspeção de estoque / checklist 5S), priorizando o estado menos
+   avançado presente entre os itens — se ao menos um item ainda está em
+   ABERTO, o registro inteiro é tratado como ABERTO, e assim por diante. */
+function agregarStatusPadrao(itens) {
+  if (!itens || itens.length === 0) return STATUS_PADRAO.CONCLUIDO;
+  const statusItens = itens.map((i) => STATUS_ITEM_PARA_PADRAO[i.status] || STATUS_PADRAO.ABERTO);
+  if (statusItens.includes(STATUS_PADRAO.ABERTO)) return STATUS_PADRAO.ABERTO;
+  if (statusItens.includes(STATUS_PADRAO.EM_ANALISE)) return STATUS_PADRAO.EM_ANALISE;
+  return STATUS_PADRAO.CONCLUIDO;
+}
+
 /* ---- fonte unificada de registros (usada no Painel Gerencial e em Relatórios) ---- */
 function registrosUnificados() {
   const regs = [];
@@ -4033,6 +4078,11 @@ function registrosUnificados() {
             : "aberta",
       temDivergencia: true,
       origem: d,
+      // Campos usados exclusivamente pela aba Relatórios (seção 1-7 do escopo):
+      sku: d.sku || null,
+      produto: d.descricao || null,
+      valor: d.valorUnit != null && d.qtd != null ? d.valorUnit * d.qtd : null,
+      statusPadrao: STATUS_ITEM_PARA_PADRAO[d.status] || STATUS_PADRAO.ABERTO,
     }),
   );
   inspecoesEstoque.forEach((insp) => {
@@ -4049,6 +4099,11 @@ function registrosUnificados() {
       data: insp.data,
       responsavel: insp.responsavel,
       refer: tiposResumo || "—",
+      // Setor: a Inspeção de Estoque nunca coletou setor/departamento (nem no
+      // formulário, nem na tabela `inspecoes_estoque` do banco — ver
+      // db/schema.sql). Não é uma falha de leitura: a informação
+      // simplesmente não existe na origem para este tipo de registro, então
+      // permanece null (exibido como "—") em vez de um valor inventado.
       setor: null,
       quantidade: insp.divergencias.length,
       observacao: insp.divergencias.map((d) => d.obs).filter(Boolean).join(" | "),
@@ -4057,6 +4112,12 @@ function registrosUnificados() {
         abertas > 0 ? "aberta" : insp.divergencias.length ? "resolvida" : "",
       temDivergencia: insp.divergencias.length > 0,
       origem: insp,
+      // Inspeção de Estoque não está associada a um SKU/produto específico
+      // nem tem valor monetário — não há regra de negócio que defina um.
+      sku: null,
+      produto: null,
+      valor: null,
+      statusPadrao: agregarStatusPadrao(insp.divergencias),
     });
   });
   checklist5s.forEach((c) => {
@@ -4077,6 +4138,12 @@ function registrosUnificados() {
       pendenciaStatus: abertas > 0 ? "aberta" : temNC ? "resolvida" : "",
       temDivergencia: temNC,
       origem: c,
+      // Checklist 5S é uma inspeção de área/setor, não de um produto/SKU
+      // específico — sem valor monetário associado por regra de negócio.
+      sku: null,
+      produto: null,
+      valor: null,
+      statusPadrao: agregarStatusPadrao(itensNC),
     });
   });
   inspecoesRecebimento.forEach((i) => {
@@ -4089,11 +4156,20 @@ function registrosUnificados() {
     ]
       .filter(Boolean)
       .join(" | ");
+    // Só existe SKU/produto/valor quando a divergência registrada no
+    // recebimento foi do tipo "produto" (ver seção "Avaliação do fornecedor"
+    // do formulário de Inspeção de Recebimento); nos demais casos (conforme,
+    // ou divergência de caminhão/operacional) não há produto associado.
+    const produtoRecebimento = i.divergenciaFornecedor?.produto;
     regs.push({
       tipo: "recebimento",
       data: i.dataInspecao.slice(0, 10),
       responsavel: i.usuarioResponsavel,
       refer: i.fornecedor === "OUTROS" ? i.fornecedorOutro : i.fornecedor,
+      // Inspeção de Recebimento avalia fornecedor/caminhão, não um setor
+      // interno — a tabela `inspecoes_recebimento` não tem essa coluna
+      // (ver db/schema.sql), então, assim como em "gaiolas", não é uma
+      // falha de leitura: não existe setor na origem deste tipo de registro.
       setor: null,
       quantidade: qtdFornecedor + qtdOperacional,
       observacao: obsRecebimento,
@@ -4101,6 +4177,10 @@ function registrosUnificados() {
       pendenciaStatus: i.statusFinal === "conforme" ? "" : "aberta",
       temDivergencia: i.statusFinal !== "conforme",
       origem: i,
+      sku: produtoRecebimento?.sku || null,
+      produto: produtoRecebimento?.descricao || null,
+      valor: produtoRecebimento?.valorTotal != null ? Number(produtoRecebimento.valorTotal) : null,
+      statusPadrao: STATUS_RECEBIMENTO_PARA_PADRAO[i.statusFinal] || STATUS_PADRAO.ABERTO,
     });
   });
   return regs;
@@ -4363,7 +4443,10 @@ function relatoriosFiltrados() {
         return false;
       if (relatoriosFiltros.tipo && r.tipo !== relatoriosFiltros.tipo)
         return false;
-      if (relatoriosFiltros.status && r.status !== relatoriosFiltros.status)
+      if (
+        relatoriosFiltros.status &&
+        r.statusPadrao !== relatoriosFiltros.status
+      )
         return false;
       if (
         relatoriosFiltros.responsavel &&
@@ -4394,6 +4477,46 @@ function limparFiltroRelatorios() {
   };
   renderRelatorios();
 }
+function statusPadraoBadgeClass(statusPadrao) {
+  return (
+    {
+      [STATUS_PADRAO.ABERTO]: "st-aberto",
+      [STATUS_PADRAO.PENDENTE]: "st-pendente",
+      [STATUS_PADRAO.EM_ANALISE]: "st-analise",
+      [STATUS_PADRAO.CONCLUIDO]: "st-concluido",
+      [STATUS_PADRAO.REPROVADO]: "st-reprovado",
+    }[statusPadrao] || "st-aberto"
+  );
+}
+/* Fonte única de transformação da linha do relatório (seção 10 do escopo):
+   tabela, download (CSV/Excel) e impressão usam TODOS esta mesma função, na
+   mesma ordem de colunas (Data, SKU, Produto, Setor, Quantidade,
+   Responsável, Status, Observação, Valor), evitando três implementações
+   divergentes do mesmo dado. */
+const RELATORIO_COLUNAS = [
+  "Data",
+  "SKU",
+  "Produto",
+  "Setor",
+  "Quantidade",
+  "Responsável",
+  "Status",
+  "Observação",
+  "Valor",
+];
+function relatorioLinha(r) {
+  return {
+    data: fmtDate(r.data),
+    sku: r.sku || "—",
+    produto: r.produto || "—",
+    setor: r.setor || "—",
+    quantidade: r.quantidade || 0,
+    responsavel: r.responsavel || "—",
+    status: r.statusPadrao,
+    observacao: r.observacao || "—",
+    valor: r.valor != null ? money(r.valor) : "—",
+  };
+}
 function renderRelatorios() {
   const body = document.getElementById("indicadores-body");
   const lista = relatoriosFiltrados();
@@ -4406,24 +4529,38 @@ function renderRelatorios() {
         `<option value="${r}" ${relatoriosFiltros.responsavel === r ? "selected" : ""}>${r}</option>`,
     )
     .join("");
-  const totalAprov = lista.filter((r) => r.status === "aprovado").length;
-  const totalReprov = lista.length - totalAprov;
-  const rows = lista
+  const statusOpts = Object.values(STATUS_PADRAO)
     .map(
-      (
-        r,
-      ) => `<tr style="${r.status === "reprovado" ? "border-left:3px solid var(--danger);background:rgba(193,91,74,.04);" : ""}">
-    <td style="color:var(--ink-faint);">${fmtDate(r.data)}</td>
-    <td>${TIPO_REG_LABEL[r.tipo]}</td>
-    <td>${r.refer}</td>
-    <td>${r.setor || "—"}</td>
-    <td style="text-align:right;">${r.quantidade || 0}</td>
-    <td>${r.responsavel}</td>
-    <td><span class="badge ${r.status === "aprovado" ? "conforme" : "naoconforme"}">${r.status === "aprovado" ? "Aprovado" : "Reprovado"}</span></td>
-    <td>${r.pendenciaStatus ? `<span class="badge ${r.pendenciaStatus === "resolvida" ? "conforme" : r.pendenciaStatus === "em_andamento" ? "media" : "naoconforme"}">${{ aberta: "Aberta", em_andamento: "Em andamento", resolvida: "Resolvida" }[r.pendenciaStatus]}</span>` : '<span style="color:var(--ink-faint);">—</span>'}</td>
-    <td style="max-width:220px;white-space:normal;font-size:12px;color:var(--ink-soft);">${r.observacao || "—"}</td>
-  </tr>`,
+      (s) =>
+        `<option value="${s}" ${relatoriosFiltros.status === s ? "selected" : ""}>${s}</option>`,
     )
+    .join("");
+  const totalConcluidos = lista.filter(
+    (r) => r.statusPadrao === STATUS_PADRAO.CONCLUIDO,
+  ).length;
+  const totalReprovados = lista.filter(
+    (r) => r.statusPadrao === STATUS_PADRAO.REPROVADO,
+  ).length;
+  const totalEmAndamento = lista.length - totalConcluidos - totalReprovados;
+  const rows = lista
+    .map((r) => {
+      const linha = relatorioLinha(r);
+      const destaque =
+        r.statusPadrao === STATUS_PADRAO.REPROVADO
+          ? "border-left:3px solid var(--danger);background:rgba(193,91,74,.04);"
+          : "";
+      return `<tr style="${destaque}">
+    <td style="color:var(--ink-faint);">${linha.data}</td>
+    <td>${linha.sku}</td>
+    <td>${linha.produto}</td>
+    <td>${linha.setor}</td>
+    <td style="text-align:right;">${linha.quantidade}</td>
+    <td>${linha.responsavel}</td>
+    <td><span class="badge ${statusPadraoBadgeClass(r.statusPadrao)}">${linha.status}</span></td>
+    <td style="max-width:220px;white-space:normal;font-size:12px;color:var(--ink-soft);">${linha.observacao}</td>
+    <td style="text-align:right;white-space:nowrap;">${linha.valor}</td>
+  </tr>`;
+    })
     .join("");
   body.innerHTML = `
     <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:16px;flex-wrap:wrap;">
@@ -4448,7 +4585,7 @@ function renderRelatorios() {
               `<option value="${k}" ${relatoriosFiltros.tipo === k ? "selected" : ""}>${v}</option>`,
           )
           .join("")}</select></label>
-        <label class="field"><span>Status</span><select id="rlf-status"><option value="">Todos</option><option value="aprovado" ${relatoriosFiltros.status === "aprovado" ? "selected" : ""}>Aprovado</option><option value="reprovado" ${relatoriosFiltros.status === "reprovado" ? "selected" : ""}>Reprovado</option></select></label>
+        <label class="field"><span>Status</span><select id="rlf-status"><option value="">Todos</option>${statusOpts}</select></label>
         <label class="field"><span>Responsável</span><select id="rlf-responsavel"><option value="">Todos</option>${respOpts}</select></label>
         <button class="btn btn-brass" onclick="aplicarFiltroRelatorios()">Filtrar</button>
         <button class="btn btn-ghost" onclick="limparFiltroRelatorios()">Limpar filtros</button>
@@ -4456,47 +4593,31 @@ function renderRelatorios() {
     </div>
     <div class="grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:18px;">
       <div class="card stat-card"><div><div class="stat-label">Registros no Filtro</div><div class="stat-value">${lista.length}</div></div><div class="stat-icon info">📄</div></div>
-      <div class="card stat-card"><div><div class="stat-label">Aprovados</div><div class="stat-value">${totalAprov}</div></div><div class="stat-icon success">✅</div></div>
-      <div class="card stat-card"><div><div class="stat-label">Reprovados</div><div class="stat-value">${totalReprov}</div></div><div class="stat-icon">🔴</div></div>
+      <div class="card stat-card"><div><div class="stat-label">Concluídos</div><div class="stat-value">${totalConcluidos}</div></div><div class="stat-icon success">✅</div></div>
+      <div class="card stat-card"><div><div class="stat-label">Reprovados</div><div class="stat-value">${totalReprovados}</div></div><div class="stat-icon">🔴</div></div>
     </div>
     <div class="card" style="overflow:hidden;"><div style="overflow-x:auto;"><table>
-      <thead><tr><th>Data</th><th>Formulário</th><th>Produto/Setor/Fornecedor</th><th>Setor</th><th style="text-align:right;">Quantidade</th><th>Responsável</th><th>Status</th><th>Pendência</th><th>Observação</th></tr></thead>
-      <tbody>${rows || '<tr><td colspan=9 style="text-align:center;padding:40px;color:var(--ink-faint);">Nenhum registro encontrado para os filtros aplicados.</td></tr>'}</tbody>
+      <thead><tr><th>${RELATORIO_COLUNAS[0]}</th><th>${RELATORIO_COLUNAS[1]}</th><th>${RELATORIO_COLUNAS[2]}</th><th>${RELATORIO_COLUNAS[3]}</th><th style="text-align:right;">${RELATORIO_COLUNAS[4]}</th><th>${RELATORIO_COLUNAS[5]}</th><th>${RELATORIO_COLUNAS[6]}</th><th>${RELATORIO_COLUNAS[7]}</th><th style="text-align:right;">${RELATORIO_COLUNAS[8]}</th></tr></thead>
+      <tbody>${rows || `<tr><td colspan=${RELATORIO_COLUNAS.length} style="text-align:center;padding:40px;color:var(--ink-faint);">Nenhum registro encontrado para os filtros aplicados.</td></tr>`}</tbody>
     </table></div></div>`;
 }
 function exportarRelatorioCSV() {
   const lista = relatoriosFiltrados();
-  const linhas = [
-    [
-      "Data",
-      "Formulário",
-      "Produto/Setor/Fornecedor",
-      "Setor",
-      "Quantidade",
-      "Responsável",
-      "Status",
-      "Pendência",
-      "Observação",
-    ],
-  ];
-  lista.forEach((r) =>
+  const linhas = [RELATORIO_COLUNAS];
+  lista.forEach((r) => {
+    const linha = relatorioLinha(r);
     linhas.push([
-      fmtDate(r.data),
-      TIPO_REG_LABEL[r.tipo],
-      r.refer,
-      r.setor || "—",
-      r.quantidade || 0,
-      r.responsavel,
-      r.status === "aprovado" ? "Aprovado" : "Reprovado",
-      {
-        aberta: "Aberta",
-        em_andamento: "Em andamento",
-        resolvida: "Resolvida",
-        "": "—",
-      }[r.pendenciaStatus],
-      r.observacao || "—",
-    ]),
-  );
+      linha.data,
+      linha.sku,
+      linha.produto,
+      linha.setor,
+      linha.quantidade,
+      linha.responsavel,
+      linha.status,
+      linha.observacao,
+      linha.valor,
+    ]);
+  });
   const csv =
     "﻿" +
     linhas
@@ -4512,20 +4633,25 @@ function exportarRelatorioCSV() {
 }
 function imprimirRelatorio() {
   const lista = relatoriosFiltrados();
+  const theadHtml = RELATORIO_COLUNAS.map((c) => `<th>${c}</th>`).join("");
   const rows = lista
-    .map(
-      (r) =>
-        `<tr><td>${fmtDate(r.data)}</td><td>${TIPO_REG_LABEL[r.tipo]}</td><td>${r.refer}</td><td>${r.setor || "—"}</td><td>${r.quantidade || 0}</td><td>${r.responsavel}</td><td>${r.status === "aprovado" ? "Aprovado" : "Reprovado"}</td><td>${r.observacao || "—"}</td></tr>`,
-    )
+    .map((r) => {
+      const linha = relatorioLinha(r);
+      return `<tr><td>${linha.data}</td><td>${linha.sku}</td><td>${linha.produto}</td><td>${linha.setor}</td><td>${linha.quantidade}</td><td>${linha.responsavel}</td><td>${linha.status}</td><td>${linha.observacao}</td><td>${linha.valor}</td></tr>`;
+    })
     .join("");
   try {
     const w = window.open("", "_blank");
+    if (!w) {
+      notificarInfo("Permita pop-ups para imprimir o relatório.");
+      return;
+    }
     w.document.write(`<html><head><title>Relatório de Qualidade</title><style>
       body{font-family:Arial,sans-serif;padding:24px;color:#14171a;} h1{font-size:18px;} table{width:100%;border-collapse:collapse;margin-top:12px;} th,td{border:1px solid #ddd;padding:6px 8px;font-size:12px;text-align:left;} th{background:#f2e6c8;}
     </style></head><body>
       <h1>Relatório Consolidado de Qualidade — CD King Star Colchões</h1>
       <p>Gerado em ${fmtDate(HOJE)} · ${lista.length} registro(s)</p>
-      <table><thead><tr><th>Data</th><th>Formulário</th><th>Produto/Setor/Fornecedor</th><th>Setor</th><th>Quantidade</th><th>Responsável</th><th>Status</th><th>Observação</th></tr></thead><tbody>${rows}</tbody></table>
+      <table><thead><tr>${theadHtml}</tr></thead><tbody>${rows}</tbody></table>
     </body></html>`);
     w.document.close();
     w.focus();

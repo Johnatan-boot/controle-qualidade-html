@@ -1026,3 +1026,28 @@ textarea:focus {
   color: var(--danger);
   font-weight: 600;
 }
+
+/* Status padronizado da aba Indicadores > Relatórios (ABERTO / PENDENTE /
+   EM ANALISE / CONCLUIDO / REPROVADO). Classes dedicadas para não colidir
+   com os badges de prioridade/pendência/conformidade usados em outras telas. */
+.badge.st-aberto {
+  background: var(--border-soft);
+  color: var(--ink-muted);
+}
+.badge.st-pendente {
+  background: var(--warning-soft);
+  color: #8a6a1f;
+}
+.badge.st-analise {
+  background: var(--info-soft);
+  color: #3a458c;
+}
+.badge.st-concluido {
+  background: var(--success-soft);
+  color: #2f6b4b;
+}
+.badge.st-reprovado {
+  background: var(--danger-soft);
+  color: var(--danger);
+  font-weight: 600;
+}
