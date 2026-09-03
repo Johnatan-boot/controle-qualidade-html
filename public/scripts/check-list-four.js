@@ -5770,6 +5770,11 @@ function analiseCausasHeaderHtml(idPrefix, tituloArea) {
       <a href="#ishikawa-${idPrefix}" class="btn btn-ghost" style="font-size:12px;padding:6px 10px;">🐟 Diagrama E. Peixe</a>
       <a href="#pareto-${idPrefix}" class="btn btn-ghost" style="font-size:12px;padding:6px 10px;">📈 Diagrama Pareto</a>
       <a href="#heatmap-${idPrefix}" class="btn btn-ghost" style="font-size:12px;padding:6px 10px;">🔥 Heatmap Setor/Fornecedor</a>
+      <div class="card-importacao">
+        <h3>Importar Divergências via Planilha</h3>
+        <input type="file" id="inputPlanilhaRelatorio" accept=".xlsx, .xls, .csv" />
+        <button onclick="processarUploadPlanilha()" class="btn-primario">Enviar Planilha</button>
+      </div>
       <button class="btn btn-brass" style="font-size:12px;padding:6px 10px;" onclick="exportarPaginaPdf('${idPrefix}','${tituloEsc}')">📄 Exportar PDF</button>
       <button class="btn btn-ghost" style="font-size:12px;padding:6px 10px;" onclick="window.print()">🖨️ Imprimir</button>
     </div>`;
@@ -5786,6 +5791,67 @@ function renderSecaoAnaliseCausas(origem, idPrefix, tituloArea) {
     analiseCausasHeaderHtml(idPrefix, tituloArea) +
     analiseCausasBlocosHtml(dados, idPrefix);
   return { html, dados };
+}
+
+// Certifique-se de incluir a biblioteca SheetJS no HTML:
+// <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+async function processarUploadPlanilha() {
+  const input = document.getElementById('inputPlanilhaRelatorio');
+  if (!input.files || input.files.length === 0) {
+    alert('Selecione um arquivo de planilha válido.');
+    return;
+  }
+
+  const arquivo = input.files[0];
+  const leitor = new FileReader();
+
+  leitor.onload = async function (e) {
+    try {
+      const dadosBinarios = new Uint8Array(e.target.result);
+      const workbook = XLSX.read(dadosBinarios, { type: 'array' });
+      const primeiraAba = workbook.SheetNames[0];
+      const worksheet = workbook.Sheets[primeiraAba];
+      
+      // Converte a planilha em JSON mapeando as colunas
+      const linhasBrutas = XLSX.utils.sheet_to_json(worksheet);
+
+      if (linhasBrutas.length === 0) {
+        alert('A planilha está vazia.');
+        return;
+      }
+
+      // Normaliza as chaves para o padrão esperado pela API
+      const linhasMapeadas = linhasBrutas.map(l => ({
+        setor: l.Setor || l.setor,
+        sku: l.SKU || l.sku || l.Codigo,
+        descricao: l.Descricao || l.desc || l.descricao,
+        fornecedor: l.Fornecedor || l.fornecedor,
+        valorUnit: l.ValorUnit || l.valor_unit || 0,
+        qtd: l.Qtd || l.quantidade || 1,
+        codDiv: l.CodDiv || l.cod_divergencia || 'GERAL',
+        status: l.Status || l.status || 'PENDENTE',
+        responsavel: l.Responsavel || l.responsavel,
+        data: l.Data || l.data,
+        prazoCorrecao: l.Prazo || l.prazo_correcao,
+        obs: l.Obs || l.observacao
+      }));
+
+      const resultado = await importarDivergenciasPlanilha(linhasMapeadas);
+      alert(`Importação concluída! Criadas: ${resultado.criadas}, Ignoradas: ${resultado.ignoradas}`);
+      
+      // Recarrega os dados e atualiza os relatórios na tela
+      await carregarTudoDoServidor();
+      if (typeof atualizarTabelasRelatorio === 'function') {
+        atualizarTabelasRelatorio();
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Erro ao processar o arquivo: ' + err.message);
+    }
+  };
+
+  leitor.readAsArrayBuffer(arquivo);
 }
 
 /* Preenche um container vazio (já presente no innerHTML da página) com a seção de

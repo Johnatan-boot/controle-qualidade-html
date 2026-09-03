@@ -58,3 +58,8 @@ function alternarVisibilidadeSenha(inputId, btnEl){
   input.type = oculto ? 'text' : 'password';
   if(btnEl) btnEl.textContent = oculto ? '🙈' : '👁️';
 }
+
+
+async function importarDivergenciasPlanilha(linhas) {
+  return await apiPost('/api/divergencias-produtos/importar', linhas);
+}

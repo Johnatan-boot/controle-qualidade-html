@@ -216,6 +216,54 @@ router.post('/divergencias-produtos', asyncHandler(async (req, res) => {
   res.status(201).json(mapDivergenciaProduto(rows[0]));
 }));
 
+router.post('/divergencias-produtos/importar', asyncHandler(async (req, res) => {
+  const linhas = Array.isArray(req.body) ? req.body : [];
+  let criadas = 0, ignoradas = 0;
+  
+  for (const l of linhas) {
+    if (!l || !l.sku || !l.setor) { 
+      ignoradas++; 
+      continue; 
+    }
+    
+    const categoria = await resolverCategoriaDivergencia(l);
+    
+    await pool.query(
+      `INSERT INTO divergencias_produtos
+        (setor, sku, descricao, categoria, fornecedor, valor_unit, qtd, cod_divergencia, outro_cod_div, status, responsavel, data, prazo_correcao, observacao, fotos_json)
+       VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,CAST(? AS JSON))`,
+      [
+        cleanText(l.setor),
+        cleanText(l.sku),
+        cleanText(l.descricao),
+        categoria,
+        cleanText(l.fornecedor),
+        Number(l.valorUnit) || 0,
+        Number(l.qtd) || 1,
+        cleanText(l.codDiv) || 'GERAL',
+        cleanText(l.outroCodDiv),
+        cleanText(l.status) || 'PENDENTE',
+        cleanText(l.responsavel),
+        cleanDate(l.data) || new Date().toISOString().slice(0, 10),
+        cleanDate(l.prazoCorrecao),
+        cleanText(l.obs),
+        JSON.stringify([])
+      ]
+    );
+    criadas++;
+  }
+  
+  await registrarHistorico(
+    'divergencias_produtos', 
+    'lote', 
+    'CRIACAO', 
+    req.usuario.nome, 
+    `${req.usuario.nome} importou planilha de divergências (${criadas} criadas, ${ignoradas} ignoradas).`
+  );
+  
+  res.json({ criadas, ignoradas });
+}));
+
 router.put('/divergencias-produtos/:id', asyncHandler(async (req, res) => {
   const d = req.body || {};
 
@@ -626,5 +674,8 @@ router.put('/usuarios/:id/ativo', requireRole('GESTAO'), asyncHandler(async (req
   const [atualizado] = await pool.query('SELECT * FROM usuarios WHERE id = ?', [req.params.id]);
   res.json(mapUsuario(atualizado[0]));
 }));
+
+
+
 
 module.exports = router;
