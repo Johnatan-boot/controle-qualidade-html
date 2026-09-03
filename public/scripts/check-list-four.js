@@ -817,8 +817,15 @@ function renderProdutos() {
   el.innerHTML = `
     ${podeVerIndicadores() ? renderResumoModulo("produtos") : ""}
     <div class="tabs">${tabs.map(([k, l]) => `<button class="tab-btn ${produtosTab === k ? "active" : ""}" onclick="produtosTab='${k}';renderProdutos();">${l}</button>`).join("")}</div>
-    <div id="produtos-body"></div>`;
+    <div id="produtos-body"></div>
+    <div id="analise-causas-produtos" style="margin-top:24px;"></div>`;
   renderProdutosTabBody();
+  montarSecaoAnaliseCausasEm(
+    "analise-causas-produtos",
+    "Inspeção de Produtos",
+    "produtos",
+    "Inspeção de Produtos",
+  );
 }
 function renderProdutosTabBody() {
   if (produtosTab === "novo") renderNovoProdutos();
@@ -2148,10 +2155,17 @@ function renderGaiolas() {
   el.innerHTML = `
   ${podeVerIndicadores() ? renderResumoModulo("gaiolas") : ""}
   <div class="tabs">${tabs.map(([k, l]) => `<button class="tab-btn ${gaiolasTab === k ? "active" : ""}" onclick="gaiolasTab='${k}';renderGaiolas();">${l}</button>`).join("")}</div>
-  <div id="gaiolas-body"></div>`;
+  <div id="gaiolas-body"></div>
+  <div id="analise-causas-estoque" style="margin-top:24px;"></div>`;
   if (gaiolasTab === "novo") renderNovoGaiolas();
   else if (gaiolasTab === "pendencias") renderPendenciasGaiolas();
   else renderHistoricoGaiolas();
+  montarSecaoAnaliseCausasEm(
+    "analise-causas-estoque",
+    "Inspeção de Estoque",
+    "estoque",
+    "Inspeção de Estoque",
+  );
 }
 function renderNovoGaiolas() {
   estoqueDivergenciasState = [blankDivergenciaEstoque()];
@@ -2573,10 +2587,17 @@ function render5S() {
   el.innerHTML = `
   ${podeVerIndicadores() ? renderResumoModulo("5s") : ""}
   <div class="tabs">${tabs.map(([k, l]) => `<button class="tab-btn ${checklist5sTab === k ? "active" : ""}" onclick="checklist5sTab='${k}';render5S();">${l}</button>`).join("")}</div>
-  <div id="5s-body"></div>`;
+  <div id="5s-body"></div>
+  <div id="analise-causas-5s" style="margin-top:24px;"></div>`;
   if (checklist5sTab === "novo") renderNovo5S();
   else if (checklist5sTab === "pendencias") renderPendencias5S();
   else renderHistorico5S();
+  montarSecaoAnaliseCausasEm(
+    "analise-causas-5s",
+    "Check List 5S",
+    "5s",
+    "Check List 5S",
+  );
 }
 function renderNovo5S() {
   checklist5sItensState = CHECKLIST_5S_ITENS_PADRAO.map((it, i) => ({
@@ -3066,8 +3087,15 @@ function renderRecebimento() {
         return `<button class="tab-btn ${recebimentoTab === k ? "active" : ""}" onclick="${onclick}">${l}</button>`;
       })
       .join("")}</div>
-    <div id="recebimento-body"></div>`;
+    <div id="recebimento-body"></div>
+    <div id="analise-causas-recebimento" style="margin-top:24px;"></div>`;
   renderRecebimentoTabBody();
+  montarSecaoAnaliseCausasEm(
+    "analise-causas-recebimento",
+    "Inspeção de Recebimento",
+    "recebimento",
+    "Inspeção de Recebimento",
+  );
 }
 function renderRecebimentoTabBody() {
   if (recebimentoTab === "novo") {
@@ -4004,13 +4032,20 @@ function renderIndicadores() {
     <button class="tab-btn ${indicadoresTab === "5s" ? "active" : ""}" onclick="indicadoresTab='5s';renderIndicadores();">Check List 5S</button>
     <button class="tab-btn ${indicadoresTab === "recebimento" ? "active" : ""}" onclick="indicadoresTab='recebimento';renderIndicadores();">Inspeção de Recebimento</button>
     <button class="tab-btn ${indicadoresTab === "relatorios" ? "active" : ""}" onclick="indicadoresTab='relatorios';renderIndicadores();">📑 Relatórios</button>
-  </div><div id="indicadores-body"></div>`;
+  </div><div id="indicadores-body"></div>
+  <div id="analise-causas-indicadores" style="margin-top:24px;"></div>`;
   if (indicadoresTab === "painel") renderPainelGerencial();
   else if (indicadoresTab === "produtos") renderIndicadoresProdutos();
   else if (indicadoresTab === "gaiolas") renderIndicadoresGaiolas();
   else if (indicadoresTab === "5s") renderIndicadores5S();
   else if (indicadoresTab === "recebimento") renderIndicadoresRecebimento();
   else renderRelatorios();
+  montarSecaoAnaliseCausasEm(
+    "analise-causas-indicadores",
+    null,
+    "indicadores",
+    "Indicadores (todos os módulos)",
+  );
 }
 /* ---- Status padronizado da aba Relatórios (seção 3 do escopo) --------------
    O backend guarda estados de fluxo de correção (PENDENTE/EM_ESPERA/CORRIGIDO,
@@ -5365,7 +5400,10 @@ const SENSO_LABEL_QUALIDADE = {
 // Fonte unificada de ocorrências de divergência/não conformidade de todos os módulos, usada pelo
 // Ishikawa, Pareto e Heatmap. Cada ocorrência: {origem, eixo (setor/fornecedor), tipo, categoria, data}.
 let qualidadeFiltros = { dataIni: "", dataFim: "", origem: "" };
-function ocorrenciasQualidade() {
+// Coleta TODAS as ocorrências (sem aplicar os filtros de data/origem da aba Qualidade).
+// Usada tanto pela aba Qualidade (que aplica filtros por cima) quanto pelas seções de
+// Análise de Causas (Ishikawa/Pareto/Heatmap) replicadas em cada módulo.
+function coletarOcorrenciasQualidade() {
   const out = [];
   divergencias.forEach((d) => {
     out.push({
@@ -5451,7 +5489,12 @@ function ocorrenciasQualidade() {
       });
     }
   });
-  return out.filter((o) => {
+  return out;
+}
+// Aplica os filtros de data/origem (usados na aba Qualidade) sobre a coleta completa.
+function ocorrenciasQualidade() {
+  const todas = coletarOcorrenciasQualidade();
+  return todas.filter((o) => {
     if (qualidadeFiltros.dataIni && o.data < qualidadeFiltros.dataIni)
       return false;
     if (qualidadeFiltros.dataFim && o.data > qualidadeFiltros.dataFim)
@@ -5460,6 +5503,11 @@ function ocorrenciasQualidade() {
       return false;
     return true;
   });
+}
+// Ocorrências de um único módulo/origem (ex: "Inspeção de Produtos"), usada para a
+// Análise de Causas específica de cada área de navegação.
+function ocorrenciasPorOrigem(origem) {
+  return coletarOcorrenciasQualidade().filter((o) => o.origem === origem);
 }
 function aplicarFiltroQualidade() {
   qualidadeFiltros = {
@@ -5496,21 +5544,10 @@ function ishikawaBoneHtml(categoria, itens, lado) {
     ${causas}
   </div>`;
 }
-function renderQualidade() {
-  const el = document.getElementById("page-content");
-  const ocorrencias = ocorrenciasQualidade();
-  const origensOpts = [
-    "Inspeção de Produtos",
-    "Inspeção de Estoque",
-    "Check List 5S",
-    "Inspeção de Recebimento",
-  ]
-    .map(
-      (o) =>
-        `<option value="${o}" ${qualidadeFiltros.origem === o ? "selected" : ""}>${o}</option>`,
-    )
-    .join("");
-
+/* ---- Núcleo reaproveitável: monta os dados de Ishikawa/Pareto/Heatmap a partir de
+   uma lista de ocorrências já filtrada (por módulo, ou combinada). Usado pela aba
+   Qualidade e pelas seções "Análise de Causas" replicadas em cada área. ---- */
+function montarAnaliseCausas(ocorrencias) {
   /* ---- Ishikawa: agrupar por categoria, e dentro de cada categoria por tipo ---- */
   const porCategoria = {};
   CATEGORIAS_ISHIKAWA.forEach((c) => (porCategoria[c] = {}));
@@ -5526,7 +5563,7 @@ function renderQualidade() {
   const topoCategorias = categoriasOrdenadas.slice(0, 3);
   const baixoCategorias = categoriasOrdenadas.slice(3, 6);
 
-  /* ---- Pareto: por tipo de divergência (todas as origens), com % acumulado ---- */
+  /* ---- Pareto: por tipo de divergência, com % acumulado ---- */
   const porTipo = {};
   ocorrencias.forEach((o) => {
     porTipo[o.tipo] = (porTipo[o.tipo] || 0) + 1;
@@ -5574,22 +5611,40 @@ function renderQualidade() {
     .slice(0, 12)
     .map((x) => x.e);
 
-  el.innerHTML = `
-    <div class="card" style="padding:18px 24px;margin-bottom:24px;display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end;">
-      <label style="font-size:13px;">Data inicial<br><input type="date" id="ql-data-ini" value="${qualidadeFiltros.dataIni}"></label>
-      <label style="font-size:13px;">Data final<br><input type="date" id="ql-data-fim" value="${qualidadeFiltros.dataFim}"></label>
-      <label style="font-size:13px;">Origem<br><select id="ql-origem"><option value="">Todas</option>${origensOpts}</select></label>
-      <button class="btn btn-brass" onclick="aplicarFiltroQualidade()">Filtrar</button>
-      <button class="btn btn-ghost" onclick="limparFiltroQualidade()">Limpar filtros</button>
-      <span style="margin-left:auto;font-size:13px;color:var(--ink-faint);">${totalOcorrencias} ocorrência(s) no período filtrado, considerando todos os módulos.</span>
-    </div>
+  return {
+    topoCategorias,
+    baixoCategorias,
+    totalOcorrencias,
+    paretoPct,
+    eixos,
+    tiposHeat,
+    heatMatrix,
+    maxCel,
+    eixosOrdenados,
+  };
+}
 
-    <div class="card" style="padding:24px;margin-bottom:24px;">
+/* Monta o HTML dos 3 cartões (Ishikawa / Pareto / Heatmap) a partir dos dados já
+   calculados por montarAnaliseCausas(). idPrefix garante ids únicos por página
+   (ex: "produtos", "estoque", "5s", "recebimento", "indicadores", "qualidade"). */
+function analiseCausasBlocosHtml(dados, idPrefix) {
+  const {
+    topoCategorias,
+    baixoCategorias,
+    totalOcorrencias,
+    paretoPct,
+    tiposHeat,
+    heatMatrix,
+    maxCel,
+    eixosOrdenados,
+  } = dados;
+  return `
+    <div id="ishikawa-${idPrefix}" class="card" style="padding:24px;margin-bottom:24px;scroll-margin-top:90px;">
       <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
         <h3 class="font-display" style="margin:0;font-size:17px;">🐟 Diagrama de Ishikawa (Espinha de Peixe)</h3>
-        <span class="kpi-tip" title="Gerado automaticamente a partir das divergências e não conformidades registradas em todos os módulos, categorizadas nas 6 causas clássicas (6M).">ⓘ</span>
+        <span class="kpi-tip" title="Gerado automaticamente a partir das divergências e não conformidades registradas, categorizadas nas 6 causas clássicas (6M).">ⓘ</span>
       </div>
-      <p style="margin:0 0 18px;font-size:13px;color:var(--ink-faint);">Efeito analisado: <strong>Divergências de Qualidade no CD</strong> — causas agrupadas automaticamente a partir dos registros do período.</p>
+      <p style="margin:0 0 18px;font-size:13px;color:var(--ink-faint);">Efeito analisado: <strong>Divergências de Qualidade</strong> — causas agrupadas automaticamente a partir dos registros do período.</p>
       <div class="grid grid-3" style="margin-bottom:14px;">
         ${topoCategorias.map((c) => ishikawaBoneHtml(c.nome, c.itens, "top")).join("")}
       </div>
@@ -5601,15 +5656,15 @@ function renderQualidade() {
       </div>
     </div>
 
-    <div class="card" style="padding:24px;margin-bottom:24px;">
+    <div id="pareto-${idPrefix}" class="card" style="padding:24px;margin-bottom:24px;scroll-margin-top:90px;">
       <div style="display:flex;align-items:center;gap:6px;margin-bottom:16px;">
         <h3 class="font-display" style="margin:0;font-size:17px;">📈 Diagrama de Pareto — Tipos de Divergência</h3>
-        <span class="kpi-tip" title="Frequência de cada tipo de divergência (barras) e percentual acumulado (linha), somando todos os módulos.">ⓘ</span>
+        <span class="kpi-tip" title="Frequência de cada tipo de divergência (barras) e percentual acumulado (linha).">ⓘ</span>
       </div>
-      ${paretoPct.length ? `<div style="position:relative;height:340px;"><canvas id="ql-pareto"></canvas></div>` : `<p style="color:var(--ink-faint);font-size:13px;">Sem dados suficientes no período.</p>`}
+      ${paretoPct.length ? `<div style="position:relative;height:340px;"><canvas id="pareto-canvas-${idPrefix}"></canvas></div>` : `<p style="color:var(--ink-faint);font-size:13px;">Sem dados suficientes no período.</p>`}
     </div>
 
-    <div class="card" style="padding:24px;">
+    <div id="heatmap-${idPrefix}" class="card" style="padding:24px;scroll-margin-top:90px;">
       <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">
         <h3 class="font-display" style="margin:0;font-size:17px;">🔥 Heatmap — Setor/Fornecedor × Tipo de Divergência</h3>
         <span class="kpi-tip" title="Cruzamento entre o setor ou fornecedor de origem e o tipo de divergência; quanto mais escura a célula, maior a quantidade de ocorrências.">ⓘ</span>
@@ -5644,59 +5699,179 @@ function renderQualidade() {
           : `<p style="color:var(--ink-faint);font-size:13px;">Sem dados suficientes no período.</p>`
       }
     </div>`;
+}
 
-  if (paretoPct.length) {
-    new Chart(document.getElementById("ql-pareto"), {
-      data: {
-        labels: paretoPct.map((p) => p.label),
-        datasets: [
-          {
-            type: "bar",
-            label: "Ocorrências",
-            data: paretoPct.map((p) => p.val),
-            backgroundColor: "#a8813a",
-            borderRadius: 6,
-            order: 2,
-            yAxisID: "y",
-          },
-          {
-            type: "line",
-            label: "% Acumulado",
-            data: paretoPct.map((p) => p.pct),
-            borderColor: "#c15b4a",
-            backgroundColor: "#c15b4a",
-            tension: 0.25,
-            yAxisID: "y1",
-            order: 1,
-            pointRadius: 3,
-          },
-        ],
-      },
-      options: {
-        maintainAspectRatio: false,
-        interaction: { mode: "index", intersect: false },
-        plugins: { legend: { display: true, position: "bottom" } },
-        scales: {
-          x: {
-            ticks: { autoSkip: false, maxRotation: 60, minRotation: 30 },
-            grid: { display: false },
-          },
-          y: {
-            beginAtZero: true,
-            position: "left",
-            grid: { color: "#eceef0" },
-          },
-          y1: {
-            beginAtZero: true,
-            max: 100,
-            position: "right",
-            grid: { display: false },
-            ticks: { callback: (v) => v + "%" },
-          },
+/* Inicializa o gráfico de Pareto (Chart.js) do cartão gerado por analiseCausasBlocosHtml(). */
+function initAnaliseCausasChart(dados, idPrefix) {
+  const { paretoPct } = dados;
+  if (!paretoPct.length) return;
+  const canvas = document.getElementById(`pareto-canvas-${idPrefix}`);
+  if (!canvas) return;
+  new Chart(canvas, {
+    data: {
+      labels: paretoPct.map((p) => p.label),
+      datasets: [
+        {
+          type: "bar",
+          label: "Ocorrências",
+          data: paretoPct.map((p) => p.val),
+          backgroundColor: "#a8813a",
+          borderRadius: 6,
+          order: 2,
+          yAxisID: "y",
+        },
+        {
+          type: "line",
+          label: "% Acumulado",
+          data: paretoPct.map((p) => p.pct),
+          borderColor: "#c15b4a",
+          backgroundColor: "#c15b4a",
+          tension: 0.25,
+          yAxisID: "y1",
+          order: 1,
+          pointRadius: 3,
+        },
+      ],
+    },
+    options: {
+      maintainAspectRatio: false,
+      interaction: { mode: "index", intersect: false },
+      plugins: { legend: { display: true, position: "bottom" } },
+      scales: {
+        x: {
+          ticks: { autoSkip: false, maxRotation: 60, minRotation: 30 },
+          grid: { display: false },
+        },
+        y: {
+          beginAtZero: true,
+          position: "left",
+          grid: { color: "#eceef0" },
+        },
+        y1: {
+          beginAtZero: true,
+          max: 100,
+          position: "right",
+          grid: { display: false },
+          ticks: { callback: (v) => v + "%" },
         },
       },
-    });
+    },
+  });
+}
+
+/* Cabeçalho com atalhos de navegação (rolagem) para os 3 diagramas + botões de
+   Exportar PDF / Imprimir. Replicado em todas as páginas (Produtos, Estoque, 5S,
+   Recebimento, Indicadores, Qualidade). */
+function analiseCausasHeaderHtml(idPrefix, tituloArea) {
+  const tituloEsc = String(tituloArea).replace(/'/g, "\\'");
+  return `
+    <div class="card no-print" style="padding:14px 20px;margin-bottom:18px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;">
+      <strong style="margin-right:auto;font-size:13px;">📊 Análise de Causas — ${tituloArea}</strong>
+      <a href="#ishikawa-${idPrefix}" class="btn btn-ghost" style="font-size:12px;padding:6px 10px;">🐟 Diagrama E. Peixe</a>
+      <a href="#pareto-${idPrefix}" class="btn btn-ghost" style="font-size:12px;padding:6px 10px;">📈 Diagrama Pareto</a>
+      <a href="#heatmap-${idPrefix}" class="btn btn-ghost" style="font-size:12px;padding:6px 10px;">🔥 Heatmap Setor/Fornecedor</a>
+      <button class="btn btn-brass" style="font-size:12px;padding:6px 10px;" onclick="exportarPaginaPdf('${idPrefix}','${tituloEsc}')">📄 Exportar PDF</button>
+      <button class="btn btn-ghost" style="font-size:12px;padding:6px 10px;" onclick="window.print()">🖨️ Imprimir</button>
+    </div>`;
+}
+
+/* Monta a seção completa (cabeçalho + 3 cartões) para uma origem específica
+   (ex: "Inspeção de Produtos") ou combinada (origem = null/"" => todos os módulos). */
+function renderSecaoAnaliseCausas(origem, idPrefix, tituloArea) {
+  const ocorrencias = origem
+    ? ocorrenciasPorOrigem(origem)
+    : coletarOcorrenciasQualidade();
+  const dados = montarAnaliseCausas(ocorrencias);
+  const html =
+    analiseCausasHeaderHtml(idPrefix, tituloArea) +
+    analiseCausasBlocosHtml(dados, idPrefix);
+  return { html, dados };
+}
+
+/* Preenche um container vazio (já presente no innerHTML da página) com a seção de
+   Análise de Causas e inicializa o gráfico de Pareto correspondente. */
+function montarSecaoAnaliseCausasEm(containerId, origem, idPrefix, tituloArea) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  const { html, dados } = renderSecaoAnaliseCausas(origem, idPrefix, tituloArea);
+  container.innerHTML = html;
+  initAnaliseCausasChart(dados, idPrefix);
+}
+
+/* Exporta o conteúdo inteiro da página atual (#page-content) como PDF, usando
+   html2canvas + jsPDF (carregados via CDN no check-list.html). Os elementos com a
+   classe "no-print" (barra de atalhos/botões) são ocultados durante a captura. */
+function exportarPaginaPdf(idPrefix, tituloArea) {
+  const el = document.getElementById("page-content");
+  if (!el) return;
+  if (typeof html2canvas === "undefined" || !window.jspdf) {
+    alert(
+      "Não foi possível carregar os recursos de exportação de PDF. Verifique a conexão com a internet e tente novamente.",
+    );
+    return;
   }
+  const escondidos = Array.from(el.querySelectorAll(".no-print"));
+  escondidos.forEach((n) => (n.style.visibility = "hidden"));
+  html2canvas(el, { scale: 2, useCORS: true, backgroundColor: "#ffffff" })
+    .then((canvas) => {
+      escondidos.forEach((n) => (n.style.visibility = ""));
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF("p", "mm", "a4");
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const imgWidth = pageWidth;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      let heightLeft = imgHeight;
+      let position = 0;
+      const imgData = canvas.toDataURL("image/png");
+      pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
+      while (heightLeft > 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+      }
+      const nomeArquivo = `${(tituloArea || idPrefix).replace(/[^a-zA-Z0-9]+/g, "_")}_${new Date().toISOString().slice(0, 10)}.pdf`;
+      pdf.save(nomeArquivo);
+    })
+    .catch((err) => {
+      escondidos.forEach((n) => (n.style.visibility = ""));
+      console.error(err);
+      alert("Não foi possível gerar o PDF desta página.");
+    });
+}
+
+function renderQualidade() {
+  const el = document.getElementById("page-content");
+  const ocorrencias = ocorrenciasQualidade();
+  const origensOpts = [
+    "Inspeção de Produtos",
+    "Inspeção de Estoque",
+    "Check List 5S",
+    "Inspeção de Recebimento",
+  ]
+    .map(
+      (o) =>
+        `<option value="${o}" ${qualidadeFiltros.origem === o ? "selected" : ""}>${o}</option>`,
+    )
+    .join("");
+
+  const dados = montarAnaliseCausas(ocorrencias);
+
+  el.innerHTML = `
+    ${analiseCausasHeaderHtml("qualidade", "Qualidade")}
+    <div class="card" style="padding:18px 24px;margin-bottom:24px;display:flex;gap:14px;flex-wrap:wrap;align-items:flex-end;">
+      <label style="font-size:13px;">Data inicial<br><input type="date" id="ql-data-ini" value="${qualidadeFiltros.dataIni}"></label>
+      <label style="font-size:13px;">Data final<br><input type="date" id="ql-data-fim" value="${qualidadeFiltros.dataFim}"></label>
+      <label style="font-size:13px;">Origem<br><select id="ql-origem"><option value="">Todas</option>${origensOpts}</select></label>
+      <button class="btn btn-brass" onclick="aplicarFiltroQualidade()">Filtrar</button>
+      <button class="btn btn-ghost" onclick="limparFiltroQualidade()">Limpar filtros</button>
+      <span style="margin-left:auto;font-size:13px;color:var(--ink-faint);">${dados.totalOcorrencias} ocorrência(s) no período filtrado, considerando todos os módulos.</span>
+    </div>
+    ${analiseCausasBlocosHtml(dados, "qualidade")}`;
+
+  initAnaliseCausasChart(dados, "qualidade");
 }
 
 /* ==================== USUÁRIOS ==================== */
